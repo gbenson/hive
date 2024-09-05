@@ -1,0 +1,18 @@
+penguin:[~]$ cd ~/projects/hivesite
+penguin:[hivesite]$ ssh hivesite
+hivesite:[~]$ grep wgDBpassword gbenson.net/w/LocalSettings.php
+$wgDBpassword = [elided];
+hivesite:[~]$ mysqldump --opt --no-tablespaces \
+    --host=mysql.gbenson.net --user=hivewiki -p \
+    --databases hivewiki > bak/hivewiki-$(date +%Y%m%d).sql
+Enter password:
+hivesite:[~]$ xz bak/hivewiki-$(date +%Y%m%d).sql
+hivesite:[~]$ exit
+penguin:[hivesite]$ ./init-database
+penguin:[hivesite]$ docker compose up -d database
+
+penguin:[hivesite]$ docker compose logs -f database
+
+
+penguin:[hivesite]$ source database/settings.env
+penguin:[hivesite]$ mysql -u$MYSQL_USER -pMYSQL_PASSWORD $MYSQL_DATABASE

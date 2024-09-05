@@ -1,0 +1,5 @@
+# Common cross-package dependencies for development and CI
+flake8
+flake8-quotes
+pytest
+pytest-cov

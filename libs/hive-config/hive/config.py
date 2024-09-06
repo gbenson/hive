@@ -8,12 +8,13 @@ from collections.abc import Iterable
 
 def user_config_dir() -> Optional[str]:
     """https://pkg.go.dev/os#UserConfigDir"""
-    homedir = os.environ.get("XDG_CONFIG_HOME")
-    if not homedir:
-        homedir = os.environ.get("HOME")
-        if not homedir:
-            return None
-    return os.path.join(homedir, ".config")
+    dirname = os.environ.get("XDG_CONFIG_HOME")
+    if dirname:
+        return dirname
+    homedir = os.environ.get("HOME")
+    if homedir:
+        return os.path.join(homedir, ".config")
+    return None
 
 
 class Reader:

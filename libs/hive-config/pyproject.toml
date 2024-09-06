@@ -1,6 +1,6 @@
 [project]
 name = "hive-config"
-version = "0.0.1"
+version = "0.0.2"
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Configuration management for Hive"
 readme = "README.md"

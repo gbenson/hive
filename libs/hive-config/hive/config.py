@@ -53,7 +53,7 @@ class Reader:
 
     def _read_yaml(self, filename):
         with open(filename) as fp:
-            return yaml.load(fp, Loader=yaml.Loader)
+            return yaml.safe_load(fp)
 
 
 DEFAULT_READER = Reader()

@@ -1,5 +1,6 @@
 import weakref
 
+from datetime import timedelta
 from typing import Any, Callable, Optional
 
 from mediawiki import MediaWiki as PyMediaWiki
@@ -11,14 +12,14 @@ from hive.config import read as read_config
 SECOND = SECONDS = 1
 MINUTE = MINUTES = 60 * SECONDS
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __url__ = "https://github.com/gbenson/hive"
 
 
 class MediaWiki(PyMediaWiki):
     DEFAULT_CONFIG_KEY = "mediawiki"
     MAX_REQUEST_TIMEOUT = 10 * MINUTES
-    MIN_REQUEST_INTERVAL = 10 / SECOND
+    MIN_REQUEST_INTERVAL = timedelta(seconds=SECOND / 10)
 
     def __init__(self, **kwargs):
         config_sect = self.DEFAULT_CONFIG_KEY

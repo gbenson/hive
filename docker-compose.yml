@@ -1,0 +1,20 @@
+version: "3.2"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3
+    restart: unless-stopped
+    networks:
+      - message-bus
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    hostname: rabbit
+    env_file: ~/.config/gbenson/hive/rabbitmq.env
+
+networks:
+  default:
+  message-bus:
+    internal: true
+
+volumes:
+  rabbitmq:

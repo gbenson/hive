@@ -9,7 +9,7 @@ services:
     volumes:
       - rabbitmq:/var/lib/rabbitmq
     hostname: rabbit
-    env_file: ~/.config/gbenson/hive/rabbitmq.env
+    env_file: ./.config/rabbitmq.env
 
 networks:
   default:

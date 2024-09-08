@@ -1,0 +1,32 @@
+[project]
+name = "hive-crypto"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Cryptography library for Hive"
+readme = "README.md"
+dependencies = [
+    "PyNaCl",
+]
+
+[project.urls]
+Homepage = "https://github.com/gbenson/hive/tree/main/libs/hive-crypto"
+Source = "https://github.com/gbenson/hive"
+
+[project.scripts]
+hive-keygen = "hive.crypto.keygen:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.crypto.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.crypto"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

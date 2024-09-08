@@ -1,5 +1,19 @@
 # Hive
 
+## Invocation
+
+Normal (production, hardened) startup:
+
+```sh
+docker compose up -d
+```
+
+Start with exposed RabbitMQ ports, for development and testing:
+
+```sh
+HIVE_ISOLATE_RABBITMQ=false docker compose up -d
+```
+
 ## Development
 
 ### Python

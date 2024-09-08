@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+  echo >&2 "usage: `basename $0` OUTPUT_DIR"
+  exit 2
+fi
+
+module_subdir=$(cd "$1" && pwd)
+module=$(basename "$module_subdir")
+module_topdir=$(dirname "$module_subdir")
+
+if [ $(basename "$module_topdir") != "hive" ]; then
+  echo >&2 "error: $1"
+  exit 1
+fi
+
+package_topdir=$(dirname "$module_topdir")
+package=$(basename "$package_topdir")
+
+if [ "$package" != "hive-$module" ]; then
+  echo >&2 "error: $1"
+  exit 1
+fi
+
+version=$(echo "$GITHUB_REF_NAME" | sed "s/^$package-//")
+n='[0-9][0-9]*'
+d='\.'
+if echo "$version" | grep "^$n$d$n$d$n\$"; then
+  :
+else
+  echo >&2 "error: $GITHUB_REF_NAME"
+  exit 1
+fi
+
+filename="$module_subdir/__version__.py"
+echo "__version__ = \"$version\"" > "$filename"
+echo >&2 "$filename:"
+cat >&2 "$filename"

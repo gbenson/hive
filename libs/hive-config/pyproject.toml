@@ -1,6 +1,6 @@
 [project]
 name = "hive-config"
-version = "0.0.4"
+dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Configuration management for Hive"
 readme = "README.md"
@@ -15,6 +15,9 @@ Source = "https://github.com/gbenson/hive"
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.config.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.config"

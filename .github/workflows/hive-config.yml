@@ -30,7 +30,11 @@ jobs:
       - name: Install build+test requirements
         run: >-
           python3 -m
-          pip install --user -r ../../ci-requirements.txt
+          pip install --user -r ../../ci/requirements.txt
+
+      - name: Write __version__.py
+        if: startsWith(github.ref, 'refs/tags/hive-config-')
+        run: ../../ci/write-version-py hive/config
 
       - name: Lint
         run: flake8
@@ -54,7 +58,7 @@ jobs:
 
   publish-to-pypi:
     name: Publish hive-config to PyPI
-    if: startsWith(github.ref, 'refs/tags/hive-config-')  # only publish on tag pushes
+    if: startsWith(github.ref, 'refs/tags/hive-config-')
     needs:
       - build
     runs-on: ubuntu-latest

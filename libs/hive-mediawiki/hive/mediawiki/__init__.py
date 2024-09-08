@@ -9,10 +9,11 @@ from requests.auth import AuthBase, HTTPBasicAuth
 
 from hive.config import read as read_config
 
+from .__version__ import __version__
+
 SECOND = SECONDS = 1
 MINUTE = MINUTES = 60 * SECONDS
 
-__version__ = "0.0.2"
 __url__ = "https://github.com/gbenson/hive"
 
 

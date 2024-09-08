@@ -18,7 +18,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "hive.mediawiki.__version__"}
+version = {attr = "hive.mediawiki.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.mediawiki"

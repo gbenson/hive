@@ -1,3 +1,3 @@
 # Cross-package build+test dependencies required for CI
--r requirements.txt
+-r ../requirements.txt
 build

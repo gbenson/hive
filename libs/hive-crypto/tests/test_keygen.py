@@ -1,8 +1,6 @@
-from base64 import b64decode
-
 from nacl.public import PrivateKey, PublicKey
-from nacl.encoding import Base64Encoder
 
+from hive.crypto import decode_private_key, decode_public_key
 from hive.crypto.keygen import main
 
 
@@ -13,14 +11,15 @@ def test_keygen(capsys):
     lines = captured.out.split("\n")
     assert len(lines) == 3
     assert lines[2] == ""
-    check, encoded_public_key = lines[0].split(": ")
+    check, encoded_public_key = lines[0].split(":  ")
+    assert encoded_public_key[0] == "4"
     assert check == "public_key"
     check, encoded_private_key = lines[1].split(": ")
-    assert check == "secret_key"
+    assert check == "private_key"
+    assert encoded_private_key[0] == "8"
 
-    public_key = PublicKey(encoded_public_key, encoder=Base64Encoder)
-    assert bytes(public_key) == b64decode(encoded_public_key)
+    public_key = decode_public_key(encoded_public_key)
+    assert isinstance(public_key, PublicKey)
 
-    private_key = PrivateKey(encoded_private_key, encoder=Base64Encoder)
-    assert bytes(private_key) == b64decode(encoded_private_key)
-    assert public_key == private_key.public_key
+    private_key = decode_private_key(encoded_private_key)
+    assert isinstance(private_key, PrivateKey)

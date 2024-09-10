@@ -1,0 +1,10 @@
+how to get the public key to encrypt messages to a queue?
+ 1) it's a config secret
+ 2) when service starts, it... hmmm... what?
+
+when service wants to send to a queue
+sends "hello" message with queue name and 
+
+service starts, 
+sends "hello" message with public key,
+

@@ -29,6 +29,7 @@ class Reader:
             ".yml",
             ".yaml",
             ".json",
+            ".env",
         ]
 
     def get_filename_for(self, key: str) -> str:
@@ -43,9 +44,16 @@ class Reader:
     def read(self, key: str, type: str = "yaml"):
         filename = self.get_filename_for(key)
         ext = os.path.splitext(filename)[1].lstrip(".")
-        if ext == "json":
+        if ext in {"env", "json"}:
             type = ext
         return getattr(self, f"_read_{type}")(filename)
+
+    def _read_env(self, filename):
+        with open(filename) as fp:
+            lines = fp.readlines()
+        lines = [line.split("#", 1)[0].strip() for line in lines]
+        items = [line.split("=", 1) for line in lines if line]
+        return dict((k.rstrip(), v.lstrip()) for k, v in items)
 
     def _read_json(self, filename):
         with open(filename) as fp:

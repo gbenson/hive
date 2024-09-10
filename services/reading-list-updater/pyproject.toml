@@ -1,0 +1,29 @@
+[project]
+name = "hive-reading-list-updater"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Reading list updater for Hive"
+dependencies = [
+    "hive-config",
+    "hive-mediawiki",
+    "hive-messaging",
+]
+
+[project.scripts]
+shl-ng = "hive.reading_list_updater.share_link:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.reading_list_updater.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.reading_list_updater"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

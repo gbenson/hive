@@ -7,8 +7,8 @@ services:
     #networks:
     #  - message-bus
     ports:
-      - 127.0.0.1:5672:5672/tcp    # connection
-      - 127.0.0.1:15672:15672/tcp  # management
+      - 5672:5672/tcp   # connection
+      - 15672:15672/tcp  # management
     volumes:
       - rabbitmq:/var/lib/rabbitmq
     hostname: rabbit
@@ -17,7 +17,6 @@ services:
 #networks:
 #  default:
 #  message-bus:
-#    internal: ${HIVE_ISOLATE_RABBITMQ:-true}
 
 volumes:
   rabbitmq:

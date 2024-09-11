@@ -33,21 +33,40 @@ class MessageBus:
     credentials_key: str = "rabbitmq"
 
     @property
-    def credentials(self):
+    def credentials(self) -> PlainCredentials:
         env = read_config(self.credentials_key)
         return PlainCredentials(
             env["RABBITMQ_DEFAULT_USER"],
             env["RABBITMQ_DEFAULT_PASS"],
         )
 
-    def blocking_connection(self, **kwargs) -> BlockingConnection:
-        for key in ("host", "port", "credentials"):
-            if key in kwargs:
-                continue
-            kwargs[key] = getattr(self, key)
+    def connection_parameters(
+            self,
+            host: Optional[str] = None,
+            port: Optional[int] = None,
+            credentials: Optional[PlainCredentials] = None,
+            heartbeat: int = 600,
+            blocked_connection_timeout: int = 300,
+            **kwargs
+    ) -> ConnectionParameters:
+        if not host:
+            host = self.host
+        if not port:
+            port = self.port
+        if not credentials:
+            credentials = self.credentials
 
-        params = ConnectionParameters(**kwargs)
-        return BlockingConnection(params)
+        return ConnectionParameters(
+            host=host,
+            port=port,
+            credentials=credentials,
+            heartbeat=heartbeat,
+            blocked_connection_timeout=blocked_connection_timeout,
+            **kwargs
+        )
+
+    def blocking_connection(self, **kwargs) -> BlockingConnection:
+        return BlockingConnection(self.connection_parameters(**kwargs))
 
     @staticmethod
     def _encapsulate(

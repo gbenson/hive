@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from hive import messagebus as msgbus
+from hive import messaging as msgbus
 
 
 def test_send_to_queue(test_credentials):

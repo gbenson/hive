@@ -3,8 +3,8 @@ name: hive-crypto
 on:
   push:
     branches:
-      - main
-      - candidate
+      #- main
+      #- candidate
       - hive-crypto-candidate
     tags:
       - "hive-crypto-[0-9]+.[0-9]+.[0-9]+"

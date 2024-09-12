@@ -29,6 +29,4 @@ def test_credentials(real_credentials, test_config_dir):  # noqa: F811
             key = f"RABBITMQ_DEFAULT_{attr[:4].upper()}"
             value = getattr(creds, attr)
             print(f"{key}={value}", file=fp)
-    with open(os.path.join(test_config_dir, "rabbitmq.env")) as fp:
-        print(repr(fp.read()))
     return DEFAULT_MESSAGE_BUS.credentials

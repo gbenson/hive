@@ -4,7 +4,6 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Messaging layer for Hive"
 readme = "README.md"
-requires-python = ">=3.10"  # match..case
 dependencies = [
     "hive-config",
     "pika",
@@ -13,6 +12,9 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/gbenson/hive/tree/main/libs/messaging"
 Source = "https://github.com/gbenson/hive"
+
+[project.scripts]
+smoke-test-worker = "hive.messaging.test.smoke_test_worker:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

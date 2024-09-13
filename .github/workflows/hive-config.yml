@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - candidate
-      - hive-config-candidate
+      - hive-config
     tags:
       - "hive-config-[0-9]+.[0-9]+.[0-9]+"
 

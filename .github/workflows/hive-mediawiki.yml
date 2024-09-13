@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - candidate
-      - hive-mediawiki-candidate
+      - hive-mediawiki
     tags:
       - "hive-mediawiki-[0-9]+.[0-9]+.[0-9]+"
 

@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: libs/hive-crypto
+        working-directory: libs/crypto
 
     steps:
       - name: Checkout repository
@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
-          path: libs/hive-crypto/dist
+          path: libs/crypto/dist
 
   publish-to-pypi:
     name: Publish hive-crypto to PyPI

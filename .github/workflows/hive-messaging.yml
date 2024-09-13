@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - candidate
-      - hive-messaging-candidate
+      - hive-messaging
     tags:
       - "hive-messaging-[0-9]+.[0-9]+.[0-9]+"
 
@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: libs/hive-messaging
+        working-directory: libs/messaging
 
     services:
       rabbitmq:
@@ -66,7 +66,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
-          path: libs/hive-messaging/dist
+          path: libs/messaging/dist
 
   publish-to-pypi:
     name: Publish hive-messaging to PyPI

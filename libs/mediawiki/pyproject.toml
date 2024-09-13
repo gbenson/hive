@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/gbenson/hive/tree/main/libs/hive-mediawiki"
+Homepage = "https://github.com/gbenson/hive/tree/main/libs/mediawiki"
 Source = "https://github.com/gbenson/hive"
 
 [build-system]

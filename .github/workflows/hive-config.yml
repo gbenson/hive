@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: libs/hive-config
+        working-directory: libs/config
 
     steps:
       - name: Checkout repository
@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
-          path: libs/hive-config/dist
+          path: libs/config/dist
 
   publish-to-pypi:
     name: Publish hive-config to PyPI

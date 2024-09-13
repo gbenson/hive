@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/gbenson/hive/tree/main/libs/hive-messaging"
+Homepage = "https://github.com/gbenson/hive/tree/main/libs/messaging"
 Source = "https://github.com/gbenson/hive"
 
 [build-system]

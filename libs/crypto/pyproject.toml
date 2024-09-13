@@ -1,26 +1,29 @@
 [project]
-name = "hive-config"
+name = "hive-crypto"
 dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
-description = "Configuration management for Hive"
+description = "Cryptography library for Hive"
 readme = "README.md"
 dependencies = [
-    "PyYAML",
+    "PyNaCl",
 ]
 
 [project.urls]
-Homepage = "https://github.com/gbenson/hive/tree/main/libs/hive-config"
+Homepage = "https://github.com/gbenson/hive/tree/main/libs/crypto"
 Source = "https://github.com/gbenson/hive"
+
+[project.scripts]
+hive-keygen = "hive.crypto.keygen:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "hive.config.__version__.__version__"}
+version = {attr = "hive.crypto.__version__.__version__"}
 
 [tool.pytest.ini_options]
-addopts = "--cov=hive.config"
+addopts = "--cov=hive.crypto"
 
 [tool.coverage.run]
 omit = [

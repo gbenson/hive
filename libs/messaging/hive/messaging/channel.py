@@ -41,3 +41,19 @@ class Channel(WrappedPikaThing):
         if not content_type:
             raise ValueError(f"content_type={content_type}")
         return msg, content_type
+
+    def basic_consume(
+            self,
+            queue: str,
+            on_message_callback,
+            *args,
+            **kwargs
+    ):
+        def _wrapped_callback(channel, *args, **kwargs):
+            return on_message_callback(type(self)(channel), *args, **kwargs)
+        return self._pika.basic_consume(
+            queue=queue,
+            on_message_callback=_wrapped_callback,
+            *args,
+            **kwargs
+        )

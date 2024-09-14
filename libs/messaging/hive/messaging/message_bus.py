@@ -99,7 +99,6 @@ class MessageBus:
                 queue=queue,
                 durable=durable,  # persist across broker restarts
             )
-            channel.confirm_delivery()  # don't fail silently
             channel.basic_publish(
                 exchange="",  # ChannelClosedByBroker: (404, "NOT_FOUND...
                 routing_key=queue,  # UnroutableError: ...

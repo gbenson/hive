@@ -1,7 +1,8 @@
-class Connection:
-    def __init__(self, pika):
-        self._pika = pika
+from .channel import Channel
+from .wrapper import WrappedPikaThing
 
+
+class Connection(WrappedPikaThing):
     def __enter__(self):
         return self
 
@@ -16,7 +17,7 @@ class Connection:
             original Pika behaviour.
         """
         confirm_delivery = kwargs.pop("confirm_delivery", True)
-        channel = self._pika.channel(*args, **kwargs)
+        channel = Channel(self._pika.channel(*args, **kwargs))
         if confirm_delivery:
             channel.confirm_delivery()  # Don't fail silently.
         return channel

@@ -1,23 +1,17 @@
-import json
-import logging
 import os
 
 from dataclasses import dataclass, field
 from typing import Optional
 
 from pika import (
-    BasicProperties,
     BlockingConnection,
     ConnectionParameters,
-    DeliveryMode,
     PlainCredentials,
 )
 
 from hive.config import read as read_config
 
 from .connection import Connection
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -70,42 +64,12 @@ class MessageBus:
         params = self.connection_parameters(**kwargs)
         return Connection(BlockingConnection(params))
 
-    @staticmethod
-    def _encapsulate(
-            msg: bytes | dict,
-            content_type: Optional[str],
-    ) -> tuple[bytes, str]:
-        """Prepare messages for transmission.
-        """
-        if not isinstance(msg, bytes):
-            return json.dumps(msg).encode("utf-8"), "application/json"
-        if not content_type:
-            raise ValueError(f"content_type={content_type}")
-        return msg, content_type
-
-    def send_to_queue(
-            self,
-            queue: str,
-            msg: bytes | dict,
-            content_type: Optional[str] = None,
-            *,
-            durable: bool = True,
-            mandatory: bool = True,
-    ):
-        msg, content_type = self._encapsulate(msg, content_type)
+    def send_to_queue(self, queue: str, *args, **kwargs):
+        durable = kwargs.pop("durable", True)
         with self.blocking_connection() as conn:
             channel = conn.channel()
             channel.queue_declare(
                 queue=queue,
-                durable=durable,  # persist across broker restarts
+                durable=durable,  # Persist across broker restarts.
             )
-            channel.basic_publish(
-                exchange="",  # ChannelClosedByBroker: (404, "NOT_FOUND...
-                routing_key=queue,  # UnroutableError: ...
-                body=msg,
-                properties=BasicProperties(
-                    content_type=content_type,
-                    delivery_mode=DeliveryMode.Persistent,
-                ),
-                mandatory=mandatory,  # don't fail silently
-            )
+            return channel.send_to_queue(queue, *args, **kwargs)

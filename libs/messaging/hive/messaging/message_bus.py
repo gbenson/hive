@@ -2,7 +2,6 @@ import json
 import logging
 import os
 
-from contextlib import closing
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -15,6 +14,8 @@ from pika import (
 )
 
 from hive.config import read as read_config
+
+from .connection import Connection
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +66,9 @@ class MessageBus:
             **kwargs
         )
 
-    def blocking_connection(self, **kwargs) -> BlockingConnection:
-        return BlockingConnection(self.connection_parameters(**kwargs))
+    def blocking_connection(self, **kwargs) -> Connection:
+        params = self.connection_parameters(**kwargs)
+        return Connection(BlockingConnection(params))
 
     @staticmethod
     def _encapsulate(
@@ -91,7 +93,7 @@ class MessageBus:
             mandatory: bool = True,
     ):
         msg, content_type = self._encapsulate(msg, content_type)
-        with closing(self.blocking_connection()) as conn:
+        with self.blocking_connection() as conn:
             channel = conn.channel()
             channel.queue_declare(
                 queue=queue,

@@ -1,3 +1,4 @@
+from .connection import Connection
 from .message_bus import MessageBus
 
 DEFAULT_MESSAGE_BUS = MessageBus()

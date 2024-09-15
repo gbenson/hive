@@ -19,12 +19,12 @@ fi
 package_topdir=$(dirname "$module_topdir")
 package=$(basename "$package_topdir")
 
-if [ "$package" != "hive-$module" ]; then
+if [ "$package" != "$module" ]; then
   echo >&2 "error: $1"
   exit 1
 fi
 
-version=$(echo "$GITHUB_REF_NAME" | sed "s/^$package-//")
+version=$(echo "$GITHUB_REF_NAME" | sed "s/^hive-$package-//")
 n='[0-9][0-9]*'
 d='\.'
 if echo "$version" | grep "^$n$d$n$d$n\$"; then

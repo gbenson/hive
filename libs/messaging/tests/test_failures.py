@@ -27,3 +27,21 @@ def test_broker_not_listening(test_credentials):
     e = excinfo.value
     assert e.errno == ECONNREFUSED
     assert e.strerror == "Connection refused"
+
+
+def test_broker_not_responding(test_credentials):
+    """Test what happens when the broker is listening but doesn't
+    respond in any reasonable time.  Most times this would end up
+    being a "no route to host", but Pika doesn't expose enough to
+    decide if that's happening.
+    """
+    with closing(socket.socket()) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(("", 0))
+        host, port = s.getsockname()
+
+        logger.info("kinda listening on %s", (host, port))
+        msgbus = MessageBus(host=host, port=port)
+
+        with pytest.raises(TimeoutError):
+            msgbus.blocking_connection(socket_timeout=1e-12)  # impossibly fast

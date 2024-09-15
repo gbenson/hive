@@ -68,7 +68,7 @@ class MessageBus:
         except AMQPConnectionError as e:
             e = getattr(e, "args", [None])[0]
             e = getattr(e, "exception", None)
-            if isinstance(e, ConnectionRefusedError):
+            if isinstance(e, (ConnectionRefusedError, TimeoutError)):
                 raise e
             raise
 

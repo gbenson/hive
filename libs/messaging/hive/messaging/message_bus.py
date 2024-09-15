@@ -8,6 +8,7 @@ from pika import (
     ConnectionParameters,
     PlainCredentials,
 )
+from pika.exceptions import AMQPConnectionError
 
 from hive.config import read as read_config
 
@@ -62,7 +63,14 @@ class MessageBus:
 
     def blocking_connection(self, **kwargs) -> Connection:
         params = self.connection_parameters(**kwargs)
-        return Connection(BlockingConnection(params))
+        try:
+            return Connection(BlockingConnection(params))
+        except AMQPConnectionError as e:
+            e = getattr(e, "args", [None])[0]
+            e = getattr(e, "exception", None)
+            if isinstance(e, ConnectionRefusedError):
+                raise e
+            raise
 
     def send_to_queue(self, queue: str, *args, **kwargs):
         durable = kwargs.pop("durable", True)

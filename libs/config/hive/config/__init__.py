@@ -18,7 +18,7 @@ def user_config_dir() -> Optional[str]:
 
 
 class Reader:
-    def __init__(self, subdirs: Iterable[str] = ("gbenson", "hive")):
+    def __init__(self, subdirs: Iterable[str] = ("hive",)):
         self.search_path = [
             os.path.join(dirname, *subdirs)
             for dirname in (user_config_dir(), "/etc")

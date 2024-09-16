@@ -41,6 +41,8 @@ class MessageBus:
             host: Optional[str] = None,
             port: Optional[int] = None,
             credentials: Optional[PlainCredentials] = None,
+            connection_attempts: int = 5,  # * (socket_timeout
+            retry_delay: float = 2.0,  # ...    + retry_delay) = 60 seconds
             heartbeat: int = 600,
             blocked_connection_timeout: int = 300,
             **kwargs
@@ -56,6 +58,8 @@ class MessageBus:
             host=host,
             port=port,
             credentials=credentials,
+            connection_attempts=connection_attempts,
+            retry_delay=retry_delay,
             heartbeat=heartbeat,
             blocked_connection_timeout=blocked_connection_timeout,
             **kwargs
@@ -74,7 +78,7 @@ class MessageBus:
 
     def send_to_queue(self, queue: str, *args, **kwargs):
         durable = kwargs.pop("durable", True)
-        with self.blocking_connection() as conn:
+        with self.blocking_connection(connection_attempts=1) as conn:
             channel = conn.channel()
             channel.queue_declare(
                 queue=queue,

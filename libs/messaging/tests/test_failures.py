@@ -23,7 +23,7 @@ def test_broker_not_listening(test_credentials):
     msgbus = MessageBus(host=host, port=port)
 
     with pytest.raises(ConnectionRefusedError) as excinfo:
-        msgbus.blocking_connection()
+        msgbus.blocking_connection(connection_attempts=1)
     e = excinfo.value
     assert e.errno == ECONNREFUSED
     assert e.strerror == "Connection refused"
@@ -44,4 +44,7 @@ def test_broker_not_responding(test_credentials):
         msgbus = MessageBus(host=host, port=port)
 
         with pytest.raises(TimeoutError):
-            msgbus.blocking_connection(socket_timeout=1e-12)  # impossibly fast
+            msgbus.blocking_connection(
+                connection_attempts=1,
+                socket_timeout=1e-12,  # Impossibly fast...
+            )

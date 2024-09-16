@@ -1,0 +1,26 @@
+[project]
+name = "hive-matrix-connector"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Matrix connector service for Hive"
+readme = "README.md"
+dependencies = [
+    "hive-config",
+    "matrix-commander",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.matrix_connector.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.matrix_connector"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

@@ -19,7 +19,7 @@ fi
 package_topdir=$(dirname "$module_topdir")
 package=$(basename "$package_topdir")
 
-if [ "$package" != "$module" ]; then
+if [ "$package" != $(echo "$module" | sed 's/_/-/g') ]; then
   echo >&2 "error: $1"
   exit 1
 fi

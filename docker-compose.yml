@@ -1,7 +1,7 @@
 version: "3.2"
 
 services:
-  rabbit:
+  rabbitmq:
     image: rabbitmq:3-management
     restart: unless-stopped
     ports:
@@ -14,5 +14,25 @@ services:
     # then comment back out to avoid credential exposure.
     #env_file: ./.config/rabbitmq.env
 
+  matrix-sender:
+    image: gbenson/hive-matrix-connector
+    restart: unless-stopped
+    volumes:
+      - matrix_sender:/var/lib/matrix
+    command:
+      - sleep
+      - infinity
+
+  matrix-receiver:
+    image: gbenson/hive-matrix-connector
+    restart: unless-stopped
+    volumes:
+      - matrix_receiver:/var/lib/matrix
+    command:
+      - sleep
+      - infinity
+
 volumes:
+  matrix_sender:
+  matrix_receiver:
   rabbitmq:

@@ -13,6 +13,7 @@ RUN --mount=type=tmpfs,target=/var/cache \
   && apt-get -y install --no-install-recommends \
        python3 \
        python3-venv \
+       libmagic1 \
   && rm -f /var/lib/dpkg/*-old
 
 RUN --mount=type=tmpfs,target=/root/.cache \
@@ -41,9 +42,9 @@ RUN --mount=type=bind,from=wheel,target=/wheel \
 
 RUN set -eux \
   \
-  && addgroup --system --gid 6617 service \
+  && addgroup --system --gid 6617 matrix \
   && adduser --system --uid 6617 --gid 6617 \
-       --home /srv/service --disabled-password service
+       --home /var/lib/matrix --disabled-password matrix
 
-USER service:service
-WORKDIR /srv/service
+USER matrix:matrix
+WORKDIR /var/lib/matrix

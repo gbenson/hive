@@ -10,6 +10,8 @@ from pika import (
 )
 from pika.exceptions import AMQPConnectionError
 
+from rstream import Producer
+
 from hive.config import read as read_config
 
 from .connection import Connection
@@ -36,8 +38,11 @@ class MessageBus:
             env["RABBITMQ_DEFAULT_PASS"],
         )
 
-    def connection_parameters(
+    # Queues
+
+    def queue_connection_parameters(
             self,
+            *,
             host: Optional[str] = None,
             port: Optional[int] = None,
             credentials: Optional[PlainCredentials] = None,
@@ -66,7 +71,7 @@ class MessageBus:
         )
 
     def blocking_connection(self, **kwargs) -> Connection:
-        params = self.connection_parameters(**kwargs)
+        params = self.queue_connection_parameters(**kwargs)
         try:
             return Connection(BlockingConnection(params))
         except AMQPConnectionError as e:
@@ -85,3 +90,17 @@ class MessageBus:
                 durable=durable,  # Persist across broker restarts.
             )
             return channel.send_to_queue(queue, *args, **kwargs)
+
+    # Streams
+
+    def stream_connection_parameters(self, *, port: int = 5552, **kwargs):
+        return self.queue_connection_parameters(port=port, **kwargs)
+
+    def producer_connection(self, **kwargs) -> Producer:
+        params = self.stream_connection_parameters(**kwargs)
+        creds = params.credentials
+        return Producer(
+            host=params.host,
+            username=creds.username,
+            password=creds.password,
+        )

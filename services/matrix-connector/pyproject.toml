@@ -5,9 +5,12 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Matrix connector service for Hive"
 readme = "README.md"
 dependencies = [
-    "hive-config",
+    "hive-messaging",
     "matrix-commander",
 ]
+
+[project.scripts]
+hive-matrix-receiver = "hive.matrix_connector.receiver:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

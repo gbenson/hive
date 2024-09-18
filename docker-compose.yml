@@ -5,7 +5,8 @@ services:
     image: rabbitmq:3-management
     restart: unless-stopped
     ports:
-      - 5672:5672/tcp   # connection
+      - 5672:5672/tcp    # queues
+      - 5552:5552/tcp    # streams
       - 15672:15672/tcp  # management
     volumes:
       - rabbitmq:/var/lib/rabbitmq
@@ -13,6 +14,10 @@ services:
     # Uncomment when first run, to seed the default user,
     # then comment back out to avoid credential exposure.
     #env_file: ./.config/rabbitmq.env
+    # Also, after its initial setup you need to enable the stream plugins:
+    # - docker-compose exec rabbit rabbitmq-plugins enable rabbitmq_stream{,_management}
+    # Also also, you might want to disable some plugins we're not using:
+    # - docker-compose exec rabbit rabbitmq-plugins disable rabbitmq_{federation,prometheus}
 
   matrix-sender:
     image: gbenson/hive-matrix-connector

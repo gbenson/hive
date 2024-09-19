@@ -105,7 +105,7 @@ class ReportingRestartMonitor(RestartMonitor):
         return {
             ServiceStatus.HEALTHY: "",
             ServiceStatus.DUBIOUS: ":white_question_mark:",
-        }.get(self.status, ":warning:")
+        }.get(self.status, ":fire:")
 
     def report(self, sender: Sender):
         messages = list(self.messages)

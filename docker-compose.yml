@@ -24,9 +24,9 @@ services:
     restart: unless-stopped
     volumes:
       - matrix_sender:/var/lib/matrix
+      - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
     command:
-      - sleep
-      - infinity
+      - hive-matrix-sender
 
   matrix-receiver:
     image: gbenson/hive-matrix-connector

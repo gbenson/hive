@@ -1,6 +1,6 @@
 from hive.common import ArgumentParser
 
-from .. import send_to_queue
+from .. import tell_user
 
 
 class TellUserArgumentParser(ArgumentParser):
@@ -28,7 +28,4 @@ def main():
         parser.add_format_argument(format)
     args = parser.parse_args()
 
-    send_to_queue("matrix.messages.outgoing", {
-        "format": args.format,
-        "messages": [args.message],
-    })
+    tell_user(args.message, format=args.format)

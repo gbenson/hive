@@ -91,6 +91,11 @@ class MessageBus:
             )
             return channel.send_to_queue(queue, *args, **kwargs)
 
+    def tell_user(self, *args, **kwargs):
+        with self.blocking_connection(connection_attempts=1) as conn:
+            channel = conn.channel()
+            return channel.tell_user(*args, **kwargs)
+
     # Streams
 
     def stream_connection_parameters(self, *, port: int = 5552, **kwargs):

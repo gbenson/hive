@@ -1,13 +1,23 @@
 import json
 
-from typing import Optional
+from functools import cached_property
+from typing import Callable, Optional
 
 from pika import BasicProperties, DeliveryMode
 
 from .wrapper import WrappedPikaThing
+from .channel_services import Notifier
 
 
 class Channel(WrappedPikaThing):
+    @cached_property
+    def notifier(self) -> Notifier:
+        return Notifier(self)
+
+    @cached_property
+    def tell_user(self) -> Callable:
+        return self.notifier.tell_user
+
     def send_to_queue(
             self,
             queue: str,

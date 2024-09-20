@@ -5,6 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Messaging layer for Hive"
 readme = "README.md"
 dependencies = [
+    "hive-common",
     "hive-config",
     "pika",
     "rstream",
@@ -31,4 +32,5 @@ addopts = "--cov=hive.messaging"
 omit = [
     "*/venv/*",
     "*/.venv/*",
+    "hive/messaging/test/*",
 ]

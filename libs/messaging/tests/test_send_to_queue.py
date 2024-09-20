@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 
 from hive import messaging as msgbus
+from hive.common.testing import want_to_see
 
 
 def test_send_to_queue(test_credentials, caplog):
@@ -16,10 +17,3 @@ def test_send_to_queue(test_credentials, caplog):
 
     # Ensure we initiated closing the channel
     want_to_see(caplog, "Closing connection (200): Normal shutdown")
-
-
-# Helpers
-
-def want_to_see(caplog, msg):
-    failure_detail = f"didn't see: {msg}"
-    assert any(r.getMessage() == msg for r in caplog.records), failure_detail

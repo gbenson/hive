@@ -16,6 +16,7 @@ Homepage = "https://github.com/gbenson/hive/tree/main/libs/messaging"
 Source = "https://github.com/gbenson/hive"
 
 [project.scripts]
+hive-tell-user = "hive.messaging.commands.tell_user:main"
 smoke-test-worker = "hive.messaging.test.smoke_test_worker:main"
 
 [build-system]

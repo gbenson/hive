@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from hive import messaging as msgbus
+from .. import send_to_queue
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
         help="format of the messages")
     args = parser.parse_args()
 
-    msgbus.send_to_queue("matrix.messages.outgoing", {
+    send_to_queue("matrix.messages.outgoing", {
         "format": args.format,
         "messages": args.messages,
     })

@@ -42,6 +42,7 @@ RUN --mount=type=bind,from=wheel,target=/wheel \
 
 RUN set -eux \
   \
+  && ln -s ../../venv/bin/matrix-commander /usr/bin \
   && ln -s ../../venv/bin/hive-matrix-sender /usr/bin \
   && ln -s ../../venv/bin/hive-matrix-receiver /usr/bin
 

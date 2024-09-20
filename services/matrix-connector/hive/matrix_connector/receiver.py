@@ -8,9 +8,8 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Iterable, Literal, Optional
 
+from hive.common.units import GiB
 from hive.messaging import producer_connection
-
-from .units import GiB
 
 logger = logging.getLogger(__name__)
 d = logger.debug

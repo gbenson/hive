@@ -6,12 +6,24 @@
 
 Matrix connector service for Hive.
 
-## Setup
-
-### Development
+## Set up development environment
 
 ```sh
+git clone https://github.com/gbenson/hive.git
+cd hive/services/matrix-connector
+python3 -m venv .venv
+. .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 pip install -e .
+flake8
+```
+
+## Create sessions
+
+### In development environment
+
+```sh
 matrix-commander --login password
 # ...follow prompts...
 mkdir -p -m700 ~/.{config,local/share}/matrix-commander
@@ -22,7 +34,7 @@ matrix-commander --verify
 matrix-commander -m 'hello world!'
 ```
 
-### Production
+### In production container
 
 ```sh
 docker-compose exec matrix-sender bash

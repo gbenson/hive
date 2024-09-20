@@ -9,10 +9,9 @@ from enum import Enum
 from pika import BasicProperties
 from pika.spec import Basic
 
+from hive.common.units import SECONDS, MINUTES
 from hive.messaging import Channel, blocking_connection
 from hive.service import RestartMonitor, ServiceStatus
-
-from .units import SECONDS, MINUTES
 
 logger = logging.getLogger(__name__)
 d = logger.debug

@@ -1,0 +1,26 @@
+[project]
+name = "hive-common"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Common code for Hive libraries and services"
+readme = "README.md"
+
+[project.urls]
+Homepage = "https://github.com/gbenson/hive/tree/main/libs/common"
+Source = "https://github.com/gbenson/hive"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.common.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.common"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

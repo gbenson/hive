@@ -27,6 +27,7 @@ services:
       - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
     command:
       - hive-matrix-sender
+      - --consume=matrix.messages.outgoing
 
   matrix-receiver:
     image: gbenson/hive-matrix-connector

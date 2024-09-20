@@ -9,6 +9,7 @@ from enum import Enum
 from pika import BasicProperties
 from pika.spec import Basic
 
+from hive.common import ArgumentParser
 from hive.common.units import SECONDS, MINUTES
 from hive.messaging import Channel, blocking_connection
 from hive.service import RestartMonitor, ServiceStatus
@@ -17,6 +18,8 @@ logger = logging.getLogger(__name__)
 d = logger.debug
 
 MessageFormat = Enum("MessageFormat", "TEXT HTML MARKDOWN CODE EMOJIZE")
+
+DEFAULT_INPUT_QUEUE = "test.matrix.messages.outgoing"
 
 
 class Sender:
@@ -119,13 +122,22 @@ class ReportingRestartMonitor(RestartMonitor):
 
 
 def main():
+    parser = ArgumentParser(
+        description="Publish messages to Hive's Matrix room.",
+    )
+    parser.add_argument(
+        "--consume", dest="queue", default=DEFAULT_INPUT_QUEUE,
+        help=f"queue to consume [default: {DEFAULT_INPUT_QUEUE}]",
+    )
+    args = parser.parse_args()
+
     logging.basicConfig(level=logging.INFO)
     rsm = ReportingRestartMonitor()
     logger.info("Service status: %s", rsm.status.name)
     sender = Sender()
     rsm.report(sender)
 
-    queue = "matrix.messages.outgoing"
+    queue = args.queue
     with blocking_connection() as conn:
         channel = conn.channel()
         channel.queue_declare(

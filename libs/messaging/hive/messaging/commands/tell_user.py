@@ -1,23 +1,34 @@
-from argparse import ArgumentParser
+from hive.common import ArgumentParser
 
 from .. import send_to_queue
 
 
+class TellUserArgumentParser(ArgumentParser):
+    def add_format_argument(self, format: str, default: str = "text"):
+        help = f'send messages as format "{format.upper()}"'
+        if format == default:
+            help = f"{help} [the default if no format is specified]"
+        self.add_argument(
+            f"--{format}",
+            action="store_const",
+            dest="format", default=default, const=format,
+            help=help,
+        )
+
+
 def main():
-    parser = ArgumentParser(
+    parser = TellUserArgumentParser(
         description="Post messages to Hive's Matrix room.",
     )
     parser.add_argument(
-        "messages", metavar="TEXT", nargs="+",
-        help="messages to post")
-    parser.add_argument(
-        "-f", "--format", default="text", choices=[
-            "text", "html", "markdown", "code", "emojize",
-        ],
-        help="format of the messages")
+        "message", metavar="MESSAGE",
+        help="message to post"
+    )
+    for format in ("text", "html", "markdown", "code", "emojize"):
+        parser.add_format_argument(format)
     args = parser.parse_args()
 
     send_to_queue("matrix.messages.outgoing", {
         "format": args.format,
-        "messages": args.messages,
+        "messages": [args.message],
     })

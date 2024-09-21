@@ -8,7 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 class HiveArgumentParser(ArgumentParser):
+    DEFAULT_EPILOG = "Run with LL=debug for so much extra logging."
+
     def parse_args(self, *args, **kwargs):
+        if not self.epilog:
+            self.epilog = self.DEFAULT_EPILOG
+
         if (log_level := getenv_log_level()):
             try:
                 logging.basicConfig(level=log_level)

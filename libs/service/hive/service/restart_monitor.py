@@ -8,11 +8,11 @@ from enum import Enum
 from dataclasses import dataclass, field
 from typing import Optional
 
+from hive.common.units import MINUTES
+
 logger = logging.getLogger(__name__)
 
 ServiceStatus = Enum("ServiceStatus", "HEALTHY DUBIOUS IN_ERROR")
-
-MINUTES = 60
 
 
 @dataclass

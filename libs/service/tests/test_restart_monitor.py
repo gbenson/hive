@@ -1,6 +1,6 @@
 import os
 
-from hive.service import RestartMonitor, ServiceStatus
+from hive.service import RestartMonitor, ServiceCondition
 
 
 def test_init():
@@ -10,7 +10,7 @@ def test_init():
 
     got = TestRestartMonitor()
     assert got.name == "pytest"
-    assert got.status == ServiceStatus.HEALTHY
+    assert got.status == ServiceCondition.HEALTHY
 
     basenames = tuple(map(os.path.basename, got.filenames))
     assert basenames == (

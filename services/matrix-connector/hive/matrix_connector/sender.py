@@ -12,7 +12,7 @@ from pika.spec import Basic
 from hive.common import ArgumentParser
 from hive.common.units import SECONDS, MINUTES
 from hive.messaging import Channel, blocking_connection
-from hive.service import RestartMonitor, ServiceStatus
+from hive.service import RestartMonitor, ServiceCondition
 
 logger = logging.getLogger(__name__)
 d = logger.debug
@@ -105,8 +105,8 @@ class ReportingRestartMonitor(RestartMonitor):
     @property
     def status_emoji(self):
         return {
-            ServiceStatus.HEALTHY: "",
-            ServiceStatus.DUBIOUS: ":white_question_mark:",
+            ServiceCondition.HEALTHY: "",
+            ServiceCondition.DUBIOUS: ":white_question_mark:",
         }.get(self.status, ":fire:")
 
     def report(self, sender: Sender):

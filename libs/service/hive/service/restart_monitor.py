@@ -12,22 +12,22 @@ from hive.common.units import MINUTES
 
 logger = logging.getLogger(__name__)
 
-ServiceStatus = Enum("ServiceStatus", "HEALTHY DUBIOUS IN_ERROR")
+ServiceCondition = Enum("ServiceCondition", "HEALTHY DUBIOUS IN_ERROR")
 
 
 @dataclass
 class RestartMonitor:
     try:
         DEFAULT_NAME = os.path.basename(sys.argv[0])
-        DEFAULT_INITIAL_STATUS = ServiceStatus.HEALTHY
+        DEFAULT_INITIAL_STATUS = ServiceCondition.HEALTHY
     except Exception as e:
         DEFAULT_NAME = f"[ERROR: {e}]"
-        DEFAULT_INITIAL_STATUS = ServiceStatus.DUBIOUS
+        DEFAULT_INITIAL_STATUS = ServiceCondition.DUBIOUS
 
     name: str = DEFAULT_NAME
     basename: str = ".hive-service-restart.stamp"
     dirname: str = field(default_factory=os.getcwd)
-    status: ServiceStatus = DEFAULT_INITIAL_STATUS
+    status: ServiceCondition = DEFAULT_INITIAL_STATUS
     rapid_restart_cutoff: float = 5 * MINUTES
     rapid_restart_cooldown_time: Optional[float] = None
 
@@ -54,15 +54,15 @@ class RestartMonitor:
         try:
             self._run()
         except Exception:
-            self.status = ServiceStatus.IN_ERROR
+            self.status = ServiceCondition.IN_ERROR
             self.log_exception()
 
     def log(self, message, level=logging.INFO):
-        if self.status is not ServiceStatus.IN_ERROR:
+        if self.status is not ServiceCondition.IN_ERROR:
             if level > logging.WARNING:
-                self.status = ServiceStatus.IN_ERROR
+                self.status = ServiceCondition.IN_ERROR
             elif level > logging.INFO:
-                self.status = ServiceStatus.DUBIOUS
+                self.status = ServiceCondition.DUBIOUS
         logger.log(level, message)
         self._messages.append(message)
 
@@ -80,7 +80,7 @@ class RestartMonitor:
         self.log_error("is restarting rapidly")
 
     def log_exception(self):
-        self.status = ServiceStatus.IN_ERROR
+        self.status = ServiceCondition.IN_ERROR
         logger.exception("LOGGED EXCEPTION")
 
     @property

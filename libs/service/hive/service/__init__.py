@@ -1,1 +1,1 @@
-from .restart_monitor import RestartMonitor, ServiceStatus
+from .restart_monitor import RestartMonitor, ServiceCondition

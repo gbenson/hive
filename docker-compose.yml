@@ -38,6 +38,15 @@ services:
     command:
       - hive-matrix-receiver
 
+  email-receiver:
+    image: gbenson/hive-email-receiver
+    restart: unless-stopped
+    volumes:
+      - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
+      - .config/email.yml:/etc/hive/email.yml:ro
+    command:
+      - hive-email-receiver
+
 volumes:
   matrix_sender:
   matrix_receiver:

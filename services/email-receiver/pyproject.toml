@@ -1,0 +1,31 @@
+[project]
+name = "hive-email-receiver"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Email receiver service for Hive"
+readme = "README.md"
+dependencies = [
+    "hive-common",
+    "hive-config",
+    "hive-messaging",
+    "hive-service",
+]
+
+[project.scripts]
+hive-email-receiver = "hive.email_receiver:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.email_receiver.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.email_receiver"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

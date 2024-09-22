@@ -18,6 +18,45 @@ class Channel(WrappedPikaThing):
     def tell_user(self) -> Callable:
         return self.notifier.tell_user
 
+    @cached_property
+    def dead_letter_exchange(self) -> str:
+        return self._hive_exchange(
+            exchange="dead.letter",
+            exchange_type="direct",
+            durable=True,
+        )
+
+    def _hive_exchange(self, exchange: str, **kwargs) -> str:
+        name = f"hive.{exchange}"
+        self.exchange_declare(exchange=name, **kwargs)
+        return name
+
+    def queue_declare(self, queue, **kwargs):
+        dead_letter = kwargs.pop("dead_letter", False)
+        if dead_letter:
+            dead_letter_queue = f"x.{queue}"
+            self.queue_declare(
+                dead_letter_queue,
+                durable=kwargs.get("durable", False),
+            )
+
+            dead_letter_exchange = self.dead_letter_exchange
+            self.queue_bind(
+                queue=dead_letter_queue,
+                exchange=dead_letter_exchange,
+                routing_key=queue,
+            )
+
+            arguments = kwargs.pop("arguments", {}).copy()
+            self._ensure_arg(
+                arguments,
+                "x-dead-letter-exchange",
+                dead_letter_exchange,
+            )
+            kwargs["arguments"] = arguments
+
+        return self._pika.queue_declare(queue, **kwargs)
+
     def send_to_queue(
             self,
             queue: str,
@@ -38,6 +77,12 @@ class Channel(WrappedPikaThing):
             ),
             mandatory=mandatory,  # Don't fail silently.
         )
+
+    @staticmethod
+    def _ensure_arg(args: dict, key: str, want_value: any):
+        if args.get(key, want_value) != want_value:
+            raise ValueError(args)
+        args[key] = want_value
 
     @staticmethod
     def _encapsulate(

@@ -3,6 +3,10 @@ from .wrapper import WrappedPikaThing
 
 
 class Connection(WrappedPikaThing):
+    def __init__(self, *args, **kwargs):
+        self.on_channel_open = kwargs.pop("on_channel_open", None)
+        super().__init__(*args, **kwargs)
+
     def __enter__(self):
         return self
 
@@ -20,4 +24,6 @@ class Connection(WrappedPikaThing):
         channel = Channel(self._pika.channel(*args, **kwargs))
         if confirm_delivery:
             channel.confirm_delivery()  # Don't fail silently.
+        if self.on_channel_open:
+            self.on_channel_open(channel)
         return channel

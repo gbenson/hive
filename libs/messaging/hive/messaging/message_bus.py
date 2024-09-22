@@ -71,9 +71,13 @@ class MessageBus:
         )
 
     def blocking_connection(self, **kwargs) -> Connection:
+        on_channel_open = kwargs.pop("on_channel_open", None)
         params = self.queue_connection_parameters(**kwargs)
         try:
-            return Connection(BlockingConnection(params))
+            return Connection(
+                BlockingConnection(params),
+                on_channel_open=on_channel_open,
+            )
         except AMQPConnectionError as e:
             e = getattr(e, "args", [None])[0]
             e = getattr(e, "exception", None)

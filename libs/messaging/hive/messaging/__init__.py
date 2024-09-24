@@ -1,3 +1,5 @@
+from pika.exceptions import UnroutableError
+
 from .channel import Channel, Notifier
 from .connection import Connection
 from .message_bus import MessageBus, Producer

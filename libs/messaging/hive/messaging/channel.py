@@ -19,6 +19,14 @@ class Channel(WrappedPikaThing):
         return self.notifier.tell_user
 
     @cached_property
+    def events_exchange(self) -> str:
+        return self._hive_exchange(
+            exchange="events",
+            exchange_type="direct",
+            durable=True,
+        )
+
+    @cached_property
     def dead_letter_exchange(self) -> str:
         return self._hive_exchange(
             exchange="dead.letter",
@@ -30,6 +38,15 @@ class Channel(WrappedPikaThing):
         name = f"hive.{exchange}"
         self.exchange_declare(exchange=name, **kwargs)
         return name
+
+    def event_queue_declare(self, queue, **kwargs):
+        result = self.queue_declare(queue, **kwargs)
+        self.queue_bind(
+            queue=queue,
+            exchange=self.events_exchange,
+            routing_key=queue,
+        )
+        return result
 
     def queue_declare(self, queue, **kwargs):
         dead_letter = kwargs.pop("dead_letter", False)
@@ -62,15 +79,47 @@ class Channel(WrappedPikaThing):
             queue: str,
             msg: bytes | dict,
             content_type: Optional[str] = None,
+            **kwargs
+    ):
+        return self._publish(
+            exchange="",
+            routing_key=queue,
+            message=msg,
+            content_type=content_type,
+            **kwargs
+        )
+
+    def publish_event(
+            self,
             *,
+            message: bytes | dict,
+            routing_key: str,
+            mandatory: bool,
+            **kwargs
+    ):
+        return self._publish(
+            message=message,
+            exchange=self.events_exchange,
+            routing_key=routing_key,
+            mandatory=mandatory,
+            **kwargs
+        )
+
+    def _publish(
+            self,
+            *,
+            message: bytes | dict,
+            exchange: str = "",
+            routing_key: str = "",
+            content_type: Optional[str] = None,
             delivery_mode: DeliveryMode = DeliveryMode.Persistent,
             mandatory: bool = True,
     ):
-        msg, content_type = self._encapsulate(msg, content_type)
+        payload, content_type = self._encapsulate(message, content_type)
         return self.basic_publish(
-            exchange="",
-            routing_key=queue,
-            body=msg,
+            exchange=exchange,
+            routing_key=routing_key,
+            body=payload,
             properties=BasicProperties(
                 content_type=content_type,
                 delivery_mode=delivery_mode,  # Persist across broker restarts.

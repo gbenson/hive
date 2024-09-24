@@ -144,6 +144,7 @@ def main():
     queue = args.queue
     with blocking_connection() as conn:
         channel = conn.channel()
+        rsm.report_via_channel(channel)
         channel.queue_declare(
             queue=queue,
             durable=True,  # Persist across broker restarts.

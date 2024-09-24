@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 
@@ -107,15 +108,19 @@ class ReportingRestartMonitor(RestartMonitor):
         return {
             ServiceCondition.HEALTHY: "",
             ServiceCondition.DUBIOUS: ":white_question_mark:",
-        }.get(self.status, ":fire:")
+        }.get(self.status.condition, ":fire:")
 
     def report(self, sender: Sender):
-        messages = list(self.messages)
+        if self.multiple_restarts_logged:
+            return
+        messages = self.status.messages
         if not messages:
             return
+        replacer = re.compile(r"^Service\b")
+        messages = [replacer.sub(self.name, msg) for msg in messages]
         prefix = self.status_emoji
         if prefix:
-            messages = [f"{prefix} {msg}" for msg in self.messages]
+            messages = [f"{prefix} {msg}" for msg in messages]
         #try?
         sender.send_messages(*messages, _format=MessageFormat.EMOJIZE)
         #except?
@@ -133,7 +138,6 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
     rsm = ReportingRestartMonitor()
-    logger.info("Service status: %s", rsm.status.name)
     sender = Sender()
     rsm.report(sender)
 

@@ -9,8 +9,8 @@ def test_init():
             pass
 
     got = TestRestartMonitor()
-    assert got.name == "pytest"
-    assert got.status == ServiceCondition.HEALTHY
+    assert got.status.service == "pytest"
+    assert got.status.condition == ServiceCondition.HEALTHY
 
     basenames = tuple(map(os.path.basename, got.stamp_filenames))
     assert basenames == (

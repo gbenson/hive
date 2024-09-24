@@ -1,35 +1,31 @@
 import logging
 import os
-import sys
 import time
 
-from collections.abc import Iterator
-from enum import Enum
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+
 from typing import Optional
 
 from hive.common.units import MINUTES
 
-logger = logging.getLogger(__name__)
+from .status import ServiceCondition, ServiceStatus
 
-ServiceCondition = Enum("ServiceCondition", "HEALTHY DUBIOUS IN_ERROR")
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class RestartMonitor:
-    try:
-        DEFAULT_NAME = os.path.basename(sys.argv[0])
-        DEFAULT_INITIAL_STATUS = ServiceCondition.HEALTHY
-    except Exception as e:
-        DEFAULT_NAME = f"[ERROR: {e}]"
-        DEFAULT_INITIAL_STATUS = ServiceCondition.DUBIOUS
-
-    name: str = DEFAULT_NAME
     basename: str = ".hive-service-restart.stamp"
     dirname: str = field(default_factory=os.getcwd)
-    status: ServiceCondition = DEFAULT_INITIAL_STATUS
+    status: ServiceStatus = field(default_factory=ServiceStatus)
     rapid_restart_cutoff: float = 5 * MINUTES
     rapid_restart_cooldown_time: Optional[float] = None
+    multiple_restarts_logged: bool = False
+
+    @property
+    def name(self):
+        return self.status.service
 
     @property
     def stamp_filename(self) -> str:
@@ -50,42 +46,32 @@ class RestartMonitor:
         return result
 
     def __post_init__(self):
-        self._messages = []
         try:
             self._run()
         except Exception:
-            self.status = ServiceCondition.IN_ERROR
             self.log_exception()
+        logger.info("Service status: %s", self.status.condition.name)
 
     def log(self, message, level=logging.INFO):
-        if self.status is not ServiceCondition.IN_ERROR:
+        if self.status.condition is not ServiceCondition.IN_ERROR:
             if level > logging.WARNING:
-                self.status = ServiceCondition.IN_ERROR
+                self.status.condition = ServiceCondition.IN_ERROR
             elif level > logging.INFO:
-                self.status = ServiceCondition.DUBIOUS
+                self.status.condition = ServiceCondition.DUBIOUS
+        message = f"Service {message}"
         logger.log(level, message)
-        self._messages.append(message)
+        self.status.messages.append(message)
 
-    def warn(self, message):
-        self.log(message, level=logging.WARNING)
-
-    def log_error(self, message):
-        self.log(message, level=logging.ERROR)
-
-    def warn_rapid_restart(self, interval: float):
-        self.warn(f"restarted after only {interval:.3f} seconds")
+    def warn_rapid_restart(self, interval: float, level=logging.WARNING):
+        self.log(f"restarted after only {interval:.3f} seconds", level=level)
 
     def log_rapid_cycling(self, interval: float):
-        self.warn_rapid_restart(interval)
-        self.log_error("is restarting rapidly")
+        self.warn_rapid_restart(interval, level=logging.ERROR)
+        self.log("is restarting rapidly", level=logging.ERROR)
 
     def log_exception(self):
-        self.status = ServiceCondition.IN_ERROR
+        self.status.condition = ServiceCondition.IN_ERROR
         logger.exception("LOGGED EXCEPTION")
-
-    @property
-    def messages(self) -> Iterator[tuple[int, str]]:
-        return (f"{self.name} {msg}" for msg in self._messages)
 
     def _run(self):
         filenames = self.stamp_filenames
@@ -101,6 +87,9 @@ class RestartMonitor:
             last_startup: Optional[float],
             this_startup: float,
     ):
+        self.status.timestamp = datetime.fromtimestamp(
+            this_startup, timezone.utc)
+
         if last_startup is None:
             self.log("started for the first time")
             return
@@ -135,7 +124,7 @@ class RestartMonitor:
 
         # at least three rapid restarts in succession
 
-        self._messages = []  # DO NOT LOG!
+        self.multiple_restarts_logged = True
 
     def _cool_your_engines(self):
         """https://www.youtube.com/watch?v=rsHqcUn6jBY
@@ -143,7 +132,7 @@ class RestartMonitor:
         cooldown_time = self.rapid_restart_cooldown_time
         if cooldown_time is None:
             cooldown_time = self.rapid_restart_cutoff // 3
-        logger.info(f"sleeping for {cooldown_time} seconds")
+        logger.info(f"Sleeping for {cooldown_time} seconds")
         time.sleep(cooldown_time)
 
     def _rotate(self, filenames):

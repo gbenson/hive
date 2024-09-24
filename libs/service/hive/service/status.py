@@ -23,3 +23,32 @@ class ServiceStatus:
     messages: list[str] = field(default_factory=list)
     timestamp: datetime = field(default_factory=datetime.now)
     _uuid: UUID = field(default_factory=uuid4)
+
+    def _as_dict(self) -> dict[str]:
+        report = {
+            "meta": {
+                "timestamp": str(self.timestamp),
+                "uuid": str(self._uuid),
+                "type": "service_status_report",
+            },
+            "service": self.service,
+            "condition": self.condition.name,
+        }
+        if self.messages:
+            report["messages"] = self.messages[:]
+        return report
+
+    def report_via_channel(
+            self,
+            channel,
+            *,
+            routing_key: str = "service.status",
+            mandatory: bool = False,
+    ):
+        """Publish this report via a :class:`hive.messaging.Channel`.
+        """
+        return channel.publish_event(
+            message=self._as_dict(),
+            routing_key=routing_key,
+            mandatory=mandatory,
+        )

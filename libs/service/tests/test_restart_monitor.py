@@ -12,7 +12,7 @@ def test_init():
     assert got.name == "pytest"
     assert got.status == ServiceCondition.HEALTHY
 
-    basenames = tuple(map(os.path.basename, got.filenames))
+    basenames = tuple(map(os.path.basename, got.stamp_filenames))
     assert basenames == (
         ".hive-service-restart.n-2.stamp",
         ".hive-service-restart.n-1.stamp",

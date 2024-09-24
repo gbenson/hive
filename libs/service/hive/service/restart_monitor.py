@@ -32,16 +32,16 @@ class RestartMonitor:
     rapid_restart_cooldown_time: Optional[float] = None
 
     @property
-    def filename(self) -> str:
+    def stamp_filename(self) -> str:
         return os.path.join(self.dirname, self.basename)
 
-    @filename.setter
-    def filename(self, value: str):
+    @stamp_filename.setter
+    def stamp_filename(self, value: str):
         self.dirname, self.basename = os.path.split(value)
 
     @property
-    def filenames(self) -> tuple[str, str, str]:
-        main_filename = self.filename
+    def stamp_filenames(self) -> tuple[str, str, str]:
+        main_filename = self.stamp_filename
         base, ext = os.path.splitext(main_filename)
         result = tuple(
             f"{base}{midfix}{ext}"
@@ -88,7 +88,7 @@ class RestartMonitor:
         return (f"{self.name} {msg}" for msg in self._messages)
 
     def _run(self):
-        filenames = self.filenames
+        filenames = self.stamp_filenames
         self.touch(filenames[-1])
         timestamps = tuple(map(self.getmtime, filenames))
         self._handle_situation(*timestamps)

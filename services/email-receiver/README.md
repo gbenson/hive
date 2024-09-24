@@ -12,7 +12,7 @@ Email receiver service for Hive.
 
 ```sh
 git clone https://github.com/gbenson/hive.git
-cd hive/services/email/receiver
+cd hive/services/email-receiver
 python3 -m venv .venv
 . .venv/bin/activate
 pip install --upgrade pip

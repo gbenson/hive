@@ -11,7 +11,8 @@ class Connection(WrappedPikaThing):
         return self
 
     def __exit__(self, *exc_info):
-        self._pika.close()
+        if self._pika.is_open:
+            self._pika.close()
 
     def channel(self, *args, **kwargs):
         """Like :class:pika.channel.Channel` but with different defaults.

@@ -221,3 +221,24 @@ class Channel(WrappedPikaThing):
             *args,
             **kwargs
         )
+
+
+class PublisherChannel:
+    def __init__(self, invoker, channel):
+        self._invoker = invoker
+        self._channel = channel
+
+    def __getattr__(self, attr):
+        result = getattr(self._channel, attr)
+        if not callable(result):
+            return result
+        return PublisherInvoker(self._invoker, result)
+
+
+class PublisherInvoker:
+    def __init__(self, invoker, func):
+        self._invoke = invoker
+        self._func = func
+
+    def __call__(self, *args, **kwargs):
+        return self._invoke(self._func, *args, **kwargs)

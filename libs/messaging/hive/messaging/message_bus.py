@@ -1,7 +1,7 @@
 import os
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Callable, Optional
 
 from pika import (
     BlockingConnection,
@@ -14,7 +14,8 @@ from rstream import Producer
 
 from hive.config import read as read_config
 
-from .connection import Connection
+from .channel import Channel
+from .connection import Connection, PublisherConnection
 
 
 @dataclass
@@ -70,11 +71,16 @@ class MessageBus:
             **kwargs
         )
 
-    def blocking_connection(self, **kwargs) -> Connection:
-        on_channel_open = kwargs.pop("on_channel_open", None)
+    def blocking_connection(
+            self,
+            *,
+            connection_class: type[Connection] = Connection,
+            on_channel_open: Optional[Callable[[Channel], None]] = None,
+            **kwargs
+    ) -> Connection:
         params = self.queue_connection_parameters(**kwargs)
         try:
-            return Connection(
+            return connection_class(
                 BlockingConnection(params),
                 on_channel_open=on_channel_open,
             )
@@ -84,6 +90,11 @@ class MessageBus:
             if isinstance(e, (ConnectionRefusedError, TimeoutError)):
                 raise e
             raise
+
+    def publisher_connection(self, **kwargs) -> Connection:
+        return self.blocking_connection(
+            connection_class=PublisherConnection,
+            **kwargs)
 
     def send_to_queue(self, queue: str, *args, **kwargs):
         durable = kwargs.pop("durable", True)

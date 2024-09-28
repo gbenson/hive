@@ -47,6 +47,15 @@ services:
     command:
       - hive-email-receiver
 
+  reading-list-updater:
+    image: gbenson/hive-reading-list-updater
+    restart: unless-stopped
+    volumes:
+      - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
+      - .config/mediawiki.yml:/etc/hive/mediawiki.yml:ro
+    command:
+      - hive-reading-list-updater
+
 volumes:
   matrix_sender:
   matrix_receiver:

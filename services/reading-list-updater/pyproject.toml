@@ -4,13 +4,15 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Reading list updater for Hive"
 dependencies = [
-    "hive-config",
+    "hive-common",
     "hive-mediawiki",
     "hive-messaging",
+    "hive-service",
 ]
 
 [project.scripts]
 shl-ng = "hive.reading_list_updater.share_link:main"
+hive-reading-list-updater = "hive.reading_list_updater:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

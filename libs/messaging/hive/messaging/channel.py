@@ -1,12 +1,17 @@
 import json
+import logging
 
 from functools import cached_property
 from typing import Callable, Optional
 
 from pika import BasicProperties, DeliveryMode
+from pika.spec import Basic
 
 from .wrapper import WrappedPikaThing
 from .channel_services import Notifier
+
+logger = logging.getLogger(__name__)
+d = logger.debug
 
 
 class Channel(WrappedPikaThing):
@@ -145,6 +150,55 @@ class Channel(WrappedPikaThing):
         if not content_type:
             raise ValueError(f"content_type={content_type}")
         return msg, content_type
+
+    @property
+    def prefetch_count(self):
+        return getattr(self, "_prefetch_count", None)
+
+    @prefetch_count.setter
+    def prefetch_count(self, value):
+        if self.prefetch_count == value:
+            return
+        if self.prefetch_count is not None:
+            raise ValueError(value)
+        self.basic_qos(prefetch_count=value)
+        self._prefetch_count = value
+
+    def consume_events(
+            self,
+            queue: str,
+            on_message_callback: Callable,
+            *,
+            durable_queue: bool = True,  # Persist across broker restarts.
+            **queue_kwargs
+    ):
+        self.prefetch_count == 1  # Receive one message at a time.
+
+        self.event_queue_declare(
+            queue=queue,
+            durable=durable_queue,
+            **queue_kwargs
+        )
+
+        def _wrapped_callback(
+                channel: Channel,
+                method: Basic.Deliver,
+                *args,
+                **kwargs
+        ):
+            delivery_tag = method.delivery_tag
+            try:
+                result = on_message_callback(channel, method, *args, **kwargs)
+                channel.basic_ack(delivery_tag=delivery_tag)
+                return result
+            except Exception:
+                channel.basic_reject(delivery_tag=delivery_tag, requeue=False)
+                logger.exception("EXCEPTION")
+
+        return self.basic_consume(
+            queue=queue,
+            on_message_callback=_wrapped_callback,
+        )
 
     def basic_consume(
             self,

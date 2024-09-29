@@ -1,0 +1,15 @@
+Date: Wed, 25 Sep 2024 08:54:05 +0100
+From: Gary Benson <gary@gbenson.net>
+Subject: Python call async from sync
+User-Agent: K-9 Mail for Android
+Message-ID: <7A3B5A5E-B1F3-44D7-926B-508A691342D0@gbenson.net>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-K9mail-Identity: !l=178&o=0&qs=PREFIX&f=TEXT&p=176&q=NONE
+
+<https://stackoverflow=2Ecom/questions/72897924/python-rabbitmq-pika-consum=
+er-how-to-use-async-function-as-callback#72902709>
+
+I annotated my callback with @sync where sync is=2E=2E=2E

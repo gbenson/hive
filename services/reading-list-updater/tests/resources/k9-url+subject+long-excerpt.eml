@@ -1,0 +1,18 @@
+Date: Wed, 25 Sep 2024 08:55:47 +0100
+From: Gary Benson <gary@gbenson.net>
+Subject: Event loop only stores weak references to tasks
+User-Agent: K-9 Mail for Android
+Message-ID: <9871DCA1-FCD5-48F6-B00F-4BEDC3451C5F@gbenson.net>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-K9mail-Identity: !l=405&o=0&qs=PREFIX&f=TEXT&p=403&q=NONE
+
+<https://docs=2Epython=2Eorg/3/library/asyncio-task=2Ehtml#creating-tasks>
+
+Important Save a reference to the result of this function, to avoid a task=
+ disappearing mid-execution=2E The event loop only keeps weak references to=
+ tasks=2E A task that isn=E2=80=99t referenced elsewhere may get garbage co=
+llected at any time, even before it=E2=80=99s done=2E For reliable =E2=80=
+=9Cfire-and-forget=E2=80=9D background tasks, gather them in a collection:

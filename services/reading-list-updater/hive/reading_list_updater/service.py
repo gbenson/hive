@@ -17,6 +17,7 @@ d = logger.info  # logger.debug
 @dataclass
 class Service:
     email_queue: str = "readinglist.emails.received"
+    updates_queue: str = "readinglist.update.requests"
     on_channel_open: Optional[Callable[[Channel], None]] = None
 
     def on_email_received(
@@ -30,7 +31,10 @@ class Service:
         if content_type != "message/rfc822":
             raise ValueError(content_type)
         entry = ReadingListEntry.from_email_bytes(body)
-        raise NotImplementedError(entry)
+        channel.publish_request(
+            message=entry.as_dict(),
+            routing_key=self.updates_queue,
+        )
 
     def run(self):
         with blocking_connection(on_channel_open=self.on_channel_open) as conn:

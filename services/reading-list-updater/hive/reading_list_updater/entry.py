@@ -53,3 +53,17 @@ class ReadingListEntry:
             kwargs["timestamp"] = date.datetime
 
         return cls(link, title, notes, **kwargs)
+
+    def as_dict(self) -> dict[str]:
+        report = {
+            "meta": {
+                "timestamp": str(self.timestamp),
+                "type": "reading_list_entry",
+            },
+            "link": self.link,
+        }
+        if self.title:
+            report["title"] = self.title
+        if self.notes:
+            report["notes"] = self.notes
+        return report

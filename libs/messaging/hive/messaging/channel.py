@@ -32,6 +32,14 @@ class Channel(WrappedPikaThing):
         )
 
     @cached_property
+    def requests_exchange(self) -> str:
+        return self._hive_exchange(
+            exchange="requests",
+            exchange_type="direct",
+            durable=True,
+        )
+
+    @cached_property
     def dead_letter_exchange(self) -> str:
         return self._hive_exchange(
             exchange="dead.letter",
@@ -44,11 +52,11 @@ class Channel(WrappedPikaThing):
         self.exchange_declare(exchange=name, **kwargs)
         return name
 
-    def event_queue_declare(self, queue, **kwargs):
+    def _bound_queue_declare(self, queue, exchange, **kwargs):
         result = self.queue_declare(queue, **kwargs)
         self.queue_bind(
             queue=queue,
-            exchange=self.events_exchange,
+            exchange=exchange,
             routing_key=queue,
         )
         return result
@@ -94,21 +102,11 @@ class Channel(WrappedPikaThing):
             **kwargs
         )
 
-    def publish_event(
-            self,
-            *,
-            message: bytes | dict,
-            routing_key: str,
-            mandatory: bool,
-            **kwargs
-    ):
-        return self._publish(
-            message=message,
-            exchange=self.events_exchange,
-            routing_key=routing_key,
-            mandatory=mandatory,
-            **kwargs
-        )
+    def publish_event(self, **kwargs):
+        return self._publish(exchange=self.events_exchange, **kwargs)
+
+    def publish_request(self, **kwargs):
+        return self._publish(exchange=self.requests_exchange, **kwargs)
 
     def _publish(
             self,
@@ -164,8 +162,15 @@ class Channel(WrappedPikaThing):
         self.basic_qos(prefetch_count=value)
         self._prefetch_count = value
 
-    def consume_events(
+    def consume_events(self, *args, **kwargs):
+        return self._basic_consume(self.events_exchange, *args, **kwargs)
+
+    def consume_requests(self, *args, **kwargs):
+        return self._basic_consume(self.requests_exchange, *args, **kwargs)
+
+    def _basic_consume(
             self,
+            exchange: str,
             queue: str,
             on_message_callback: Callable,
             *,
@@ -174,8 +179,9 @@ class Channel(WrappedPikaThing):
     ):
         self.prefetch_count == 1  # Receive one message at a time.
 
-        self.event_queue_declare(
+        self._bound_queue_declare(
             queue=queue,
+            exchange=exchange,
             durable=durable_queue,
             **queue_kwargs
         )

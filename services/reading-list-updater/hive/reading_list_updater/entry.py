@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import email
 import email.policy
+import json
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from email.message import EmailMessage
-from typing import Optional
+from typing import Any, Optional
+
+from .wikitext import format_reading_list_entry
 
 
 @dataclass
@@ -14,7 +17,15 @@ class ReadingListEntry:
     link: str
     title: Optional[str] = None
     notes: Optional[str] = None
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: str | datetime = field(default_factory=datetime.now)
+
+    def __post_init__(self):
+        if not self.title:
+            self.title = None
+        if not self.notes:
+            self.notes = None
+        if isinstance(self.timestamp, str):
+            self.timestamp = datetime.fromisoformat(self.timestamp)
 
     @classmethod
     def from_email_bytes(cls, data: bytes) -> ReadingListEntry:
@@ -67,3 +78,22 @@ class ReadingListEntry:
         if self.notes:
             report["notes"] = self.notes
         return report
+
+    @classmethod
+    def from_json_bytes(cls, data: bytes) -> ReadingListEntry:
+        return cls.from_dict(json.loads(data))
+
+    @classmethod
+    def from_dict(cls, report: dict[str, Any]) -> ReadingListEntry:
+        report = report.copy()
+        meta = report.pop("meta")
+        report["timestamp"] = meta["timestamp"]
+        return cls(**report)
+
+    def as_wikitext(self):
+        return format_reading_list_entry(
+            timestamp=self.timestamp,
+            link=self.link,
+            title=self.title,
+            notes=self.notes,
+        )

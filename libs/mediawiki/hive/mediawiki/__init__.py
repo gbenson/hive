@@ -7,12 +7,10 @@ from mediawiki import MediaWiki as PyMediaWiki
 from requests import PreparedRequest
 from requests.auth import AuthBase, HTTPBasicAuth
 
+from hive.common.units import MINUTES
 from hive.config import read as read_config
 
 from .__version__ import __version__
-
-SECOND = SECONDS = 1
-MINUTE = MINUTES = 60 * SECONDS
 
 __url__ = "https://github.com/gbenson/hive"
 
@@ -20,7 +18,7 @@ __url__ = "https://github.com/gbenson/hive"
 class MediaWiki(PyMediaWiki):
     DEFAULT_CONFIG_KEY = "mediawiki"
     MAX_REQUEST_TIMEOUT = 10 * MINUTES
-    MIN_REQUEST_INTERVAL = timedelta(seconds=SECOND / 10)
+    MIN_REQUEST_INTERVAL = timedelta(seconds=0.1)
 
     def __init__(self, **kwargs):
         config_sect = self.DEFAULT_CONFIG_KEY

@@ -15,7 +15,7 @@ from .__version__ import __version__
 __url__ = "https://github.com/gbenson/hive"
 
 
-class MediaWiki(PyMediaWiki):
+class HiveWiki(PyMediaWiki):
     DEFAULT_CONFIG_KEY = "mediawiki"
     MAX_REQUEST_TIMEOUT = 10 * MINUTES
     MIN_REQUEST_INTERVAL = timedelta(seconds=0.1)

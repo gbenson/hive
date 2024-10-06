@@ -7,7 +7,7 @@ import pytest
 from mediawiki import mediawiki as mediawiki_module
 
 from hive.config.testing import test_config_dir  # noqa: F401
-from hive.mediawiki import MediaWiki
+from hive.mediawiki import HiveWiki
 
 
 def test_login(test_config, mock_requests, caplog):
@@ -92,7 +92,7 @@ def test_login(test_config, mock_requests, caplog):
         ))
 
     with caplog.at_level(logging.DEBUG):
-        wiki = MediaWiki()
+        wiki = HiveWiki()
     assert wiki.logged_in
     assert wiki.api_version == "1.35.10"
     assert wiki.base_url == "https://hive.host"

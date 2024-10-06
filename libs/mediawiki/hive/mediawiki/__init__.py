@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import weakref
 
 from datetime import timedelta
 from typing import Any, Callable, Optional
 
-from mediawiki import MediaWiki as PyMediaWiki
+from mediawiki import (
+    MediaWiki as PyMediaWiki,
+    MediaWikiPage as PyMediaWikiPage,
+)
 from requests import PreparedRequest
 from requests.auth import AuthBase, HTTPBasicAuth
 
@@ -88,6 +93,9 @@ class HiveWiki(PyMediaWiki):
         if not self.verify_ssl:
             raise ValueError(f"verify_ssl: {self.verify_ssl!r}")
 
+    def page(self, *args, **kwargs) -> HiveWikiPage:
+        return HiveWikiPage(super().page(*args, **kwargs))
+
 
 class HiveAuthenticator(AuthBase):
     def __init__(self, wiki, auth=None):
@@ -108,3 +116,45 @@ class HiveAuthenticator(AuthBase):
             raise ValueError(f"session.verify: {session.verify!r}")
 
         return self._auth(r)
+
+
+class HiveWikiPage:
+    def __init__(self, wrapped: PyMediaWikiPage):
+        self._hive_wrapped = wrapped
+
+    def __getattr__(self, attr):
+        return getattr(self._hive_wrapped, attr)
+
+    def append(self, wikitext: str) -> None:
+        # XXX this could race, need to send a revision id or timestamp
+        page_wikitext = self.wikitext
+        if "\n" not in page_wikitext[len(page_wikitext.rstrip()):]:
+            wikitext = f"\n{wikitext.rstrip()}"
+        self._append(wikitext)
+
+    def _append(self, wikitext: str) -> None:
+        params = {
+            "action": "query",
+            "meta": "tokens",
+            "format": "json",
+        }
+        resp = self.mediawiki._get_response(params)
+        token = resp["query"]["tokens"]["csrftoken"]
+
+        params = {
+            "action": "edit",
+            "appendtext": wikitext,
+            "format": "json",
+            "token": token,
+        }
+
+        if self.pageid:
+            params["pageid"] = self.pageid
+        elif self.title:
+            params["title"] = self.title
+
+        resp = self.mediawiki._post_response(params)
+        self.mediawiki._check_error_response(resp, "append")
+
+        # XXX probably need to invalidate more
+        self._hive_wrapped._wikitext = None

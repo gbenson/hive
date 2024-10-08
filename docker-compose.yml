@@ -1,4 +1,4 @@
-version: "3.2"
+version: "3.7"
 
 services:
   rabbitmq:
@@ -21,6 +21,7 @@ services:
 
   matrix-sender:
     image: gbenson/hive-matrix-connector
+    init: true
     restart: unless-stopped
     volumes:
       - matrix_sender:/var/lib/matrix
@@ -31,6 +32,7 @@ services:
 
   matrix-receiver:
     image: gbenson/hive-matrix-connector
+    init: true
     restart: unless-stopped
     volumes:
       - matrix_receiver:/var/lib/matrix
@@ -40,6 +42,7 @@ services:
 
   email-receiver:
     image: gbenson/hive-email-receiver
+    init: true
     restart: unless-stopped
     volumes:
       - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
@@ -49,6 +52,7 @@ services:
 
   reading-list-updater:
     image: gbenson/hive-reading-list-updater
+    init: true
     restart: unless-stopped
     volumes:
       - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro

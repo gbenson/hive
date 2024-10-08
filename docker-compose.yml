@@ -25,10 +25,11 @@ services:
     restart: unless-stopped
     volumes:
       - matrix_sender:/var/lib/matrix
-      - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
     command:
       - hive-matrix-sender
       - --consume=matrix.messages.outgoing
+    secrets:
+      - rabbitmq.env
 
   matrix-receiver:
     image: gbenson/hive-matrix-connector
@@ -36,9 +37,11 @@ services:
     restart: unless-stopped
     volumes:
       - matrix_receiver:/var/lib/matrix
-      - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
     command:
       - hive-matrix-receiver
+      - --debug
+    secrets:
+      - rabbitmq.env
 
   email-receiver:
     image: gbenson/hive-email-receiver

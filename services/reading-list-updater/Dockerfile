@@ -45,10 +45,9 @@ RUN set -eux \
   \
   && addgroup --system --gid 5491 readlist \
   && adduser --system --uid 5491 --gid 5491 \
-       --home /var/lib/hive/reading-list-updater --disabled-password readlist \
-  && install -d -oreadlist -greadlist -m750 /etc/hive
+       --home /var/lib/readlist --disabled-password readlist
 
 USER readlist:readlist
-WORKDIR /var/lib/hive/reading-list-updater
+WORKDIR /var/lib/readlist
 
 ENTRYPOINT ["hive-reading-list-updater"]

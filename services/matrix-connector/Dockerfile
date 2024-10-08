@@ -51,7 +51,6 @@ RUN set -eux \
   && addgroup --system --gid 6617 matrix \
   && adduser --system --uid 6617 --gid 6617 \
        --home /var/lib/matrix --disabled-password matrix \
-  && install -d -omatrix -gmatrix -m750 /etc/hive
 
 USER matrix:matrix
 WORKDIR /var/lib/matrix

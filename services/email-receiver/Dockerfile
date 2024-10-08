@@ -43,12 +43,11 @@ RUN ln -s ../../venv/bin/hive-email-receiver /usr/bin
 
 RUN set -eux \
   \
-  && addgroup --system --gid 1936 hiveimap \
+  && addgroup --system --gid 1936 hivemail \
   && adduser --system --uid 1936 --gid 1936 \
-       --home /var/lib/hive/email-receiver --disabled-password hiveimap \
-  && install -d -ohiveimap -ghiveimap -m750 /etc/hive
+       --home /var/lib/hivemail --disabled-password hivemail
 
-USER hiveimap:hiveimap
-WORKDIR /var/lib/hive/email-receiver
+USER hivemail:hivemail
+WORKDIR /var/lib/hivemail
 
 ENTRYPOINT ["hive-email-receiver"]

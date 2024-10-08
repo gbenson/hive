@@ -54,11 +54,17 @@ services:
     image: gbenson/hive-reading-list-updater
     init: true
     restart: unless-stopped
-    volumes:
-      - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
-      - .config/mediawiki.yml:/etc/hive/mediawiki.yml:ro
     command:
       - hive-reading-list-updater
+    secrets:
+      - rabbitmq.env
+      - mediawiki.yml
+
+secrets:
+  rabbitmq.env:
+    file: $HOME/.config/hive/rabbitmq.env
+  mediawiki.yml:
+    file: $HOME/.config/hive/mediawiki.yml
 
 volumes:
   matrix_sender:

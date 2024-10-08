@@ -45,7 +45,8 @@ RUN set -eux \
   \
   && addgroup --system --gid 1936 hivemail \
   && adduser --system --uid 1936 --gid 1936 \
-       --home /var/lib/hivemail --disabled-password hivemail
+       --home /var/lib/hivemail --disabled-password hivemail \
+  && install -d -oroot -ghivemail -m710 /run/secrets
 
 USER hivemail:hivemail
 WORKDIR /var/lib/hivemail

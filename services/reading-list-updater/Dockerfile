@@ -45,7 +45,8 @@ RUN set -eux \
   \
   && addgroup --system --gid 5491 readlist \
   && adduser --system --uid 5491 --gid 5491 \
-       --home /var/lib/readlist --disabled-password readlist
+       --home /var/lib/readlist --disabled-password readlist \
+  && install -d -oroot -greadlist -m710 /run/secrets
 
 USER readlist:readlist
 WORKDIR /var/lib/readlist

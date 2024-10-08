@@ -48,9 +48,10 @@ RUN set -eux \
 
 RUN set -eux \
   \
-  && addgroup --system --gid 6617 matrix \
+  && addgroup --system --gid 6617 hivetrix \
   && adduser --system --uid 6617 --gid 6617 \
-       --home /var/lib/matrix --disabled-password matrix \
+       --home /var/lib/matrix --disabled-password hivetrix \
+  && install -d -oroot -ghivetrix -m710 /run/secrets
 
-USER matrix:matrix
+USER hivetrix:hivetrix
 WORKDIR /var/lib/matrix

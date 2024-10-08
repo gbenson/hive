@@ -1,1 +1,1 @@
-from .receiver import main
+from .main import main

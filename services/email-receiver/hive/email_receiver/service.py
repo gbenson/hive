@@ -5,11 +5,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Callable, Optional
 
-from hive.common.functools import once
 from hive.common.units import MINUTE
 from hive.config import read_config
 from hive.messaging import publisher_connection, Channel, UnroutableError
-from hive.service import RestartMonitor
 
 from . import imap
 
@@ -18,7 +16,7 @@ d = logger.debug
 
 
 @dataclass
-class Receiver:
+class Service:
     config_key: str = "email"
     queue_name: str = "readinglist.emails.received"
     cycle_time: float = 1 * MINUTE
@@ -90,10 +88,3 @@ class Receiver:
         email.delete()
         d("Message %s marked for deletion", email.uid)
         return True
-
-
-def main():
-    logging.basicConfig(level=logging.INFO)
-    rsm = RestartMonitor()
-    receiver = Receiver(on_channel_open=once(rsm.report_via_channel))
-    receiver.run()

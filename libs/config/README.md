@@ -13,3 +13,16 @@ Configuration management for Hive.
 ```sh
 pip install hive-config
 ```
+
+### From source
+
+```sh
+git clone https://github.com/gbenson/hive.git
+cd hive/libs/common
+python3 -m venv .venv
+. .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install -e .
+flake8 && pytest
+```

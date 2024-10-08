@@ -24,6 +24,7 @@ class Reader:
             for dirname in (user_config_dir(), "/etc")
             if dirname
         ]
+        self.search_path.append("/run/secrets")
         self.search_exts = [
             "",
             ".yml",

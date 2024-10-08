@@ -67,4 +67,4 @@ class Reader:
 
 DEFAULT_READER = Reader()
 
-read = DEFAULT_READER.read
+read_config = read = DEFAULT_READER.read

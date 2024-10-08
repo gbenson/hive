@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from hive.config import DEFAULT_READER, read as read_config
+from hive.config import DEFAULT_READER, read_config
 from hive.config.testing import test_config_dir  # noqa: F401
 
 

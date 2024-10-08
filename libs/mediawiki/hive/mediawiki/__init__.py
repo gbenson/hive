@@ -13,7 +13,7 @@ from requests import PreparedRequest
 from requests.auth import AuthBase, HTTPBasicAuth
 
 from hive.common.units import MINUTES
-from hive.config import read as read_config
+from hive.config import read_config
 
 from .__version__ import __version__
 

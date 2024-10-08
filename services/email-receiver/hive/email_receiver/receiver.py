@@ -7,7 +7,7 @@ from typing import Callable, Optional
 
 from hive.common.functools import once
 from hive.common.units import MINUTE
-from hive.config import read as read_config
+from hive.config import read_config
 from hive.messaging import publisher_connection, Channel, UnroutableError
 from hive.service import RestartMonitor
 

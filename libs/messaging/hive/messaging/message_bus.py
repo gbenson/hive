@@ -12,7 +12,7 @@ from pika.exceptions import AMQPConnectionError
 
 from rstream import Producer
 
-from hive.config import read as read_config
+from hive.config import read_config
 
 from .channel import Channel
 from .connection import Connection, PublisherConnection

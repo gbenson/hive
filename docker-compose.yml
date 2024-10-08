@@ -44,11 +44,11 @@ services:
     image: gbenson/hive-email-receiver
     init: true
     restart: unless-stopped
-    volumes:
-      - .config/rabbitmq.env:/etc/hive/rabbitmq.env:ro
-      - .config/email.yml:/etc/hive/email.yml:ro
     command:
       - hive-email-receiver
+    secrets:
+      - rabbitmq.env
+      - email.yml
 
   reading-list-updater:
     image: gbenson/hive-reading-list-updater
@@ -63,6 +63,8 @@ services:
 secrets:
   rabbitmq.env:
     file: $HOME/.config/hive/rabbitmq.env
+  email.yml:
+    file: $HOME/.config/hive/email.yml
   mediawiki.yml:
     file: $HOME/.config/hive/mediawiki.yml
 

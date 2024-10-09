@@ -19,6 +19,18 @@ services:
     # Also also, you might want to disable some plugins we're not using:
     # - docker-compose exec rabbit rabbitmq-plugins disable rabbitmq_{federation,prometheus}
 
+  valkey:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    networks:
+      - valkey
+    volumes:
+      - valkey_data:/data
+    command:
+      - valkey-server
+      - --save
+      - 60 1
+
   matrix-sender:
     image: gbenson/hive-matrix-connector
     init: true
@@ -71,7 +83,13 @@ secrets:
   mediawiki.yml:
     file: $HOME/.config/hive/mediawiki.yml
 
+networks:
+  default:
+  valkey:
+    internal: true
+
 volumes:
   matrix_sender:
   matrix_receiver:
   rabbitmq:
+  valkey_data:

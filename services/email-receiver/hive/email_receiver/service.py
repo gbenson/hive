@@ -11,7 +11,7 @@ from hive.config import read_config
 from hive.messaging import publisher_connection, Channel
 
 from . import imap
-from .processors import Processor, ReadingListProcessor
+from .processors import Processor, DEFAULT_PROCESSORS
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,6 @@ class Service:
     cycle_time: float = 1 * MINUTE
     on_channel_open: Optional[Callable[[Channel], None]] = None
 
-    DEFAULT_PROCESSORS = {
-        "reading_lists": ReadingListProcessor,
-    }
-
     def __post_init__(self):
         config = read_config(self.config_key)
         try:
@@ -35,7 +31,7 @@ class Service:
             if self.processors:
                 return
             mbox_config = imap_config["mailboxes"]
-            for config_key, cls in self.DEFAULT_PROCESSORS.items():
+            for config_key, cls in DEFAULT_PROCESSORS.items():
                 mailboxes = mbox_config.get(config_key)
                 if not mailboxes:
                     continue

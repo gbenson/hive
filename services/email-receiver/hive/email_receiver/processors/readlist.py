@@ -1,27 +1,14 @@
 import logging
 
-from abc import ABC, abstractmethod
-from collections.abc import Sequence
 from dataclasses import dataclass
 
 from hive.messaging import Channel, UnroutableError
 
-from .imap import ClientConnection as IMAPConn, Message
+from ..imap import ClientConnection as IMAPConn, Message
+from .processor import Processor
 
 logger = logging.getLogger(__name__)
 d = logger.debug
-
-
-@dataclass
-class Processor(ABC):
-    mailboxes: Sequence[str]
-    queue_name: str
-
-    @abstractmethod
-    def process_messages(self, channel: Channel, imap: IMAPConn) -> int:
-        """Process messages from the specified mailboxes.
-        Return the number of messages processed."""
-        raise NotImplementedError
 
 
 @dataclass

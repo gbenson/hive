@@ -59,6 +59,9 @@ services:
     image: gbenson/hive-email-receiver
     init: true
     restart: unless-stopped
+    networks:
+      - default
+      - valkey
     command:
       - hive-email-receiver
     secrets:

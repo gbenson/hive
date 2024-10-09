@@ -9,6 +9,7 @@ dependencies = [
     "hive-config",
     "hive-messaging",
     "hive-service",
+    "valkey",
 ]
 
 [project.scripts]

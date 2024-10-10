@@ -1,0 +1,95 @@
+Return-Path: <bounces@linode.com>
+X-Original-To: linode@gbenson.net
+Delivered-To: x20743856@pdx1-sub0-mail-mx203.dreamhost.com
+Received: from postfix-inbound-v2-5.inbound.mailchannels.net (inbound-egress-5.mailchannels.net [199.10.31.237])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by pdx1-sub0-mail-mx203.dreamhost.com (Postfix) with ESMTPS id 4TR04M4fwLz4rll
+	for <linode@gbenson.net>; Thu,  1 Feb 2024 18:25:39 -0800 (PST)
+Received: from inbound-trex-5 (unknown [127.0.0.6])
+	by postfix-inbound-v2-5.inbound.mailchannels.net (Postfix) with ESMTP id 524E2240511
+	for <linode@gbenson.net>; Fri,  2 Feb 2024 02:25:39 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1706840739; a=rsa-sha256;
+	cv=none;
+	b=ddCbpFBtQ/f7WuRIwtRtslTv+A1+1i4xH7zaGvEfYVXtf5qY023sD3hzIxVNBI8W/cwX3s
+	f6Ezh+7wHNIzI59Iogz89Zo4vrCSsD581ouMOEcqN6oIfX9Dxd8cVDiCQO5llWwCOu3Mnn
+	nLg9GDQ7QP5OKVKXatUW/hj+IAdD4hJp/ETvn02UC61NmEYVbxojvnKn6UeBgv7Xt7MHFY
+	MfDYc/GqyXapplUQ7H9ZawSfz4HJcAMtfIgmVyvGij0UvURvG9uhzvGATq5B4iMLkOCN/2
+	9Dnlv9bRVS9PM0XM7YR0Y/oUpxZYO9BhNExUJA3ErGEZHsVMoAHtFv0TYJDHZQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1706840739;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:dkim-signature;
+	bh=YVaXVqHefgCPvGqlhdG7Mxoig50ueBrILi/aZL/tFxQ=;
+	b=rMrvNqLCDnyDlm4yyNM1LkjZTdzHnAEFdeoEbTAd1KQdPSkothHz/sNfEocdEejqrgR8yX
+	z4TpQWf+jhSddF1MbleCVtw0qifjtnV121qqjjihIKrEHuj8Ru8ttPbfDtfiVkPbyMdWru
+	xcOU2cUd4yfb7z9Zisnc5mCmRk/QOLqN8N5xM8RLaMKTUE53x3/TiDbqOGXlAb/6T3W10l
+	tgqkfDtoe/L/Phiz6KDsNu5cl3z/BPInzp0VPF+aURd4o1ELjhA8APTPmkPIm/xgmEWqaH
+	8rZAT1DNSohIsmCPhcmMWdKWgfXnB5filFjuSgfM5Vz94/ypoB3ReQd6ik7mHQ==
+ARC-Authentication-Results: i=1;
+	inbound-rspamd-6cbf85d8bf-9q2xf;
+	none
+X-Message-ID: ym5LW2qi2FRIQ0dn4WH5MVI1
+Received: from outbound-mail2.linode.com (outbound-mail2.linode.com
+ [173.255.198.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384)
+	by 100.121.144.115 (trex/6.9.2);
+	Fri, 02 Feb 2024 02:25:39 +0000
+Authentication-Results: inbound.mailchannels.net;
+ spf=pass smtp.mailfrom=bounces@linode.com;
+ dkim=pass header.d=linode.com;
+ dmarc=pass (policy=reject; pct=100; status=pass);
+ arc=none
+Received-SPF: pass (dmarc-service-7894889d77-gnhmj: domain of linode.com
+ designates 173.255.198.11 as permitted sender) client-ip=173.255.198.11;
+ envelope-from=bounces@linode.com; helo=outbound-mail2.linode.com;
+Date: Thu, 1 Feb 2024 21:25:37 -0500 (EST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linode.com; s=k1;
+	t=1706840737; bh=eX0YqC9zDtKd8jlM6/mNvsRZTKJI6v3hl8hb+sJ1pRs=;
+	h=Date:From:To:Subject:From;
+	b=jXqY3M9oCcZBRldbl4xc+5ZDKuL8iKPxLZ/TfqpqtwcXOmoOGpfho1xZ+ullLFiso
+	 KRT/dWamDrzYUcB+ZblDEI89veaSAMzms/sppnNMGSrxZxiyGlCGoTHoZRAjeYGJZh
+	 TqB6/0PqBFbxEFX+8gE7X02PMYzZ0npOOtG0sWJpjGdfVOD9IkoY8a+w5wK1tgENP8
+	 MblJQuTR7hmHg8AfpSWBoV5kUcGXbGToP6O8fYrr8lEU7dndT4jb0ogvf8kNq3dPu+
+	 HcdViy/lGeY6caFoj7cS70MX9mvY+sQmyW0zodmOJWVq1zOC1EwyLzF1OsipCMgFsX
+	 bLnu8P6iBJelA==
+From: billing@linode.com
+To: linode@gbenson.net
+Message-ID: <1323103880.2113116.1706840737638@outbound.mail.linode.com>
+Subject: Linode.com: Payment Receipt [16911140]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Mailer: ColdFusion 2018 Application Server
+
+
+Company Name: 
+Payment Number: 16911140
+Payment Date: February 01, 2024
+
+
+This is your receipt of payment against your credit card in the 
+amount of $0.11.
+
+Thank you.
+
+Please note that charges will appear as "Linode*Akamai" on your
+credit card's statement.
+
+For account information and current balance, please visit the
+Linode Manager at https://cloud.linode.com/
+
+If you have any questions or concerns, please open a support ticket. 
+
+Sincerely,
+
+The Linode Team
+
+---------------------------------------------------------------------------
+http://www.linode.com/ - Linux Cloud Hosting
+
+Please note that effective July 01, 2022, charges for Linode services may
+appear as "Linode*Akamai" with your bank or credit card.
+

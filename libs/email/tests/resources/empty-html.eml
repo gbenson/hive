@@ -1,0 +1,11 @@
+Content-Type: multipart/alternative; boundary=boundary
+
+--boundary
+Content-Type: text/html
+
+
+--boundary
+Content-Type: text/plain
+
+Hello!
+--boundary--

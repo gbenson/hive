@@ -1,0 +1,30 @@
+[project]
+name = "hive-email"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Email message handling for Hive."
+readme = "README.md"
+requires-python = ">=3.10"  # match..case
+dependencies = [
+    "html2text",
+]
+
+[project.urls]
+Homepage = "https://github.com/gbenson/hive/tree/main/libs/email"
+Source = "https://github.com/gbenson/hive"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.email.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.email"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

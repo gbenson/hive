@@ -1,0 +1,113 @@
+Return-Path: <bounces@bounces.qemailserver.com>
+X-Original-To: gary@gbenson.net
+Delivered-To: x20743856@pdx1-sub0-mail-mx208.dreamhost.com
+Received: from postfix-inbound-v2-4.inbound.mailchannels.net (inbound-egress-5.mailchannels.net [199.10.31.237])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by pdx1-sub0-mail-mx208.dreamhost.com (Postfix) with ESMTPS id 4JWzHZ5nx7z5Cp5
+	for <gary@gbenson.net>; Sun,  9 Jan 2022 06:05:14 -0800 (PST)
+Received: from inbound-trex-2 (unknown [127.0.0.6])
+	by postfix-inbound-v2-4.inbound.mailchannels.net (Postfix) with ESMTP id 7ED8D4011A
+	for <gary@gbenson.net>; Sun,  9 Jan 2022 14:05:14 +0000 (UTC)
+Received: from smtp5.fra1.qemailserver.com (smtp5.fra1.qemailserver.com
+ [139.60.155.50])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.120.38.139 (trex/6.4.3);
+	Sun, 09 Jan 2022 14:05:14 +0000
+X-Message-ID: FTfJkBz34g1cDmoDtUudQrgr
+Authentication-Results: inbound.mailchannels.net;
+ spf=pass smtp.mailfrom=bounces@bounces.qemailserver.com;
+ dkim=pass header.d=email.survey.test-and-trace.nhs.uk;
+ dmarc=pass (policy=quarantine; pct=100; status=pass)
+Received-SPF: pass (inbound-dmarc-7f5b8df978-cdtwx: domain of
+ bounces.qemailserver.com designates 139.60.155.50 as permitted sender)
+ client-ip=139.60.155.50; envelope-from=bounces@bounces.qemailserver.com;
+ helo=smtp5.fra1.qemailserver.com;
+Received: from jwm10-app.fra1.qprod.net (unknown [10.160.32.5])
+	by smtp5.fra1.qemailserver.com (Postfix) with ESMTP id BBC28160F05
+	for <gary@gbenson.net>; Sun,  9 Jan 2022 14:05:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1641737111;
+	s=qualtrics; d=email.survey.test-and-trace.nhs.uk;
+	h=Date:From:Sender:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:List-Unsubscribe;
+	l=3799; bh=OIfF6+yUT0rRmc3aTcA/frliMoHJVifYFfVTh3QP71Q=;
+	b=SnE9m7biLoPnff75qWTyT9MGK1ZNZ7SciuWeO1BjtjZ2/gIc8ZulIFU8h8vZSeWy
+	6d0A4AG67FHKtG8ZAQdXrhrkTrDAQ1xpJG8IFJF8OGD3j6/53hv5Z+sifZZvI3vkQKy
+	arSHF0jLS7o+ZxybOJtHGV9Wt//8FBGaU77qGCGE=
+Date: Sun, 9 Jan 2022 07:05:11 -0700 (MST)
+From: NHS Test and Trace <noreply@email.survey.test-and-trace.nhs.uk>
+Sender: NHS Test and Trace <noreply@email.survey.test-and-trace.nhs.uk>
+Reply-To: NHS Test and Trace <noreply@email.survey.test-and-trace.nhs.uk>
+To: Gary Benson <gary@gbenson.net>
+Message-ID: <1585960195.2533579.1641737111760@jwm10-app.fra1.qprod.net>
+Subject: Your feedback on the contact tracing service
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_2533576_421766534.1641737111754"
+X-QUMID: UR_3fN64OXRW4wVkRn-EMD_EkF2lgzg86vCHvQ-CTR_23KRxqrNunvoQgm-SV_8cbxz9vj1RlHiYu
+List-Unsubscribe: <https://survey.test-and-trace.nhs.uk/CP/Register.php?OptOut=true&RID=CTR_23KRxqrNunvoQgm&LID=UR_3fN64OXRW4wVkRn&DID=EMD_EkF2lgzg86vCHvQ&BT=dGVzdGFuZHRyYWNl&_=1>, <mailto:CD.GIZUWUTYOFZE45LOOZXVCZ3N.GNTE4NRUJ5MFEVZUO5LGWUTO@unsubscribe.qemailserver.com?subject=qunsub_CTR_23KRxqrNunvoQgm.UR_3fN64OXRW4wVkRn.testandtrace.EMD_EkF2lgzg86vCHvQ.SV_8cbxz9vj1RlHiYu.UR_3fN64OXRW4wVkRn.BT_20O4SYapQ75DiP2.https%3A%2F%2Fsurvey.test-and-trace.nhs.uk%2F%2FCP%2FRegister.php>
+
+------=_Part_2533576_421766534.1641737111754
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_2533577_1503860610.1641737111754"
+
+------=_Part_2533577_1503860610.1641737111754
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Dear Gary,
+
+You are receiving this invitation because you have recently been in touch
+with the NHS Test and Trace COVID-19 contact tracing service.
+
+As part of our service, we are constantly seeking to improve the tracing
+experience that we provide. We are asking you to complete a short survey to
+share your views about your recent experience. By doing so, you will help us
+improve our service and make things better for everyone.
+
+The survey will take approximately 15 minutes and will be open for you to
+take until 16 Jan 2022. To answer the survey, please click on the link below.
+
+Accept and take survey: Survey Link
+<https://survey.test-and-trace.nhs.uk/jfe/form/SV_8cbxz9vj1RlHiYu?Q_DL=EkF2lgzg86vCHvQ_8cbxz9vj1RlHiYu_CTR_23KRxqrNunvoQgm&Q_CHL=email>
+
+We appreciate you may have been asked to complete other surveys, and whilst
+your feedback is extremely important to us, participation in the survey is
+voluntary. Your responses will remain confidential.
+
+A copy of the privacy policy can be viewed here: Privacy Policy link
+<http://survey.test-and-trace.nhs.uk/jfe/form/SV_eA13SkOGfD6dGiG>.
+
+Thank you for taking part.
+
+<https://survey.test-and-trace.nhs.uk/CP/Register.php?OptOut=true&RID=CTR_23KRxqrNunvoQgm&LID=UR_3fN64OXRW4wVkRn&DID=EMD_EkF2lgzg86vCHvQ&BT=dGVzdGFuZHRyYWNl&_=1>
+------=_Part_2533577_1503860610.1641737111754
+Content-Type: multipart/related; 
+	boundary="----=_Part_2533578_950562484.1641737111754"
+
+------=_Part_2533578_950562484.1641737111754
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+<html><head></head><body><p dir="ltr">Dear Gary,</p>
+
+<p dir="ltr">You are receiving this invitation because you have recently been in touch with the NHS Test and Trace COVID-19 contact tracing service.</p>
+
+<p dir="ltr">As part of our service, we are constantly seeking to improve the tracing experience that we provide. We are asking you to complete a short survey to share your views about your recent experience. By doing so, you will help us improve our service and make things better for everyone.&nbsp;</p>
+
+<p dir="ltr">The survey will take approximately 15&nbsp;minutes and will be open for you to take until 16 Jan 2022. To answer the survey, please click on the link below.</p>
+
+<p dir="ltr">Accept and take survey: <a href="https://survey.test-and-trace.nhs.uk/jfe/form/SV_8cbxz9vj1RlHiYu?Q_DL=EkF2lgzg86vCHvQ_8cbxz9vj1RlHiYu_CTR_23KRxqrNunvoQgm&amp;Q_CHL=email">Survey Link</a>&nbsp;</p>
+
+<p dir="ltr">We appreciate you may have been asked to complete other surveys, and whilst your feedback is extremely important to us, &nbsp;participation in the survey is voluntary. Your responses will remain confidential.</p>
+
+<p dir="ltr">A copy of the privacy policy can be viewed here:&nbsp;<a href="http://survey.test-and-trace.nhs.uk/jfe/form/SV_eA13SkOGfD6dGiG" target="_blank">Privacy Policy link</a>.</p>
+
+<p dir="ltr">Thank you for taking part.<br>
+<a href="https://survey.test-and-trace.nhs.uk/CP/Register.php?OptOut=true&amp;RID=CTR_23KRxqrNunvoQgm&amp;LID=UR_3fN64OXRW4wVkRn&amp;DID=EMD_EkF2lgzg86vCHvQ&amp;BT=dGVzdGFuZHRyYWNl&amp;_=1"> </a></p>
+<img width="1" height="1" alt="" src="https://survey.test-and-trace.nhs.uk//WRQualtricsContacts/Watermark.php?UID=UR_3fN64OXRW4wVkRn&amp;EMD=EMD_EkF2lgzg86vCHvQ&amp;CGC=CTR_23KRxqrNunvoQgm&amp;SV=SV_8cbxz9vj1RlHiYu"></body></html>
+------=_Part_2533578_950562484.1641737111754--
+
+------=_Part_2533577_1503860610.1641737111754--
+
+------=_Part_2533576_421766534.1641737111754--
+

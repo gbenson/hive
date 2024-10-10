@@ -1,0 +1,152 @@
+Return-Path: <sa.noreply@samsung-mail.com>
+X-Original-To: zuck@gbenson.net
+Delivered-To: x20743856@pdx1-sub0-mail-mx206.dreamhost.com
+Received: from postfix-inbound-v2-9.inbound.mailchannels.net (inbound-egress-5.mailchannels.net [199.10.31.237])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by pdx1-sub0-mail-mx206.dreamhost.com (Postfix) with ESMTPS id 4TS48f3yT8z7jDV
+	for <zuck@gbenson.net>; Sat,  3 Feb 2024 12:33:06 -0800 (PST)
+Received: from inbound-trex-0 (unknown [127.0.0.6])
+	by postfix-inbound-v2-9.inbound.mailchannels.net (Postfix) with ESMTP id 4571240233
+	for <zuck@gbenson.net>; Sat,  3 Feb 2024 20:33:06 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1706992386; a=rsa-sha256;
+	cv=none;
+	b=c+y9wcmS+Gs6f80LouNxK5GmFHr6DsxbXToidvRP1Tmez5LX9K7hZdxOs+cjX2iN0yE68t
+	Od7vKjkg53WyvtwdEJ+zI1ZJzYIcaAwkJKZACQzhsRrqHcubgQcsZ96qfmhv0h+KW49nP4
+	t6HroFi7u3Jl9Uq7zZrSBJzLs87nYlb7Wdk4VPB9bYH31BmcPBeElL274HohtfpIIWSpEf
+	6s+ozt3MxXBlkxAE8zevCgVBTa28/7oXI8Bn0QIDRyD0MFDfpwgjjbn88sWvEfLZvA40R1
+	0zttgJU7dzVrOOzOWsIpiz0PU2C1cK8kJ5C6gG7dUS6hsJKEyjhxz0C4T8z9IQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1706992386;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:dkim-signature;
+	bh=ZCb6XClfNeFs6HeMc7rsEmtQiKIN8hEG6Wk4lnLOqDU=;
+	b=dJEHm1cvnrTGXcJ2QznnqwCx9WY7NsE+GOH1mwRv/zkzAk5X4NXplOqyLFpO7zFJGTO8tr
+	7pjhLIIfTVwQWkMyRgiczWKjA7TPFBnrYC9bAZ8ciYW47Ad+lxc4pipfKYQKZbBoM3YnMp
+	EE+UpJjQJV7InVcjXBD4dCqQ82NZgMdLjOuma2T0P4AgiQvhVJSnFWYQPJuw7sjqDiX7xw
+	5fwANZ3/yYly75K/dQxHiiaXY+4IPHzsHsDylKScoyG9SnSwjyJ2Ao6T6aDJpIjh0wBVRA
+	6/2dzrNqTw0zhvU1UVvP0q58MUsloiQZ4zTmNv7nTUKFr8doEPltwJjBnkN4+g==
+ARC-Authentication-Results: i=1;
+	inbound-rspamd-6cbf85d8bf-mw8tn;
+	none
+X-Message-ID: FiK7ztVF4ird58B9db2jDx5d
+Received: from smtp.samsungdevops.io (samsung-mail.com [3.121.154.110])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.100.20.180 (trex/6.9.2);
+	Sat, 03 Feb 2024 20:33:06 +0000
+Authentication-Results: inbound.mailchannels.net;
+ spf=pass smtp.mailfrom=sa.noreply@samsung-mail.com;
+ dkim=pass header.d=samsung-mail.com;
+ dmarc=pass (policy=quarantine; pct=100; status=pass);
+ arc=none
+Received-SPF: pass (dmarc-service-7894889d77-f4g2x: domain of samsung-mail.com
+ designates 3.121.154.110 as permitted sender) client-ip=3.121.154.110;
+ envelope-from=sa.noreply@samsung-mail.com; helo=smtp.samsungdevops.io;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=samsung-mail.com;
+	s=201906; t=1706992384;
+	bh=MH2r7AzS5Z4ubqpRn7uUGBCX9F/7X8aZFYsAp0YE6i8=;
+	h=Date:From:To:Subject:From;
+	b=T6TyPwnqLnYRTjPlNKEOEMDWV8u0/oGIsBxrq0mTzKvAxH0zqC73jzqgwNaE4pNPg
+	 Xwbv+ahFW3TcEbgV6xBBz2RCuYa5bWu+3odOFKbN+dtq3Qr/Jr/je7ErjWkSyZ7lwT
+	 1jXdN/BEyuj5gzXwnuFpiQWaMrR943QZtbznghro=
+Date: Sat, 3 Feb 2024 20:33:04 +0000 (UTC)
+From: Samsung account <sa.noreply@samsung-mail.com>
+To: Mark Zuckerberg <zuck@gbenson.net>
+Message-ID: <801490728.5311067.1706992384281@messagegw-98bbd4b84-hb5c9>
+Subject: Welcome to Samsung services.
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html>
+<html>
+<head>
+  <meta charset=3D"utf-8">
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1.0, user-scalable=3Dno">
+  <title>Welcome to Samsung services.</title>
+</head>
+
+<body style=3D"margin: 0; padding: 0;">
+<div dir=3D"ltr" lang=3D"en" style=3D"max-width: 100&#37;; width:600px; mar=
+gin: 0 auto; box-sizing: border-box; font-family: Arial, Helvetica, &#39;sa=
+ns-serif&#39;; font-weight: normal; font-size:16px; line-height: 22px; colo=
+r: #505050; word-wrap: break-word; word-break: break-word;text-align: left;=
+">
+  <div title=3D"logo" style=3D"padding: 25px 24px 24px 24px; box-sizing: bo=
+rder-box;"><a href=3D"#" target=3D"_blank"><img src=3D"https://account.sams=
+ung.com/accounts/v1/resources/one-ui/images/layout/txt_logo.png" alt=3D"Sam=
+sung Account" style=3D"height: 11px;" border=3D"0"></a></div>
+  <div title=3D"email" style=3D"padding: 24px 24px 24px 24px; margin: 0 aut=
+o;">
+    <div title=3D"title" style=3D"font-size: 24px; line-height: 1.17; color=
+: #252525; margin:0 0 40px 0; padding: 0;">Welcome to Samsung services.</di=
+v>
+    <div title=3D"content" style=3D"font-size: 16px; line-height: 22px; col=
+or: #505050;">
+      Dear Customer,<br>
+      <br>
+      Your account has now been activated. Now you can enjoy access to Sams=
+ung services including automatic access to our customer loyalty scheme, Sam=
+sung Rewards.<br><br>To opt-out, or manage your preferences relating to Sam=
+sung Rewards or any Samsung account service, visit our <a href=3D"https://p=
+rivacy.samsung.com/my-data/" target=3D"_blank">Privacy Portal</a>. For more=
+ information view our Samsung account <a href=3D"https://account.samsung.co=
+m/membership/policy/privacy?paramLocale=3Den_GBR" target=3D"_blank style=3D=
+"text-decoration: underline;color:#0381fe;font-size: 16px; font-weight: bol=
+d;font-family: Arial, Helvetica, &#39;sans-serif&#39;;word-wrap: break-word=
+; word-break: break-word;">Privacy Notice</a>.
+      <br>
+      <div title=3D"button" style=3D"text-align: center; margin: 40px 0 40p=
+x 0; padding: 0;">
+        <a href=3D"https://account.samsung.com/membership/intro" target=3D"=
+_blank" style=3D"display:inline-block; margin: 0 auto; min-width: 218px; li=
+ne-height: 28px; border-radius: 22px; padding: 8px 16px 7px 16px; vertical-=
+align: middle; background-color: #0381fe; color: #fff; box-sizing: border-b=
+ox; text-align: center; text-decoration: none; font-family: Arial, Helvetic=
+a, &#39;sans-serif&#39;; font-weight: normal;  word-wrap: break-word; word-=
+break: break-word;">
+          Start
+        </a>
+      </div>
+
+      <p style=3D"margin: 0 0 40px 0; padding: 0; font-size: 16px; color: #=
+505050; font-family: Arial, Helvetica, &#39;sans-serif&#39;; font-weight: n=
+ormal;  word-wrap: break-word; word-break: break-word;">
+        Your Samsung account team
+      </p>
+
+      <p style=3D"margin: 0 0 24px 0; padding: 0; color: #505050; font-fami=
+ly: Arial, Helvetica, &#39;sans-serif&#39;; font-weight: normal;  word-wrap=
+: break-word; word-break: break-word; font-size: 12px; line-height: 16px; c=
+olor: #909090;">
+        Note: Do not reply to this email. Contact us with any queries by vi=
+siting our website at:<br>
+        <a href=3D"https://help.content.samsung.com/csweb/faq/searchFaq.do"=
+ target=3D"_blank" style=3D"color: #0381fe; text-decoration: underline; fon=
+t-size: 12px; font-family: Arial, Helvetica, &#39;sans-serif&#39;; font-wei=
+ght: normal;  word-wrap: break-word; word-break: break-word;">Go to Samsung=
+ account customer center</a>
+      </p>
+      <div title=3D"footer" style=3D"margin: 0; padding: 40px 0 0 0; box-si=
+zing: border-box;">
+        <div title=3D"footer-logo" style=3D"margin: 0 0 2px 0; padding: 0;"=
+><img src=3D"https://account.samsung.com/accounts/v1/resources/one-ui/image=
+s/layout/txt_foo_logo.png" alt=3D"Samsung Account" border=3D"0" style=3D"he=
+ight: 12px;"></div>
+        <div title=3D"copyright" style=3D"margin: 0; padding: 0; font-size:=
+10px; opacity:0.6; font-weight: 300; line-height: 12px; color: #252525; fon=
+t-family: Arial, Helvetica, &#39;sans-serif&#39;; font-weight: normal;  wor=
+d-wrap: break-word; word-break: break-word;">
+          Copyright =C2=A9 1995-2024 Samsung. All Rights Reserved.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

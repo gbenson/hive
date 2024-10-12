@@ -95,7 +95,7 @@ class Message(EmailMessage):
     @property
     def summary(self) -> dict[str, str]:
         result = self.summary_headers
-        if (body := self.plain_content):
+        if (body := self.main_content):
             result["body"] = body
         return result
 
@@ -138,6 +138,17 @@ class Message(EmailMessage):
         return "ASCII"
 
     @cached_property
+    def main_content(self) -> str:
+        """A plain text version of the main body of the message
+        (i.e. the part which isn't attachments).  This could be
+        verbatim from a text/plain MIME part or transformed from
+        a text/html one.
+        """
+        if (result := self.plain_content):
+            return result
+        return self.plain_content_from_html_content
+
+    @cached_property
     def plain_body(self) -> Optional[Message]:
         """The MIME part that is the best candidate to be the
         plain text "body" of this message.
@@ -146,32 +157,15 @@ class Message(EmailMessage):
 
     @cached_property
     def plain_content(self) -> str:
-        """A plain text version of the main body of the message
-        (i.e. the part which isn't attachments).  This could be
-        verbatim from a text/plain MIME part or transformed from
-        a text/html one.
-        """
-        if (plain_body := self.plain_body):
-            if plain_body.content_type == "text/plain":
-                if (plain_content := plain_body.get_content()):
-                    if (result := self._normspace(plain_content)):
-                        return result
-
-        if (html_content := self.html_content):
-            if (plain_content := html2text(html_content)):
-                if (result := self._normspace(plain_content)):
-                    return result
-
-        return ""
-
-    @staticmethod
-    def _normspace(text: str) -> str:
-        """Remove useless whitespace.
-        """
-        return "\n".join(
-            line.rstrip()
-            for line in text.strip().split("\n")
-        )
+        if not (plain_body := self.plain_body):
+            return ""
+        if plain_body.content_type != "text/plain":  # pragma: no cover
+            logger.warning(
+                "%s: unhandled plain body type",
+                plain_body.content_type,
+            )
+            return ""
+        return self._normspace(plain_body.get_content())
 
     @cached_property
     def html_body(self) -> Optional[Message]:
@@ -210,6 +204,21 @@ class Message(EmailMessage):
         if not (html_content := html_body.get_content().strip()):
             return None
         return html_content
+
+    @cached_property
+    def plain_content_from_html_content(self) -> str:
+        if not (html := self.html_content):
+            return ""
+        return self._normspace(html2text(html))
+
+    @staticmethod
+    def _normspace(text: str) -> str:
+        """Remove useless whitespace.
+        """
+        return "\n".join(
+            line.rstrip()
+            for line in text.strip().split("\n")
+        ) if text else ""
 
     @cached_property
     def has_pdf_attachments(self) -> bool:

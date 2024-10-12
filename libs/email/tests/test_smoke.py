@@ -29,6 +29,8 @@ def test_load_from_named_file(filename):
     html_content = msg.html_content
     got_html_content = bool(html_content)
 
+    main_content = msg.main_content
+
     print(f"text_body: {text_body!r}")
     print(f"got_text_content: {got_text_content}")
     print(f"msg.content_type: {msg.content_type}")
@@ -45,6 +47,7 @@ def test_load_from_named_file(filename):
                 or filename.endswith("/empty.eml")
                 or msg["To"].endswith("+subscribe@googlegroups.com")
                 or "X-List-Administrivia" in msg)
+        assert main_content is text_content
         assert len(msg.pdf_attachments) == 0
         return
     assert msg.content_type != "text/plain"

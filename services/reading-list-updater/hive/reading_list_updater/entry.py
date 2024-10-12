@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import email
-import email.policy
 import json
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from email.message import EmailMessage
 from typing import Any, Optional
+
+from hive.email import EmailMessage
 
 from .wikitext import format_reading_list_entry
 
@@ -29,19 +28,16 @@ class ReadingListEntry:
 
     @classmethod
     def from_email_bytes(cls, data: bytes) -> ReadingListEntry:
-        return cls.from_email_message(email.message_from_bytes(
-            data, policy=email.policy.default))
+        email = EmailMessage.from_bytes(data)
+        return cls.from_email_summary(email.summary)
 
     @classmethod
-    def from_email_message(cls, email: EmailMessage) -> ReadingListEntry:
-        for header in ("To", "Cc", "Bcc"):
-            if email[header]:
+    def from_email_summary(cls, email: dict[str, str]) -> ReadingListEntry:
+        for header in ("to", "cc", "bcc"):
+            if header in email:
                 raise ValueError(header)
 
-        body = email.get_body(("plain",))
-        if body is None:
-            raise ValueError
-        body = body.get_content().strip()
+        body = email["body"].strip()
         if not body:
             raise ValueError
 
@@ -54,13 +50,11 @@ class ReadingListEntry:
         if not link:
             raise ValueError
 
-        title = email["Subject"]
-        if title is not None:
+        if (title := email.get("subject")):
             title = title.strip()
 
         kwargs = {}
-        date = email["Date"]
-        if date:
+        if (date := email.get("date")):
             kwargs["timestamp"] = date.datetime
 
         return cls(link, title, notes, **kwargs)

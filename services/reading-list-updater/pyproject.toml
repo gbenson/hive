@@ -5,6 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Reading list updater for Hive"
 dependencies = [
     "hive-common",
+    "hive-email",  # XXX for transition (also in requirements.txt)
     "hive-mediawiki",
     "hive-messaging",
     "hive-service",

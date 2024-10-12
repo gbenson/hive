@@ -3,10 +3,7 @@ from __future__ import annotations
 import json
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Any, Optional
-
-from hive.email import EmailMessage
 
 from .wikitext import format_reading_list_entry
 
@@ -16,20 +13,13 @@ class ReadingListEntry:
     link: str
     title: Optional[str] = None
     notes: Optional[str] = None
-    timestamp: str | datetime = field(default_factory=datetime.now)
+    timestamp: str = field(default_factory=NotImplemented)
 
     def __post_init__(self):
         if not self.title:
             self.title = None
         if not self.notes:
             self.notes = None
-        if isinstance(self.timestamp, str):
-            self.timestamp = datetime.fromisoformat(self.timestamp)
-
-    @classmethod
-    def from_email_bytes(cls, data: bytes) -> ReadingListEntry:
-        email = EmailMessage.from_bytes(data)
-        return cls.from_email_summary(email.summary)
 
     @classmethod
     def from_email_summary_bytes(cls, data: bytes) -> ReadingListEntry:
@@ -59,7 +49,7 @@ class ReadingListEntry:
 
         kwargs = {}
         if (date := email.get("date")):
-            kwargs["timestamp"] = date.datetime
+            kwargs["timestamp"] = date
 
         return cls(link, title, notes, **kwargs)
 

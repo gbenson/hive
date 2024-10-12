@@ -1,9 +1,12 @@
+import json
 import os
 
 from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
 
 import pytest
 
+from hive.email import EmailMessage
 from hive.reading_list_updater.entry import ReadingListEntry
 
 
@@ -18,11 +21,12 @@ from hive.reading_list_updater.entry import ReadingListEntry
       datetime(2024, 9, 27, 10, 10, 8)),
      ))
 def test_link_only(testcase, expect_link, expect_timestamp):
-    entry = ReadingListEntry.from_email_bytes(read_email_resource(testcase))
+    entry = ReadingListEntry.from_email_summary_bytes(
+        read_email_summary_resource(testcase))
     assert entry.link == expect_link
     assert entry.title is None
     assert entry.notes is None
-    assert entry.timestamp == expect_timestamp
+    assert entry.timestamp == format_datetime(expect_timestamp)
 
 
 @pytest.mark.parametrize(
@@ -52,11 +56,12 @@ def test_full_monty(
         expect_notes,
         expect_timestamp,
 ):
-    entry = ReadingListEntry.from_email_bytes(read_email_resource(testcase))
+    entry = ReadingListEntry.from_email_summary_bytes(
+        read_email_summary_resource(testcase))
     assert entry.link == expect_link
     assert entry.title == expect_title
     assert entry.notes == expect_notes
-    assert entry.timestamp == expect_timestamp
+    assert entry.timestamp == format_datetime(expect_timestamp)
 
 
 # Helpers
@@ -66,3 +71,8 @@ def read_email_resource(basename: str) -> bytes:
     filename = os.path.join(dirname, "resources", f"{basename}.eml")
     with open(filename, "rb") as fp:
         return fp.read()
+
+
+def read_email_summary_resource(basename: str) -> bytes:
+    email = EmailMessage.from_bytes(read_email_resource(basename))
+    return json.dumps(email.summary).encode()

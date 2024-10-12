@@ -1,20 +1,17 @@
 import re
 
-from datetime import datetime
-from email.utils import format_datetime
 from typing import Optional
 from urllib.parse import unquote
 
 
 def format_reading_list_entry(
-        timestamp: datetime,
+        timestamp: str,
         link: str,
         title: Optional[str] = None,
         notes: Optional[str] = None,
 ) -> str:
     """Generate wikitext for a reading list entry.
     """
-    timestamp = format_datetime(timestamp)
     entry = _format_reading_list_entry(link, title)
     entry = f"{{{{at|{timestamp}}}}} {entry}"
     if notes:

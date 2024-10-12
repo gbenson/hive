@@ -4,6 +4,7 @@ from base64 import a85decode
 
 import pytest
 
+from hive.email import EmailMessage
 from hive.reading_list_updater.entry import ReadingListEntry
 
 # https://github.com/gbenson/hivebot/blob/main/tests/readinglist_tests.py
@@ -144,9 +145,8 @@ TY0eP-h$:A`LFCf?3/Q@"7ANCrUAU&;ME,8rsDEA:7+Cf(nEcYf64`tjY/N=1H6Z6jaASuTA
       ),
      ))
 def test_rewrites(description, email_bytes, expect_wikitext):
-    expect_entry = ReadingListEntry.from_email_bytes(email_bytes)
-    json_bytes = json.dumps(expect_entry.as_dict()).encode()
-    actual_entry = ReadingListEntry.from_json_bytes(json_bytes)
-    assert actual_entry == expect_entry
-    actual_wikitext = actual_entry.as_wikitext()
+    email = EmailMessage.from_bytes(email_bytes)
+    summary_bytes = json.dumps(email.summary).encode()
+    entry = ReadingListEntry.from_email_summary_bytes(summary_bytes)
+    actual_wikitext = entry.as_wikitext()
     assert actual_wikitext == expect_wikitext

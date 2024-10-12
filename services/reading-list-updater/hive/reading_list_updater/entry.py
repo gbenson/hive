@@ -32,6 +32,10 @@ class ReadingListEntry:
         return cls.from_email_summary(email.summary)
 
     @classmethod
+    def from_email_summary_bytes(cls, data: bytes) -> ReadingListEntry:
+        return cls.from_email_summary(json.loads(data))
+
+    @classmethod
     def from_email_summary(cls, email: dict[str, str]) -> ReadingListEntry:
         for header in ("to", "cc", "bcc"):
             if header in email:

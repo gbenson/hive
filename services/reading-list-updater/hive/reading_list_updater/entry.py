@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Optional
 
 from .wikitext import format_reading_list_entry
 
@@ -52,31 +52,6 @@ class ReadingListEntry:
             kwargs["timestamp"] = date
 
         return cls(link, title, notes, **kwargs)
-
-    def as_dict(self) -> dict[str]:
-        report = {
-            "meta": {
-                "timestamp": str(self.timestamp),
-                "type": "reading_list_entry",
-            },
-            "link": self.link,
-        }
-        if self.title:
-            report["title"] = self.title
-        if self.notes:
-            report["notes"] = self.notes
-        return report
-
-    @classmethod
-    def from_json_bytes(cls, data: bytes) -> ReadingListEntry:
-        return cls.from_dict(json.loads(data))
-
-    @classmethod
-    def from_dict(cls, report: dict[str, Any]) -> ReadingListEntry:
-        report = report.copy()
-        meta = report.pop("meta")
-        report["timestamp"] = meta["timestamp"]
-        return cls(**report)
 
     def as_wikitext(self):
         return format_reading_list_entry(

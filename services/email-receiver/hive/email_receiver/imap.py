@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import email
-import email.policy
 import logging
 
 from contextlib import closing
 from functools import cached_property
 from imaplib import IMAP4_SSL, IMAP4_SSL_PORT
+
+from hive.email import EmailMessage
 
 logger = logging.getLogger(__name__)
 d = logger.debug
@@ -252,17 +252,15 @@ class Message:
         return str(int(self._uid))
 
     @cached_property
-    def _unmarshalled(self):
-        return email.message_from_bytes(
-            self._marshalled,
-            policy=email.policy.default,
-        )
+    def _unmarshalled(self) -> EmailMessage:
+        return EmailMessage.from_bytes(self._marshalled)
 
     def __getitem__(self, key: str):
-        return self._unmarshalled[key]
+        return getattr(self._unmarshalled, key.lower())
 
-    def __bytes__(self) -> bytes:
-        return self._marshalled
+    @cached_property
+    def summary(self):
+        return self._unmarshalled.summary
 
     def delete(self):
         must(self._conn.uid("STORE", self._uid, "+FLAGS", r"\Deleted"))

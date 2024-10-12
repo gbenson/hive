@@ -13,7 +13,7 @@ d = logger.debug
 
 @dataclass
 class ReadingListProcessor(Processor):
-    queue_name: str = "readinglist.emails.received"
+    queue_name: str = "readinglist.update.requests"
 
     def process_messages(self, channel: Channel, imap: IMAPConn) -> int:
         num_processed = 0
@@ -32,9 +32,8 @@ class ReadingListProcessor(Processor):
                 return False
 
         try:
-            channel.publish_event(
-                message=bytes(email),
-                content_type="message/rfc822",
+            channel.publish_request(
+                message=email.summary,
                 routing_key=self.queue_name,
                 mandatory=True,
             )

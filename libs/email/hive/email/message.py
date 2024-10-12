@@ -212,6 +212,13 @@ class Message(EmailMessage):
         return html_content
 
     @cached_property
+    def has_pdf_attachments(self) -> bool:
+        return any(
+            attachment.is_pdf
+            for attachment in self.iter_attachments()
+        )
+
+    @cached_property
     def pdf_attachments(self) -> list[Message]:
         return [
             attachment

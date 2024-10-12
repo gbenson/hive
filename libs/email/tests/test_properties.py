@@ -53,6 +53,7 @@ def test_empty_body():
     assert msg.plain_content == ""
     assert msg.html_body is None
     assert msg.html_content is None
+    assert not msg.has_pdf_attachments
     assert len(msg.pdf_attachments) == 0
 
 
@@ -73,6 +74,7 @@ def test_plain_body():
     assert text.endswith('inode*Akamai" with your bank or credit card.')
     assert msg.html_body is None
     assert msg.html_content is None
+    assert not msg.has_pdf_attachments
     assert len(msg.pdf_attachments) == 0
 
 
@@ -96,6 +98,7 @@ def test_html_body():
     html = msg.html_content
     assert html.startswith('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1')
     assert html.endswith("</html><!-- cV: cL1/AI4T/EeEQSjv.4.1.1.2 -->")
+    assert not msg.has_pdf_attachments
     assert len(msg.pdf_attachments) == 0
 
 
@@ -108,6 +111,7 @@ def test_empty_html_body():
     assert msg.html_body is not None
     assert msg.html_body is not msg
     assert msg.html_content is None
+    assert not msg.has_pdf_attachments
     assert len(msg.pdf_attachments) == 0
 
 
@@ -131,6 +135,7 @@ def test_related_html_body():
     html = msg.html_content
     assert html.startswith('<html><head></head><body><p dir="ltr">Dear')
     assert html.endswith('gm&amp;SV=SV_8cbxz9vj1RlHiYu"></body></html>')
+    assert not msg.has_pdf_attachments
     assert len(msg.pdf_attachments) == 0
 
 
@@ -152,6 +157,7 @@ def test_generated_plain_body():
     html = msg.html_content
     assert html.startswith("<!doctype html>\n<html>\n<head>\n  <meta c")
     assert html.endswith("</div>\n  </div>\n</div>\n\n</body>\n</html>")
+    assert not msg.has_pdf_attachments
     assert len(msg.pdf_attachments) == 0
 
 
@@ -168,6 +174,7 @@ def test_just_a_pdf():
     assert msg.plain_content == ""
     assert msg.html_body is None
     assert msg.html_content is None
+    assert msg.has_pdf_attachments
     assert len(msg.pdf_attachments) == 1
     atta = msg.pdf_attachments[0]
     assert atta.content_type == "application/pdf"

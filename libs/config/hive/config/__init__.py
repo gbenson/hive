@@ -54,7 +54,16 @@ class Reader:
             lines = fp.readlines()
         lines = [line.split("#", 1)[0].strip() for line in lines]
         items = [line.split("=", 1) for line in lines if line]
-        return dict((k.rstrip(), v.lstrip()) for k, v in items)
+        result = dict((k.rstrip(), v.lstrip()) for k, v in items)
+        prefix = os.path.splitext(
+            os.path.basename(filename))[0].upper() + "_"
+        extras = dict(
+            (key[len(prefix):].lower(), value)
+            for key, value in result.items()
+            if key.startswith(prefix)
+        )
+        extras.update(result)
+        return extras
 
     def _read_json(self, filename):
         with open(filename) as fp:

@@ -11,6 +11,19 @@ def test_not_found():
         read_config("should-not-exist")
 
 
+def test_read_env(test_config_dir):  # noqa: F811
+    key = write_file(
+        test_config_dir,
+        ".env",
+        "CONFIG_HELLO=hell0\nHELLO_WORLD=world\n",
+    )
+    assert read_config(key) == {
+        "CONFIG_HELLO": "hell0",
+        "HELLO_WORLD": "world",
+        "hello": "hell0",
+    }
+
+
 @pytest.mark.parametrize(
     "ext", (".json", ".yml.json", ".yaml.json", ".xyz.json"))
 def test_read_json(test_config_dir, ext):  # noqa: F811

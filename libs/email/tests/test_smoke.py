@@ -1,17 +1,7 @@
-import os
-
 import pytest
 
 from hive.email import load_email
-
-
-def serialized_email_filenames():
-    for dirpath, dirnames, filenames in os.walk(os.path.dirname(__file__)):
-        for filepath in sorted(
-                os.path.join(dirpath, filename)
-                for filename in filenames
-                if filename.endswith(".eml")):
-            yield filepath
+from hive.email.testing import serialized_email_filenames
 
 
 @pytest.mark.parametrize("filename", serialized_email_filenames())

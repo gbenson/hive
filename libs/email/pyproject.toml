@@ -17,6 +17,13 @@ Source = "https://github.com/gbenson/hive"
 html = [
     "html2text",
 ]
+openai = [
+    "hive-common",
+    "openai",
+]
+
+[project.scripts]
+build-body-variant-corpus = "hive.email.research.body_variants_corpus:corpus.main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -32,4 +39,5 @@ addopts = "--cov=hive.email"
 omit = [
     "*/venv/*",
     "*/.venv/*",
+    "*/hive/email/research/*",
 ]

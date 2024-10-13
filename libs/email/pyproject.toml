@@ -5,13 +5,15 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Email message handling for Hive."
 readme = "README.md"
 requires-python = ">=3.10"  # match..case
-dependencies = [
-    "html2text",
-]
 
 [project.urls]
 Homepage = "https://github.com/gbenson/hive/tree/main/libs/email"
 Source = "https://github.com/gbenson/hive"
+
+[project.optional-dependencies]
+html = [
+    "html2text",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

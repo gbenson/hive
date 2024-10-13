@@ -8,7 +8,7 @@ from email.policy import compat32, default
 from functools import cached_property
 from typing import BinaryIO, Optional
 
-from html2text import html2text
+from .optional.html2text import html2text
 
 logger = logging.getLogger(__name__)
 

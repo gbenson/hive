@@ -33,10 +33,10 @@ class MessageBus:
 
     @property
     def credentials(self) -> PlainCredentials:
-        env = read_config(self.credentials_key)
+        config = read_config(self.credentials_key)
         return PlainCredentials(
-            env["RABBITMQ_DEFAULT_USER"],
-            env["RABBITMQ_DEFAULT_PASS"],
+            config["default_user"],
+            config["default_pass"],
         )
 
     # Queues

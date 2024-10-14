@@ -78,9 +78,21 @@ class Example:
 
         if len(response.choices) != 1:
             raise NotImplementedError(response.json())
-        message = response.choices[0].message.content
-        if (result := self._RESULT_MAP.get(message)):
+        try:
+            llm_output_json = response.choices[0].message.content
+        except Exception as e:
+            raise NotImplementedError(response.json()) from e
+        try:
+            llm_output = json.loads(llm_output_json)
+            llm_result = llm_output["best_version"]
+        except Exception as e:
+            raise NotImplementedError(llm_output_json) from e
+
+        if (result := self._RESULT_MAP.get(llm_result)):
             self.best_variant = result
             return
 
-        raise NotImplementedError(response.json())
+        if llm_result != "not-decidable":
+            raise NotImplementedError(llm_output_json)
+
+        self.explanation = llm_output.get("explanation")

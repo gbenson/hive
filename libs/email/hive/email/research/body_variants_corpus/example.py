@@ -11,6 +11,7 @@ from ...optional.openai import APIStatusError, OpenAI
 logger = logging.getLogger(__name__)
 d = logger.debug
 info = logger.info
+warn = logger.warning
 
 
 @dataclass
@@ -39,11 +40,14 @@ class Example:
         kwargs = json.loads(serialized)
         _id = kwargs.pop("id")
         variants = kwargs.pop("variants")
+        best_variant = kwargs.pop("best_variant")
         kwargs.update(
             (f"{k}_variant", v)
             for k, v in variants.items()
         )
-        return cls(_id, **kwargs)
+        if best_variant is None:
+            best_variant = "not-decidable"
+        return cls(_id, best_variant=best_variant, **kwargs)
 
     CHOOSER_PROMPT = read_resource("prompts/choose_best_variant.md")
 
@@ -71,7 +75,7 @@ class Example:
             )
         except APIStatusError as e:
             self.explanation = e.response.json()["error"]["message"]
-            self.best_variant = None
+            self.best_variant = "not-decidable"
             return
 
         d(response.json())
@@ -92,7 +96,9 @@ class Example:
             self.best_variant = result
             return
 
+        self.explanation = llm_output.get("explanation")
+        warn("%s: %s: %s", self._id, llm_result, self.explanation)
         if llm_result != "not-decidable":
             raise NotImplementedError(llm_output_json)
 
-        self.explanation = llm_output.get("explanation")
+        self.best_variant = llm_result

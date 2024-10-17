@@ -10,29 +10,25 @@ from ...optional.openai import APIStatusError, OpenAI
 
 logger = logging.getLogger(__name__)
 d = logger.debug
-info = logger.info
-warn = logger.warning
 
 
 @dataclass
 class Example:
     _id: str
-    plaintext_variant: str
-    generated_variant: str
-    best_variant: Optional[str] = None
-    explanation: Optional[str] = None
+    text_variant: str
+    html_variant: str
+    category: Optional[str] = None
 
     def as_dict(self):
         result = {
             "id": self._id,
             "variants": {
-                "plaintext": self.plaintext_variant,
-                "generated": self.generated_variant,
+                "text": self.text_variant,
+                "html": self.html_variant,
             },
-            "best_variant": self.best_variant,
         }
-        if self.explanation:
-            result["explanation"] = self.explanation
+        if self.category:
+            result["category"] = self.category
         return result
 
     @classmethod
@@ -40,43 +36,29 @@ class Example:
         kwargs = json.loads(serialized)
         _id = kwargs.pop("id")
         variants = kwargs.pop("variants")
-        best_variant = kwargs.pop("best_variant")
         kwargs.update(
             (f"{k}_variant", v)
             for k, v in variants.items()
         )
-        if best_variant is None:
-            best_variant = "not-decidable"
-        return cls(_id, best_variant=best_variant, **kwargs)
+        return cls(_id, **kwargs)
 
-    CHOOSER_PROMPT = read_resource("prompts/choose_best_variant.md")
-
-    _RESULT_MAP = {
-        "plain": "plaintext",
-        "markdown": "generated",
-    }
+    PROMPT = read_resource("prompts/identify_placeholders.md")
 
     def categorize(self, openai: OpenAI):
-        assert not (self.best_variant or self.explanation)
+        assert not self.category
         try:
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=[{
-                    "role": "system",
-                    "content": self.CHOOSER_PROMPT,
-                }, {
-                    "role": "user",
-                    "content": json.dumps({
-                        "plain_text": self.plaintext_variant,
-                        "markdown": self.generated_variant,
-                    }),
-                }],
+                messages=[
+                    {"role": "system", "content": self.PROMPT},
+                    {"role": "user", "content": self.text_variant},
+                ],
                 temperature=0,
             )
         except APIStatusError as e:
-            self.explanation = e.response.json()["error"]["message"]
-            self.best_variant = "not-decidable"
-            return
+            raise NotImplementedError(
+                e.response.json()["error"]["message"],
+            ) from e
 
         d(response.json())
 
@@ -87,18 +69,7 @@ class Example:
         except Exception as e:
             raise NotImplementedError(response.json()) from e
         try:
-            llm_output = json.loads(llm_output_json)
-            llm_result = llm_output["best_version"]
+            llm_output = json.loads(llm_output_json.strip("`"))
+            self.category = llm_output["category"]
         except Exception as e:
             raise NotImplementedError(llm_output_json) from e
-
-        if (result := self._RESULT_MAP.get(llm_result)):
-            self.best_variant = result
-            return
-
-        self.explanation = llm_output.get("explanation")
-        warn("%s: %s: %s", self._id, llm_result, self.explanation)
-        if llm_result != "not-decidable":
-            raise NotImplementedError(llm_output_json)
-
-        self.best_variant = llm_result

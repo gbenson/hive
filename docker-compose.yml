@@ -1,3 +1,6 @@
+include:
+  - services/certbot/docker-compose.yml
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -90,6 +93,7 @@ networks:
     internal: true
 
 volumes:
+  certbot_certs:
   matrix_sender:
   matrix_receiver:
   rabbitmq:

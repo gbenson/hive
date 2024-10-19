@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -15,9 +13,9 @@ services:
     # then comment back out to avoid credential exposure.
     #env_file: ./.config/rabbitmq.env
     # Also, after its initial setup you need to enable the stream plugins:
-    # - docker-compose exec rabbit rabbitmq-plugins enable rabbitmq_stream{,_management}
+    # - docker compose exec rabbitmq rabbitmq-plugins enable rabbitmq_stream{,_management}
     # Also also, you might want to disable some plugins we're not using:
-    # - docker-compose exec rabbit rabbitmq-plugins disable rabbitmq_{federation,prometheus}
+    # - docker compose exec rabbitmq rabbitmq-plugins disable rabbitmq_{federation,prometheus}
 
   valkey:
     image: valkey/valkey:8

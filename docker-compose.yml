@@ -1,5 +1,6 @@
 include:
   - services/certbot/docker-compose.yml
+  - services/nginx-proxy/docker-compose.yml
 
 services:
   rabbitmq:

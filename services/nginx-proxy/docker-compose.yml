@@ -5,12 +5,13 @@ services:
     networks:
       - nginx-proxy
     ports:
-      - 443:443/tcp
+      - ${INBOUND_HTTPS_PORT:-443}:443/tcp
     volumes:
       - certbot_certs:/etc/letsencrypt:ro
       - ./templates:/etc/nginx/templates:ro
       - ./default_server:/usr/share/nginx/html:ro
-    env_file: $HOME/.config/hive/nginx-proxy.env
+    environment:
+      - DEFAULT_HOSTNAME
 
 networks:
   nginx-proxy:

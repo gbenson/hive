@@ -10,3 +10,38 @@ server {
         root /usr/share/nginx/html;
     }
 }
+
+server {
+    listen 443 ssl;
+    server_name $SERVICE_HOSTNAME;
+    ssl_certificate /etc/letsencrypt/live/$SERVICE_HOSTNAME/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$SERVICE_HOSTNAME/privkey.pem;
+    server_tokens off;
+    http2 on;
+
+    location /gotify/ {
+        proxy_pass http://gotify/;
+        proxy_http_version 1.1;
+
+        # Setup for websockets
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto http;
+        proxy_redirect http:// $scheme://;
+
+        # gotify verifies the host with the origin for WebSocket
+        # connections so we need to preserve it.
+        proxy_set_header Host $http_host;
+
+        # Set the timeouts so the websocket can stay alive
+        proxy_connect_timeout 1m;
+        proxy_send_timeout 1m;
+        proxy_read_timeout 1m;
+    }
+
+    location / {
+        root /usr/share/nginx/html;
+    }
+}

@@ -12,6 +12,7 @@ services:
       - ./default_server:/usr/share/nginx/html:ro
     environment:
       - DEFAULT_HOSTNAME
+      - SERVICE_HOSTNAME
 
 networks:
   nginx-proxy:

@@ -3,6 +3,10 @@ include:
     env_file:
       - $HOME/.config/hive/mapped-ports.env
 
+  - path: services/gotify/docker-compose.yml
+    env_file:
+      - $HOME/.config/hive/gotify.env
+
   - path: services/nginx-proxy/docker-compose.yml
     env_file:
       - $HOME/.config/hive/hostnames.env

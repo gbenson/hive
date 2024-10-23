@@ -1,0 +1,18 @@
+services:
+  gotify:
+    image: ${GOTIFY_CONTAINER_IMAGE:-gotify/server}
+    restart: unless-stopped
+    networks:
+      - nginx-proxy
+    volumes:
+      - gotify:/app/data
+    # Uncomment when first run, then comment back out
+    #environment:
+    #  - GOTIFY_DEFAULTUSER_USER=admin
+    #  - GOTIFY_DEFAULTUSER_PASS=Pa5sW0rD
+
+networks:
+  nginx-proxy:
+
+volumes:
+  gotify:

@@ -1,6 +1,5 @@
 -r ../../requirements.txt
 -e ../../libs/common
--e ../../libs/config
 -e ../../libs/email
 -e ../../libs/mediawiki
 -e ../../libs/messaging

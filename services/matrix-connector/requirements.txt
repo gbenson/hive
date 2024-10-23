@@ -1,5 +1,4 @@
 -r ../../requirements.txt
 -e ../../libs/common
--e ../../libs/config
 -e ../../libs/messaging
 -e ../../libs/service

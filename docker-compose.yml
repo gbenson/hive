@@ -7,6 +7,8 @@ include:
     env_file:
       - $HOME/.config/hive/gotify.env
 
+  - path: services/key-value-store/docker-compose.yml
+
   - path: services/nginx-proxy/docker-compose.yml
     env_file:
       - $HOME/.config/hive/hostnames.env
@@ -30,18 +32,6 @@ services:
     # - docker compose exec rabbitmq rabbitmq-plugins enable rabbitmq_stream{,_management}
     # Also also, you might want to disable some plugins we're not using:
     # - docker compose exec rabbitmq rabbitmq-plugins disable rabbitmq_{federation,prometheus}
-
-  valkey:
-    image: valkey/valkey:8
-    restart: unless-stopped
-    networks:
-      - valkey
-    volumes:
-      - valkey_data:/data
-    command:
-      - valkey-server
-      - --save
-      - 60 1
 
   matrix-sender:
     image: gbenson/hive-matrix-connector
@@ -73,7 +63,7 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - valkey
+      - key-value-store
     command:
       - hive-email-receiver
     secrets:
@@ -100,12 +90,9 @@ secrets:
 
 networks:
   default:
-  valkey:
-    internal: true
 
 volumes:
   certbot_certs:
   matrix_sender:
   matrix_receiver:
   rabbitmq:
-  valkey_data:

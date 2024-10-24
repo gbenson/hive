@@ -1,0 +1,20 @@
+services:
+  key-value-store:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    networks:
+      - key-value-store
+    volumes:
+      - valkey_data:/data
+    command:
+      - valkey-server
+      - --save
+      - 60 1
+    hostname: valkey
+
+networks:
+  key-value-store:
+    internal: true
+
+volumes:
+  valkey_data:

@@ -17,6 +17,7 @@ services:
 
 networks:
   gotify:
+    internal: true
 
 volumes:
   gotify:

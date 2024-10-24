@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     networks:
       - nginx-proxy
+      - gotify
     ports:
       - ${INBOUND_HTTPS_PORT:-443}:443/tcp
     volumes:

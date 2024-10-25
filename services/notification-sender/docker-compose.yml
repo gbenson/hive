@@ -1,4 +1,17 @@
 services:
+  notification-sender:
+    image: gbenson/hive-notification-sender
+    init: true
+    restart: unless-stopped
+    networks:
+      - gotify
+      - key-value-store
+      - message-bus
+    command:
+      - hive-notification-sender
+    secrets:
+      - rabbitmq.env
+
   gotify:
     image: ${GOTIFY_CONTAINER_IMAGE:-gotify/server}
     restart: unless-stopped

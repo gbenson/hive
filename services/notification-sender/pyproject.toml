@@ -1,0 +1,31 @@
+[project]
+name = "hive-notification-sender"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Notification sender for Hive"
+dependencies = [
+    "hive-common",
+    "hive-messaging",
+    "hive-service",
+    "requests",
+    "valkey",
+]
+
+[project.scripts]
+hive-notification-sender = "hive.notification_sender:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.notification_sender.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.notification_sender"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

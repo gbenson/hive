@@ -10,8 +10,6 @@ from pika import (
 )
 from pika.exceptions import AMQPConnectionError
 
-from rstream import Producer
-
 from hive.common import read_config
 
 from .channel import Channel
@@ -39,9 +37,7 @@ class MessageBus:
             config["default_pass"],
         )
 
-    # Queues
-
-    def queue_connection_parameters(
+    def connection_params(
             self,
             *,
             host: Optional[str] = None,
@@ -78,7 +74,7 @@ class MessageBus:
             on_channel_open: Optional[Callable[[Channel], None]] = None,
             **kwargs
     ) -> Connection:
-        params = self.queue_connection_parameters(**kwargs)
+        params = self.connection_params(**kwargs)
         try:
             return connection_class(
                 BlockingConnection(params),
@@ -110,17 +106,3 @@ class MessageBus:
         with self.blocking_connection(connection_attempts=1) as conn:
             channel = conn.channel()
             return channel.tell_user(*args, **kwargs)
-
-    # Streams
-
-    def stream_connection_parameters(self, *, port: int = 5552, **kwargs):
-        return self.queue_connection_parameters(port=port, **kwargs)
-
-    def producer_connection(self, **kwargs) -> Producer:
-        params = self.stream_connection_parameters(**kwargs)
-        creds = params.credentials
-        return Producer(
-            host=params.host,
-            username=creds.username,
-            password=creds.password,
-        )

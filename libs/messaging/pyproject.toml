@@ -10,7 +10,6 @@ classifiers = [
 dependencies = [
     "hive-common>=0.0.3",
     "pika",
-    "rstream",
 ]
 
 [project.urls]

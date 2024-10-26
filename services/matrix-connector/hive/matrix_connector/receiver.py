@@ -56,6 +56,8 @@ class Receiver:
             argv = argv[:]
             argv.extend((
                 "--listen", "forever",
+                "--download-media", "media",
+                "--download-media-name", "eventid",
                 "--output", "json-max",
             ))
 

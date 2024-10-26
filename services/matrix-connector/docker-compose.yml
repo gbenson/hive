@@ -23,6 +23,7 @@ services:
       - message-bus
     volumes:
       - matrix_receiver:/var/lib/matrix
+      - matrix_received_media:/var/lib/matrix/media
     command:
       - hive-matrix-receiver
       - --debug
@@ -36,3 +37,4 @@ networks:
 volumes:
   matrix_sender:
   matrix_receiver:
+  matrix_received_media:

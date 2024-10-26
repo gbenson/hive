@@ -1,15 +1,15 @@
-import asyncio
 import json
 import logging
 import sys
 
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Iterable, Literal, Optional
 
-from hive.common.units import GiB
-from hive.messaging import producer_connection
+from hive.common.functools import once
+from hive.messaging import publisher_connection
+from hive.service import RestartMonitor
 
 logger = logging.getLogger(__name__)
 d = logger.debug
@@ -17,15 +17,14 @@ d = logger.debug
 
 @dataclass
 class Receiver:
-    stream_name: str = "matrix.events.received"
-    stream_max_length_bytes: int = 8 * GiB
+    queue_name: str = "matrix.events.received"
 
     def __post_init__(self):
         self._setup_logging()
         d("Initializing")
 
-        self._producer = None
-        self._async_main = None
+        self._restart_monitor = RestartMonitor()
+        self._channel = None
         self._print_output = None
 
     @cached_property
@@ -57,50 +56,17 @@ class Receiver:
             argv = argv[:]
             argv.extend((
                 "--listen", "forever",
-                "--listen-self",
                 "--output", "json-max",
             ))
 
-        with self.patched_async_main():
-            d("Entering matrix_commander.main")
-            return self.matrix_commander.main(argv)
+        on_channel_open = once(self._restart_monitor.report_via_channel)
+        with publisher_connection(on_channel_open=on_channel_open) as conn:
+            with self.patched_print_output(conn.channel()):
+                d("Entering matrix_commander.main")
+                return self.matrix_commander.main(argv)
 
     @contextmanager
-    def patched_async_main(self):
-        mc = self.matrix_commander
-        d("Patching async_main")
-        assert self._async_main is None
-        self._async_main = mc.async_main
-        mc.async_main = self.async_main
-        try:
-            d("async_main patched")
-            yield self
-        finally:
-            d("NOT unpatching async_main")
-
-    async def async_main(self):
-        self._setup_logging()
-        d("Entered receiver.async_main")
-        async with producer_connection() as producer:
-            d("Connected to producer")
-            await producer.create_stream(
-                stream=self.stream_name,
-                arguments={
-                    "max-length-bytes": self.stream_max_length_bytes,
-                },
-                exists_ok=True,
-            )
-            d("Created stream")
-            self._producer = producer
-            async with self.patched_print_output():
-                d("Entering matrix_commander.async_main")
-                try:
-                    await self._async_main()
-                finally:
-                    logger.info("Closing producer and cleaning up")
-
-    @asynccontextmanager
-    async def patched_print_output(self):
+    def patched_print_output(self, channel):
         mc = self.matrix_commander
         d("Patching print_output")
         assert self._print_output is None
@@ -108,9 +74,14 @@ class Receiver:
         mc.print_output = self.on_matrix_commander_output
         try:
             d("print_output patched")
+            self._channel = channel
             yield self
         finally:
-            d("NOT unpatching print_output")
+            d("Unpatching print_output")
+            mc.print_output = self._print_output
+            logger.info("Closing producer and cleaning up")
+            self._channel = None
+            self._print_output = None
 
     def on_matrix_commander_output(
             self,
@@ -140,18 +111,12 @@ class Receiver:
             default=self.obj_to_dict
         ).encode("utf-8")
 
-        event_loop = asyncio.get_running_loop()
-        coroutine = self._producer.send(
-            stream=self.stream_name,
+        self._channel.publish_event(
             message=serialized_event,
+            content_type="application/json",
+            routing_key=self.queue_name,
+            mandatory=True,
         )
-
-        future = asyncio.run_coroutine_threadsafe(
-            coroutine,
-            event_loop,
-        )
-
-        return future.result
 
 
 main = Receiver()

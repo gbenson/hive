@@ -1,0 +1,38 @@
+services:
+  matrix-sender:
+    image: gbenson/hive-matrix-connector
+    init: true
+    restart: unless-stopped
+    networks:
+      - matrix-sender
+      - message-bus
+    volumes:
+      - matrix_sender:/var/lib/matrix
+    command:
+      - hive-matrix-sender
+      - --consume=matrix.messages.outgoing
+    secrets:
+      - rabbitmq.env
+
+  matrix-receiver:
+    image: gbenson/hive-matrix-connector
+    init: true
+    restart: unless-stopped
+    networks:
+      - matrix-receiver
+      - message-bus
+    volumes:
+      - matrix_receiver:/var/lib/matrix
+    command:
+      - hive-matrix-receiver
+      - --debug
+    secrets:
+      - rabbitmq.env
+
+networks:
+  matrix-sender:
+  matrix-receiver:
+
+volumes:
+  matrix_sender:
+  matrix_receiver:

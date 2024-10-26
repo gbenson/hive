@@ -5,6 +5,8 @@ include:
 
   - path: services/key-value-store/docker-compose.yml
 
+  - path: services/matrix-connector/docker-compose.yml
+
   - path: services/notification-sender/docker-compose.yml
     env_file:
       - $HOME/.config/hive/gotify.env
@@ -35,30 +37,6 @@ services:
     # - docker compose exec rabbitmq rabbitmq-plugins enable rabbitmq_stream{,_management}
     # Also also, you might want to disable some plugins we're not using:
     # - docker compose exec rabbitmq rabbitmq-plugins disable rabbitmq_{federation,prometheus}
-
-  matrix-sender:
-    image: gbenson/hive-matrix-connector
-    init: true
-    restart: unless-stopped
-    volumes:
-      - matrix_sender:/var/lib/matrix
-    command:
-      - hive-matrix-sender
-      - --consume=matrix.messages.outgoing
-    secrets:
-      - rabbitmq.env
-
-  matrix-receiver:
-    image: gbenson/hive-matrix-connector
-    init: true
-    restart: unless-stopped
-    volumes:
-      - matrix_receiver:/var/lib/matrix
-    command:
-      - hive-matrix-receiver
-      - --debug
-    secrets:
-      - rabbitmq.env
 
   email-receiver:
     image: gbenson/hive-email-receiver
@@ -97,6 +75,4 @@ networks:
     internal: true
 
 volumes:
-  matrix_sender:
-  matrix_receiver:
   rabbitmq:

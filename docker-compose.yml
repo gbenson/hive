@@ -4,8 +4,8 @@ include:
       - $HOME/.config/hive/mapped-ports.env
 
   - path: services/key-value-store/docker-compose.yml
-
   - path: services/matrix-connector/docker-compose.yml
+  - path: services/matrix-router/docker-compose.yml
 
   - path: services/notification-sender/docker-compose.yml
     env_file:

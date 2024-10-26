@@ -1,0 +1,11 @@
+services:
+  matrix-router:
+    image: gbenson/hive-matrix-router
+    init: true
+    restart: unless-stopped
+    networks:
+      - message-bus
+    command:
+      - hive-matrix-router
+    secrets:
+      - rabbitmq.env

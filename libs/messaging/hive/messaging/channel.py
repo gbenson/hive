@@ -177,7 +177,7 @@ class Channel(WrappedPikaThing):
             durable_queue: bool = True,  # Persist across broker restarts.
             **queue_kwargs
     ):
-        self.prefetch_count == 1  # Receive one message at a time.
+        self.prefetch_count = 1  # Receive one message at a time.
 
         self._bound_queue_declare(
             queue=queue,

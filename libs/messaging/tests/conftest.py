@@ -4,7 +4,7 @@ import pytest
 
 from pika import PlainCredentials
 
-from hive.config.testing import test_config_dir  # noqa: F401
+from hive.common.testing import test_config_dir  # noqa: F401
 from hive.messaging import DEFAULT_MESSAGE_BUS
 
 

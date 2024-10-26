@@ -97,7 +97,6 @@ networks:
     internal: true
 
 volumes:
-  certbot_certs:
   matrix_sender:
   matrix_receiver:
   rabbitmq:

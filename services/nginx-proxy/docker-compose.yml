@@ -8,7 +8,7 @@ services:
     ports:
       - ${INBOUND_HTTPS_PORT:-443}:443/tcp
     volumes:
-      - certbot_certs:/etc/letsencrypt:ro
+      - hive_letsencrypt:/etc/letsencrypt:ro
       - ./templates:/etc/nginx/templates:ro
       - ./default_server:/usr/share/nginx/html:ro
     environment:

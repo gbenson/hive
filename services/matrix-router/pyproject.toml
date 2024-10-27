@@ -3,6 +3,7 @@ name = "hive-matrix-router"
 dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Incoming Matrix event router for Hive"
+requires-python = ">=3.10"  # match..case
 dependencies = [
     "hive-common",
     "hive-messaging",

@@ -10,7 +10,7 @@ services:
       - matrix_sender:/var/lib/matrix
     command:
       - hive-matrix-sender
-      - --consume=matrix.messages.outgoing
+      - --consume=matrix.message.send.requests
     secrets:
       - rabbitmq.env
 

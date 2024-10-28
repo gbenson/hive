@@ -20,7 +20,7 @@ d = logger.debug
 
 MessageFormat = Enum("MessageFormat", "TEXT HTML MARKDOWN CODE EMOJIZE")
 
-DEFAULT_INPUT_QUEUE = "test.matrix.messages.outgoing"
+DEFAULT_INPUT_QUEUE = "test.matrix.message.send.requests"
 
 
 class Sender:
@@ -30,33 +30,24 @@ class Sender:
             command = shutil.which(command)
         self._command = command
 
-    def on_message(
+    def on_send_message_request(
             self,
             channel: Channel,
             method: Basic.Deliver,
             properties: BasicProperties,
             body: bytes,
     ):
-        delivery_tag = method.delivery_tag
-        try:
-            content_type = properties.content_type
-            if content_type != "application/json":
-                raise ValueError(content_type)
+        content_type = properties.content_type
+        if content_type != "application/json":
+            raise ValueError(content_type)
 
-            payload = json.loads(body)
+        payload = json.loads(body)
 
-            #try?
-            self.send_messages(
-                *payload["messages"],
-                _format=MessageFormat.__members__[
-                    payload["format"].upper()],
-            )
-
-            channel.basic_ack(delivery_tag=delivery_tag)
-
-        except Exception:
-            channel.basic_nack(delivery_tag=delivery_tag)
-            logger.exception("EXCEPTION")
+        self.send_messages(
+            *payload["messages"],
+            _format=MessageFormat.__members__[
+                payload["format"].upper()],
+        )
 
     def send_messages(
             self,
@@ -83,6 +74,70 @@ class Sender:
                 subprocess.run(
                     command,
                     shell=False,
+                    #capture_output=True,
+                    timeout=timeout,
+                    check=True,  # XXX for now... should:
+                    #                              1. capture output
+                    #                              2. fwd errors to rabbit
+                    #                              3. then raise
+                )
+                break
+
+            except subprocess.TimeoutExpired as e:
+                if max_retries < 1:
+                    raise
+                logger.warning(
+                    f"{e}, will retry up to {max_retries} more time(s)")
+            max_retries -= 1
+            timeout = min(max_timeout, timeout * 2)
+            d("Timeout is now {timeout} seconds")
+
+    def on_send_reaction_request(
+            self,
+            channel: Channel,
+            method: Basic.Deliver,
+            properties: BasicProperties,
+            body: bytes,
+    ):
+        content_type = properties.content_type
+        if content_type != "application/json":
+            raise ValueError(content_type)
+
+        payload = json.loads(body)
+        self.send_reaction(
+            reaction=payload["reaction"],
+            receiving_event_id=payload["receiver"]["event_id"],
+        )
+
+    def send_reaction(
+            self,
+            reaction: str,
+            receiving_event_id: str,
+            max_retries: int = 4,
+            initial_timeout: float = 30 * SECONDS,
+            max_timeout: float = 5 * MINUTES,
+    ):
+        event = json.dumps({
+            "type": "m.reaction",
+            "content": {
+                "m.relates_to": {
+                    "event_id": receiving_event_id,
+                    "key": reaction,
+                    "rel_type": "m.annotation",
+                },
+            },
+        }).encode("utf-8")
+
+        command = [self._command, "--event", "-"]
+        d("Executing: %s", command)
+
+        timeout = initial_timeout
+        while True:
+            try:
+                subprocess.run(
+                    command,
+                    shell=False,
+                    input=event,
                     #capture_output=True,
                     timeout=timeout,
                     check=True,  # XXX for now... should:
@@ -141,17 +196,23 @@ def main():
     sender = Sender()
     rsm.report(sender)
 
-    queue = args.queue
+    message_queue = args.queue
+    reaction_queue = message_queue.replace("message", "reaction")
+    assert reaction_queue != message_queue
+
     with blocking_connection() as conn:
         channel = conn.channel()
         rsm.report_via_channel(channel)
-        channel.queue_declare(
-            queue=queue,
-            durable=True,  # Persist across broker restarts.
+
+        channel.consume_requests(
+            queue=message_queue,
+            on_message_callback=sender.on_send_message_request,
+            dead_letter=True,
         )
-        channel.basic_qos(prefetch_count=1)  # Receive one message at a time.
-        channel.basic_consume(
-            queue=queue,
-            on_message_callback=sender.on_message,
+        channel.consume_requests(
+            queue=reaction_queue,
+            on_message_callback=sender.on_send_reaction_request,
+            dead_letter=True,
         )
+
         channel.start_consuming()

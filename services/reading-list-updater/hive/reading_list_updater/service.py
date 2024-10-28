@@ -18,7 +18,8 @@ d = logger.info  # logger.debug
 
 @dataclass
 class Service:
-    update_request_queue: str = "readinglist.update.requests"
+    update_request_queue: str = "readinglist.update.requests"  # input
+    update_event_routing_key: str = "readinglist.updates"      # output
     on_channel_open: Optional[Callable[[Channel], None]] = None
 
     @cached_property
@@ -38,16 +39,14 @@ class Service:
         entry = ReadingListEntry.from_email_summary_bytes(body)
         wikitext = entry.as_wikitext()
         self.wiki.page("Reading list").append(f"* {wikitext}")
-        if (source_event_id := entry.matrix_event_id):
-            channel.publish_request(
-                message={
-                    "reaction": "👍",
-                    "receiver": {
-                        "event_id": source_event_id,
-                    },
-                },
-                routing_key="matrix.reaction.send.requests",
+        try:
+            channel.publish_event(
+                message=body,
+                content_type=content_type,
+                routing_key=self.update_event_routing_key,
             )
+        except Exception:
+            logger.warning("EXCEPTION", exc_info=True)
 
     def run(self):
         with blocking_connection(on_channel_open=self.on_channel_open) as conn:

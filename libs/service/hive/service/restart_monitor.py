@@ -71,7 +71,7 @@ class RestartMonitor:
 
     def log_exception(self):
         self.status.condition = ServiceCondition.IN_ERROR
-        logger.exception("LOGGED EXCEPTION")
+        logger.exception("EXCEPTION")
 
     def _run(self):
         filenames = self.stamp_filenames

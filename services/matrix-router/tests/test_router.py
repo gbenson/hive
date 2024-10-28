@@ -13,9 +13,16 @@ class MockChannel:
         self.published_requests.append(kwargs)
 
 
+class MockReactionManager:
+    def start_story(self, *args, **kwargs):
+        pass
+
+
 @pytest.fixture
 def channel():
-    yield MockChannel()
+    channel = MockChannel()
+    channel.reaction_manager = MockReactionManager()
+    yield channel
 
 
 @pytest.mark.parametrize(
@@ -34,15 +41,15 @@ def test_reading_list_update(channel, body):
         },
         "body": body,
         "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
-        "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
         "server_timestamp": 1730071727043,
     }))
     assert channel.published_requests == [{
         "message": {
-            "origin": {
-                "channel": "matrix",
-                "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
-                "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
+            "meta": {
+                "origin": {
+                    "channel": "matrix",
+                    "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
+                },
             },
             "date": "Sun, 27 Oct 2024 23:28:47 +0000",
             "body": body,

@@ -32,6 +32,15 @@ def test_smoke(filename):
 
 
 class MockChannel:
+    @property
+    def reaction_manager(self):
+        return MockReactionManager()
+
     def publish_request(self, **kwargs):
         for key, value in kwargs.items():
             print(f"{key:12}: {value!r}")
+
+
+class MockReactionManager:
+    def start_story(self, *args, **kwargs):
+        pass

@@ -13,11 +13,15 @@ from pika.spec import Basic
 from hive.messaging import Channel, blocking_connection
 
 from .event import MatrixEvent
+from .reaction_manager import reaction_manager
 
 
 @dataclass
 class Service(ABC):
     input_queue: str = "matrix.events.received"
+    event_queues: list[str] | tuple[str] = (
+        "readinglist.updates",
+    )
     on_channel_open: Optional[Callable[[Channel], None]] = None
 
     @abstractmethod
@@ -64,6 +68,11 @@ class Service(ABC):
     def run(self):
         with blocking_connection(on_channel_open=self.on_channel_open) as conn:
             channel = conn.channel()
+            for queue in self.event_queues:
+                channel.consume_events(
+                    queue=queue,
+                    on_message_callback=reaction_manager.on_event,
+                )
             channel.consume_events(
                 queue=self.input_queue,
                 on_message_callback=self._on_matrix_event,

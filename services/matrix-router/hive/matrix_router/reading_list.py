@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 from hive.messaging import Channel
 
 from .event import MatrixEvent
+from .reaction_manager import reaction_manager
 
 
 def is_reading_list_update(event: MatrixEvent) -> bool:
@@ -21,16 +22,18 @@ def is_reading_list_update(event: MatrixEvent) -> bool:
 def route_reading_list_update(channel: Channel, event: MatrixEvent):
     assert is_reading_list_update(event)
 
+    reaction_manager.start_story(channel, event.event_id)
+
     channel.publish_request(
         message={
-            "origin": {
-                "channel": "matrix",
-                "room_id": event.room_id,
-                "event_id": event.event_id,
+            "meta": {
+                "origin": {
+                    "channel": "matrix",
+                    "event_id": event.event_id,
+                },
             },
             "date": format_datetime(event.timestamp),
             "body": event.body,
         },
         routing_key="readinglist.update.requests",
-        mandatory=True,
     )

@@ -55,6 +55,5 @@ class Service:
             channel.consume_requests(
                 queue=self.update_request_queue,
                 on_message_callback=self.on_update_request,
-                dead_letter=True,
             )
             channel.start_consuming()

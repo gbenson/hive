@@ -89,6 +89,5 @@ class Service:
             channel.consume_requests(
                 queue=self.input_queue,
                 on_message_callback=self.on_notification_request,
-                dead_letter=True,
             )
             channel.start_consuming()

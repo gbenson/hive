@@ -67,6 +67,6 @@ class Service(ABC):
             channel.consume_events(
                 queue=self.input_queue,
                 on_message_callback=self._on_matrix_event,
-                dead_letter=True,
+                mandatory=True,
             )
             channel.start_consuming()

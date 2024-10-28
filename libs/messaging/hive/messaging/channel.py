@@ -1,12 +1,13 @@
 import json
 import logging
 
-from functools import cached_property
+from functools import cache, cached_property
 from typing import Callable, Optional
 
 from pika import BasicProperties, DeliveryMode
 from pika.spec import Basic
 
+from . import semantics
 from .wrapper import WrappedPikaThing
 
 logger = logging.getLogger(__name__)
@@ -14,8 +15,82 @@ d = logger.debug
 
 
 class Channel(WrappedPikaThing):
+    """The primary entry point for interacting with Hive's message bus.
+    """
+    # QUEUES are declared by their consuming service
+
+    # CONSUME_* methods process to completion or dead-letter the message
+
+    # REQUESTS are things we're asking to be done:
+    # - Each request queue has exactly one consuming service
+    # - Publish delivers the message or raises an exception
+    # - Consume processes to completion or dead-letters the message
+
+    def publish_request(self, **kwargs):
+        return self._publish_direct(
+            self.requests_exchange,
+            **kwargs
+        )
+
+    def consume_requests(self, *args, **kwargs):
+        return self._consume_direct(
+            self.requests_exchange,
+            *args,
+            **kwargs
+        )
+
+    # EVENTS are things that have happened:
+    # - DIRECT EVENTS have the same semantics as requests
+    #
+    # - FANOUT EVENTS are different:
+    #   - Transient events fan-out to zero-many consuming services
+    #   - Publish drops messages with no consumers
+
+    def publish_event(self, **kwargs):
+        if kwargs.pop("mandatory", False):
+            return self._publish_direct(
+                self.direct_events_exchange,
+                **kwargs
+            )
+
+        semantics.publish_may_drop(kwargs)
+        routing_key = kwargs["routing_key"]
+        exchange = self._fanout_exchange_for(routing_key)
+        return self._publish(exchange=exchange, **kwargs)
+
+    def consume_events(self, *args, **kwargs):
+        if kwargs.pop("mandatory", False):
+            return self._consume_direct(
+                self.direct_events_exchange,
+                *args,
+                **kwargs
+            )
+
+        # XXX Dead letter to... x.routing_key
+        raise NotImplementedError(args, kwargs)
+
+    # Common handlers for REQUESTS and DIRECT EVENTS
+
+    def _publish_direct(self, exchange: str, **kwargs):
+        semantics.publish_must_succeed(kwargs)
+        return self._publish(exchange=exchange, **kwargs)
+
+    def _consume_direct(self, exchange: str, *args, **kwargs):
+        semantics.consume_must_succeed(kwargs)
+        return self._basic_consume(exchange, *args, **kwargs)
+
+    # Exchanges
+
+    @cache
+    def _fanout_exchange_for(self, routing_key: str) -> str:
+        return self._hive_exchange(
+            exchange=routing_key,
+            exchange_type="fanout",
+            durable=True,
+        )
+
     @cached_property
-    def events_exchange(self) -> str:
+    def direct_events_exchange(self) -> str:
         return self._hive_exchange(
             exchange="events",
             exchange_type="direct",
@@ -93,12 +168,6 @@ class Channel(WrappedPikaThing):
             **kwargs
         )
 
-    def publish_event(self, **kwargs):
-        return self._publish(exchange=self.events_exchange, **kwargs)
-
-    def publish_request(self, **kwargs):
-        return self._publish(exchange=self.requests_exchange, **kwargs)
-
     def _publish(
             self,
             *,
@@ -152,12 +221,6 @@ class Channel(WrappedPikaThing):
             raise ValueError(value)
         self.basic_qos(prefetch_count=value)
         self._prefetch_count = value
-
-    def consume_events(self, *args, **kwargs):
-        return self._basic_consume(self.events_exchange, *args, **kwargs)
-
-    def consume_requests(self, *args, **kwargs):
-        return self._basic_consume(self.requests_exchange, *args, **kwargs)
 
     def _basic_consume(
             self,

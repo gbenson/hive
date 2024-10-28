@@ -207,12 +207,10 @@ def main():
         channel.consume_requests(
             queue=message_queue,
             on_message_callback=sender.on_send_message_request,
-            dead_letter=True,
         )
         channel.consume_requests(
             queue=reaction_queue,
             on_message_callback=sender.on_send_reaction_request,
-            dead_letter=True,
         )
 
         channel.start_consuming()

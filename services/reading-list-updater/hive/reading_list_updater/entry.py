@@ -14,6 +14,7 @@ class ReadingListEntry:
     title: Optional[str] = None
     notes: Optional[str] = None
     timestamp: str = field(default_factory=NotImplemented)
+    matrix_event_id: str = None
 
     def __post_init__(self):
         if not self.title:
@@ -50,6 +51,11 @@ class ReadingListEntry:
         kwargs = {}
         if (date := email.get("date")):
             kwargs["timestamp"] = date
+
+        if (origin := email.get("origin")):
+            if origin.get("channel") == "matrix":
+                if (event_id := origin.get("event_id")):
+                    kwargs["matrix_event_id"] = event_id
 
         return cls(link, title, notes, **kwargs)
 

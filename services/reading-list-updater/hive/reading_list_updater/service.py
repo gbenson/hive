@@ -38,6 +38,16 @@ class Service:
         entry = ReadingListEntry.from_email_summary_bytes(body)
         wikitext = entry.as_wikitext()
         self.wiki.page("Reading list").append(f"* {wikitext}")
+        if (source_event_id := entry.matrix_event_id):
+            channel.publish_request(
+                message={
+                    "reaction": "👍",
+                    "receiver": {
+                        "event_id": source_event_id,
+                    },
+                },
+                routing_key="matrix.reaction.send.requests",
+            )
 
     def run(self):
         with blocking_connection(on_channel_open=self.on_channel_open) as conn:

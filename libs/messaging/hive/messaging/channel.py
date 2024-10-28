@@ -8,21 +8,12 @@ from pika import BasicProperties, DeliveryMode
 from pika.spec import Basic
 
 from .wrapper import WrappedPikaThing
-from .channel_services import Notifier
 
 logger = logging.getLogger(__name__)
 d = logger.debug
 
 
 class Channel(WrappedPikaThing):
-    @cached_property
-    def notifier(self) -> Notifier:
-        return Notifier(self)
-
-    @cached_property
-    def tell_user(self) -> Callable:
-        return self.notifier.tell_user
-
     @cached_property
     def events_exchange(self) -> str:
         return self._hive_exchange(

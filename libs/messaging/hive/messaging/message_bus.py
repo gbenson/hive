@@ -101,8 +101,3 @@ class MessageBus:
                 durable=durable,  # Persist across broker restarts.
             )
             return channel.send_to_queue(queue, *args, **kwargs)
-
-    def tell_user(self, *args, **kwargs):
-        with self.blocking_connection(connection_attempts=1) as conn:
-            channel = conn.channel()
-            return channel.tell_user(*args, **kwargs)

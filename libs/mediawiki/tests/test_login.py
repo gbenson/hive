@@ -6,7 +6,7 @@ import pytest
 
 from mediawiki import mediawiki as mediawiki_module
 
-from hive.config.testing import test_config_dir  # noqa: F401
+from hive.common.testing import test_config_dir  # noqa: F401
 from hive.mediawiki import HiveWiki
 
 

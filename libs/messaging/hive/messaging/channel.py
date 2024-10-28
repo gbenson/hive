@@ -32,10 +32,9 @@ class Channel(WrappedPikaThing):
             **kwargs
         )
 
-    def consume_requests(self, *args, **kwargs):
+    def consume_requests(self, **kwargs):
         return self._consume_direct(
             self.requests_exchange,
-            *args,
             **kwargs
         )
 
@@ -58,16 +57,20 @@ class Channel(WrappedPikaThing):
         exchange = self._fanout_exchange_for(routing_key)
         return self._publish(exchange=exchange, **kwargs)
 
-    def consume_events(self, *args, **kwargs):
+    def consume_events(self, **kwargs):
         if kwargs.pop("mandatory", False):
             return self._consume_direct(
                 self.direct_events_exchange,
-                *args,
                 **kwargs
             )
 
-        # XXX Dead letter to... x.routing_key
-        raise NotImplementedError(args, kwargs)
+        routing_key = kwargs.pop("queue")
+        exchange = self._fanout_exchange_for(routing_key)
+        return self._basic_consume(
+            exchange,
+            queue="",  # broker choose a name
+            **kwargs
+        )
 
     # Common handlers for REQUESTS and DIRECT EVENTS
 
@@ -75,9 +78,8 @@ class Channel(WrappedPikaThing):
         semantics.publish_must_succeed(kwargs)
         return self._publish(exchange=exchange, **kwargs)
 
-    def _consume_direct(self, exchange: str, *args, **kwargs):
-        semantics.consume_must_succeed(kwargs)
-        return self._basic_consume(exchange, *args, **kwargs)
+    def _consume_direct(self, exchange: str, **kwargs):
+        return self._basic_consume(exchange, **kwargs)
 
     # Exchanges
 
@@ -118,7 +120,24 @@ class Channel(WrappedPikaThing):
         self.exchange_declare(exchange=name, **kwargs)
         return name
 
-    def _bound_queue_declare(self, queue, exchange, **kwargs):
+    def _bound_queue_declare(self, queue: str, exchange: str, **kwargs):
+        ensure_kwarg = semantics._ensure_kwarg
+        ensure_kwarg(kwargs, "dead_letter", True)
+
+        if queue:
+            # consumer-named queue (direct, permanent)
+            ensure_kwarg(kwargs, "durable", True)
+            ensure_kwarg(kwargs, "exclusive", False)
+            dead_letter_basename = queue
+        else:
+            # broker-named queue (fanout, transient)
+            ensure_kwarg(kwargs, "durable", False)
+            ensure_kwarg(kwargs, "exclusive", True)
+            dead_letter_basename = exchange.split(".", 1)[1]
+
+        dead_letter_queue = f"x.{dead_letter_basename}"
+        ensure_kwarg(kwargs, "dead_letter_queue", dead_letter_queue)
+
         result = self.queue_declare(queue, **kwargs)
         self.queue_bind(
             queue=queue,
@@ -130,17 +149,17 @@ class Channel(WrappedPikaThing):
     def queue_declare(self, queue, **kwargs):
         dead_letter = kwargs.pop("dead_letter", False)
         if dead_letter:
-            dead_letter_queue = f"x.{queue}"
+            dead_letter_queue = kwargs.pop("dead_letter_queue")
             self.queue_declare(
                 dead_letter_queue,
-                durable=kwargs.get("durable", False),
+                durable=True,
             )
 
             dead_letter_exchange = self.dead_letter_exchange
             self.queue_bind(
                 queue=dead_letter_queue,
                 exchange=dead_letter_exchange,
-                routing_key=queue,
+                routing_key=dead_letter_queue.split(".", 1)[1]
             )
 
             arguments = kwargs.pop("arguments", {}).copy()
@@ -225,10 +244,9 @@ class Channel(WrappedPikaThing):
     def _basic_consume(
             self,
             exchange: str,
+            *,
             queue: str,
             on_message_callback: Callable,
-            *,
-            durable_queue: bool = True,  # Persist across broker restarts.
             **queue_kwargs
     ):
         self.prefetch_count = 1  # Receive one message at a time.
@@ -236,7 +254,6 @@ class Channel(WrappedPikaThing):
         self._bound_queue_declare(
             queue=queue,
             exchange=exchange,
-            durable=durable_queue,
             **queue_kwargs
         )
 

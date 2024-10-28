@@ -27,19 +27,6 @@ def messages_persist_across_broker_restarts(kwargs: dict[str, Any]):
     _ensure_kwarg(kwargs, "delivery_mode", DeliveryMode.Persistent)
 
 
-def consume_must_succeed(kwargs: dict[str, Any]):
-    """Messages are processed or dead-lettered, never dropped.
-    """
-    _ensure_kwarg(kwargs, "dead_letter", True)
-    queue_persists_across_broker_restarts(kwargs)
-
-
-def queue_persists_across_broker_restarts(kwargs: dict[str, Any]):
-    """Messages won't get lost if the broker is restarted (part 1 of 2).
-    """
-    _ensure_kwarg(kwargs, "durable_queue", True)
-
-
 _Unset = object()
 
 

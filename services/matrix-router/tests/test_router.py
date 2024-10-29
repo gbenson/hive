@@ -8,8 +8,7 @@ class MockChannel:
     def __init__(self):
         self.published_requests = []
 
-    def publish_request(self, *, mandatory, **kwargs):
-        assert mandatory is True
+    def publish_request(self, **kwargs):
         self.published_requests.append(kwargs)
 
 

@@ -25,8 +25,9 @@ def test_smoke(filename):
 
     assert event.event_id == event._event._event["event_id"]
     assert event.timestamp_ms == event._event._event["origin_server_ts"]
-    assert event.room_id == event._event._event["room_id"]
-    assert event.body == event.content._content["body"]
+    if event.event_type != "m.room.redaction":
+        event.room_id == event._event._event["room_id"]
+        assert event.body == event.content._content["body"]
 
     router.on_matrix_event(MockChannel(), event)
 

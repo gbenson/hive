@@ -253,9 +253,26 @@ class Channel(WrappedPikaThing):
                 result = on_message_callback(channel, method, *args, **kwargs)
                 channel.basic_ack(delivery_tag=delivery_tag)
                 return result
-            except Exception:
+            except Exception as e:
                 channel.basic_reject(delivery_tag=delivery_tag, requeue=False)
-                logger.exception("EXCEPTION")
+                logged = False
+                try:
+                    if isinstance(e, NotImplementedError) and e.args:
+                        traceback = e.__traceback__
+                        while (next_tb := traceback.tb_next):
+                            traceback = next_tb
+                        code = traceback.tb_frame.f_code
+                        try:
+                            func = code.co_qualname
+                        except AttributeError:
+                            func = code.co_name  # Python <=3.10
+                        logger.warning("%s:%s:UNHANDLED", func, e)
+                        logged = True
+
+                except Exception:
+                    logger.exception("NESTED EXCEPTION")
+                if not logged:
+                    logger.exception("EXCEPTION")
 
         return self.basic_consume(
             queue=queue,

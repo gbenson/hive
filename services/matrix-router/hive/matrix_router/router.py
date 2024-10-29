@@ -30,4 +30,4 @@ class Router:
         if is_reading_list_update(event):
             route_reading_list_update(channel, event)
             return
-        raise NotImplementedError
+        raise NotImplementedError(f"event.body={event.body!r}")

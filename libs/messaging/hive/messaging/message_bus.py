@@ -91,13 +91,3 @@ class MessageBus:
         return self.blocking_connection(
             connection_class=PublisherConnection,
             **kwargs)
-
-    def send_to_queue(self, queue: str, *args, **kwargs):
-        durable = kwargs.pop("durable", True)
-        with self.blocking_connection(connection_attempts=1) as conn:
-            channel = conn.channel()
-            channel.queue_declare(
-                queue=queue,
-                durable=durable,  # Persist across broker restarts.
-            )
-            return channel.send_to_queue(queue, *args, **kwargs)

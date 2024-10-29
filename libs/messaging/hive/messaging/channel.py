@@ -172,21 +172,6 @@ class Channel(WrappedPikaThing):
 
         return self._pika.queue_declare(queue, **kwargs)
 
-    def send_to_queue(
-            self,
-            queue: str,
-            msg: bytes | dict,
-            content_type: Optional[str] = None,
-            **kwargs
-    ):
-        return self._publish(
-            exchange="",
-            routing_key=queue,
-            message=msg,
-            content_type=content_type,
-            **kwargs
-        )
-
     def _publish(
             self,
             *,

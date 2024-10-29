@@ -53,7 +53,7 @@ class Channel(WrappedPikaThing):
             )
 
         semantics.publish_may_drop(kwargs)
-        routing_key = kwargs["routing_key"]
+        routing_key = kwargs.pop("routing_key")
         exchange = self._fanout_exchange_for(routing_key)
         return self._publish(exchange=exchange, **kwargs)
 

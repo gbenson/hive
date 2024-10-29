@@ -45,40 +45,38 @@ class Channel(WrappedPikaThing):
     #   - Transient events fan-out to zero-many consuming services
     #   - Publish drops messages with no consumers
 
-    def publish_event(self, **kwargs):
-        if kwargs.pop("mandatory", False):
+    def publish_event(self, *, mandatory: bool = False, **kwargs):
+        if mandatory:
             return self._publish_direct(
                 self.direct_events_exchange,
                 **kwargs
             )
+        return self._publish_fanout(**kwargs)
 
-        semantics.publish_may_drop(kwargs)
-        routing_key = kwargs.pop("routing_key")
-        exchange = self._fanout_exchange_for(routing_key)
-        return self._publish(exchange=exchange, **kwargs)
-
-    def consume_events(self, **kwargs):
-        if kwargs.pop("mandatory", False):
+    def consume_events(self, *, mandatory: bool = False, **kwargs):
+        if mandatory:
             return self._consume_direct(
                 self.direct_events_exchange,
                 **kwargs
             )
+        return self._consume_fanout(**kwargs)
 
-        routing_key = kwargs.pop("queue")
-        exchange = self._fanout_exchange_for(routing_key)
-        return self._basic_consume(
-            exchange,
-            queue="",  # broker choose a name
-            **kwargs
-        )
-
-    # Common handlers for REQUESTS and DIRECT EVENTS
+    # Lower level handlers for REQUESTS and EVENTS
 
     def _publish_direct(self, exchange: str, **kwargs):
         semantics.publish_must_succeed(kwargs)
         return self._publish(exchange=exchange, **kwargs)
 
     def _consume_direct(self, exchange: str, **kwargs):
+        return self._basic_consume(exchange, **kwargs)
+
+    def _publish_fanout(self, routing_key: str, **kwargs):
+        semantics.publish_may_drop(kwargs)
+        exchange = self._fanout_exchange_for(routing_key)
+        return self._publish(exchange=exchange, **kwargs)
+
+    def _consume_fanout(self, queue: str, **kwargs):
+        exchange = self._fanout_exchange_for(queue)
         return self._basic_consume(exchange, **kwargs)
 
     # Exchanges
@@ -120,7 +118,7 @@ class Channel(WrappedPikaThing):
         self.exchange_declare(exchange=name, **kwargs)
         return name
 
-    def _bound_queue_declare(self, queue: str, exchange: str, **kwargs):
+    def _bound_queue_declare(self, exchange: str, queue: str = "", **kwargs):
         ensure_kwarg = semantics._ensure_kwarg
         ensure_kwarg(kwargs, "dead_letter", True)
 
@@ -144,7 +142,7 @@ class Channel(WrappedPikaThing):
             exchange=exchange,
             routing_key=queue,
         )
-        return result
+        return result.method.queue
 
     def queue_declare(self, queue, **kwargs):
         dead_letter = kwargs.pop("dead_letter", False)
@@ -230,17 +228,12 @@ class Channel(WrappedPikaThing):
             self,
             exchange: str,
             *,
-            queue: str,
             on_message_callback: Callable,
             **queue_kwargs
     ):
         self.prefetch_count = 1  # Receive one message at a time.
 
-        self._bound_queue_declare(
-            queue=queue,
-            exchange=exchange,
-            **queue_kwargs
-        )
+        queue = self._bound_queue_declare(exchange=exchange, **queue_kwargs)
 
         def _wrapped_callback(
                 channel: Channel,

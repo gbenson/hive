@@ -280,7 +280,8 @@ class Channel(WrappedPikaThing):
             **kwargs
     ):
         def _wrapped_callback(channel, *args, **kwargs):
-            return on_message_callback(type(self)(channel), *args, **kwargs)
+            assert channel is self._pika
+            return on_message_callback(self, *args, **kwargs)
         return self._pika.basic_consume(
             queue=queue,
             on_message_callback=_wrapped_callback,

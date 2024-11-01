@@ -53,13 +53,19 @@ class Channel(WrappedPikaThing):
             )
         return self._publish_fanout(**kwargs)
 
-    def consume_events(self, *, mandatory: bool = False, **kwargs):
+    def consume_events(
+            self,
+            queue: str,
+            mandatory: bool = False,
+            **kwargs
+    ):
         if mandatory:
             return self._consume_direct(
                 self.direct_events_exchange,
+                queue=queue,
                 **kwargs
             )
-        return self._consume_fanout(**kwargs)
+        return self._consume_fanout(queue, **kwargs)
 
     # Lower level handlers for REQUESTS and EVENTS
 
@@ -67,17 +73,39 @@ class Channel(WrappedPikaThing):
         semantics.publish_must_succeed(kwargs)
         return self._publish(exchange=exchange, **kwargs)
 
-    def _consume_direct(self, exchange: str, **kwargs):
-        return self._basic_consume(exchange, **kwargs)
+    def _consume_direct(
+            self,
+            exchange: str,
+            *,
+            queue: str,
+            on_message_callback: Callable,
+    ):
+        self._queue_declare(exchange, queue)
+        self.queue_bind(
+            queue=queue,
+            exchange=exchange,
+            routing_key=queue,
+        )
+        return self._basic_consume(queue, on_message_callback)
 
     def _publish_fanout(self, routing_key: str, **kwargs):
         semantics.publish_may_drop(kwargs)
         exchange = self._fanout_exchange_for(routing_key)
         return self._publish(exchange=exchange, **kwargs)
 
-    def _consume_fanout(self, queue: str, **kwargs):
-        exchange = self._fanout_exchange_for(queue)
-        return self._basic_consume(exchange, **kwargs)
+    def _consume_fanout(
+            self,
+            routing_key: str,
+            *,
+            on_message_callback: Callable,
+    ):
+        exchange = self._fanout_exchange_for(routing_key)
+        queue = self._queue_declare(exchange, "")
+        self.queue_bind(
+            queue=queue,
+            exchange=exchange,
+        )
+        return self._basic_consume(queue, on_message_callback)
 
     # Exchanges
 
@@ -118,7 +146,8 @@ class Channel(WrappedPikaThing):
         self.exchange_declare(exchange=name, **kwargs)
         return name
 
-    def _bound_queue_declare(self, exchange: str, queue: str = "", **kwargs):
+    def _queue_declare(self, exchange: str, queue: str):
+        kwargs = {}
         ensure_kwarg = semantics._ensure_kwarg
         ensure_kwarg(kwargs, "dead_letter", True)
 
@@ -137,11 +166,6 @@ class Channel(WrappedPikaThing):
         ensure_kwarg(kwargs, "dead_letter_queue", dead_letter_queue)
 
         result = self.queue_declare(queue, **kwargs)
-        self.queue_bind(
-            queue=queue,
-            exchange=exchange,
-            routing_key=queue,
-        )
         return result.method.queue
 
     def queue_declare(self, queue, **kwargs):
@@ -226,14 +250,10 @@ class Channel(WrappedPikaThing):
 
     def _basic_consume(
             self,
-            exchange: str,
-            *,
+            queue: str,
             on_message_callback: Callable,
-            **queue_kwargs
     ):
         self.prefetch_count = 1  # Receive one message at a time.
-
-        queue = self._bound_queue_declare(exchange=exchange, **queue_kwargs)
 
         def _wrapped_callback(
                 channel: Channel,

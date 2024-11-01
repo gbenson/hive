@@ -111,7 +111,7 @@ def test_consume_requests():
     assert len(mock.basic_consume.call_log[0]) == 2
     got_callback = mock.basic_consume.call_log[0][1]["on_message_callback"]
     assert mock.basic_consume.call_log == [((), {
-        "queue": "TeStQuEu3",
+        "queue": "arr.pirates",
         "on_message_callback": got_callback,
     })]
     assert on_message_callback.call_log == []
@@ -216,7 +216,7 @@ def test_consume_mandatory_events():
     assert len(mock.basic_consume.call_log[0]) == 2
     got_callback = mock.basic_consume.call_log[0][1]["on_message_callback"]
     assert mock.basic_consume.call_log == [((), {
-        "queue": "TeStQuEu3",
+        "queue": "arr.pirates",
         "on_message_callback": got_callback,
     })]
     assert on_message_callback.call_log == []
@@ -310,9 +310,8 @@ def test_consume_fanout_events():
         "exchange": "hive.dead.letter",
         "routing_key": "arr.pirates",
     }), ((), {
-        "queue": "",
+        "queue": "TeStQuEu3",
         "exchange": "hive.arr.pirates",
-        "routing_key": "",  # unnecessary?
     })]
 
     assert len(mock.basic_consume.call_log) == 1

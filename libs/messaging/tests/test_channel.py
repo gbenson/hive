@@ -92,7 +92,6 @@ def test_consume_requests():
         "arr.pirates",
     ), {
         "durable": True,
-        "exclusive": False,
         "arguments": {
             "x-dead-letter-exchange": "hive.dead.letter",
         },
@@ -197,7 +196,6 @@ def test_consume_mandatory_events():
         "arr.pirates",
     ), {
         "durable": True,
-        "exclusive": False,
         "arguments": {
             "x-dead-letter-exchange": "hive.dead.letter",
         },
@@ -293,22 +291,21 @@ def test_consume_fanout_events():
         "prefetch_count": 1,
     })]
     assert mock.queue_declare.call_log == [((
-        "x.arr.pirates",
+        "x.pytest.arr.pirates",
     ), {
         "durable": True,
     }), ((
-        "",  # i.e. broker choose
+        "pytest.arr.pirates",
     ), {
-        "durable": False,
         "exclusive": True,
         "arguments": {
             "x-dead-letter-exchange": "hive.dead.letter",
         },
     })]
     assert mock.queue_bind.call_log == [((), {
-        "queue": "x.arr.pirates",
+        "queue": "x.pytest.arr.pirates",
         "exchange": "hive.dead.letter",
-        "routing_key": "arr.pirates",
+        "routing_key": "pytest.arr.pirates",
     }), ((), {
         "queue": "TeStQuEu3",
         "exchange": "hive.arr.pirates",

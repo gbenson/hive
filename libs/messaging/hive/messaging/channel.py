@@ -1,5 +1,7 @@
 import json
 import logging
+import os
+import sys
 
 from functools import cache, cached_property
 from typing import Callable, Optional
@@ -73,6 +75,11 @@ class Channel(WrappedPikaThing):
         semantics.publish_must_succeed(kwargs)
         return self._publish(exchange=exchange, **kwargs)
 
+    def _publish_fanout(self, routing_key: str, **kwargs):
+        semantics.publish_may_drop(kwargs)
+        exchange = self._fanout_exchange_for(routing_key)
+        return self._publish(exchange=exchange, **kwargs)
+
     def _consume_direct(
             self,
             exchange: str,
@@ -80,18 +87,19 @@ class Channel(WrappedPikaThing):
             queue: str,
             on_message_callback: Callable,
     ):
-        self._queue_declare(exchange, queue)
+        self.queue_declare(
+            queue,
+            dead_letter_routing_key=queue,
+            durable=True,
+        )
+
         self.queue_bind(
             queue=queue,
             exchange=exchange,
             routing_key=queue,
         )
-        return self._basic_consume(queue, on_message_callback)
 
-    def _publish_fanout(self, routing_key: str, **kwargs):
-        semantics.publish_may_drop(kwargs)
-        exchange = self._fanout_exchange_for(routing_key)
-        return self._publish(exchange=exchange, **kwargs)
+        return self._basic_consume(queue, on_message_callback)
 
     def _consume_fanout(
             self,
@@ -100,12 +108,33 @@ class Channel(WrappedPikaThing):
             on_message_callback: Callable,
     ):
         exchange = self._fanout_exchange_for(routing_key)
-        queue = self._queue_declare(exchange, "")
+        if (queue := self.consumer_name):
+            queue = f"{queue}.{routing_key}"
+
+        queue = self.queue_declare(
+            queue,
+            dead_letter_routing_key=queue or routing_key,
+            exclusive=True,
+        ).method.queue
+
         self.queue_bind(
             queue=queue,
             exchange=exchange,
         )
+
         return self._basic_consume(queue, on_message_callback)
+
+    @cached_property
+    def consumer_name(self):
+        """Name for per-consumer fanout queues to this channel.
+        May be overwritten or overridden (you'll actually have
+        to if more than one channel per process consumes the
+        same fanout "queue").
+        """
+        return ".".join(
+            part for part in os.path.basename(sys.argv[0]).split("-")
+            if part != "hive"
+        )
 
     # Exchanges
 
@@ -146,33 +175,27 @@ class Channel(WrappedPikaThing):
         self.exchange_declare(exchange=name, **kwargs)
         return name
 
-    def _queue_declare(self, exchange: str, queue: str):
-        kwargs = {}
-        ensure_kwarg = semantics._ensure_kwarg
-        ensure_kwarg(kwargs, "dead_letter", True)
+    # Queues
 
-        if queue:
-            # consumer-named queue (direct, permanent)
-            ensure_kwarg(kwargs, "durable", True)
-            ensure_kwarg(kwargs, "exclusive", False)
-            dead_letter_basename = queue
-        else:
-            # broker-named queue (fanout, transient)
-            ensure_kwarg(kwargs, "durable", False)
-            ensure_kwarg(kwargs, "exclusive", True)
-            dead_letter_basename = exchange.split(".", 1)[1]
+    def queue_declare(
+            self,
+            queue: str,
+            *,
+            dead_letter_routing_key: Optional[str] = None,
+            arguments: Optional[dict[str, str]] = None,
+            **kwargs
+    ):
+        if dead_letter_routing_key:
+            DLX_ARG = "x-dead-letter-exchange"
+            if arguments:
+                if DLX_ARG in arguments:
+                    raise ValueError(arguments)
+                arguments = arguments.copy()
+            else:
+                arguments = {}
 
-        dead_letter_queue = f"x.{dead_letter_basename}"
-        ensure_kwarg(kwargs, "dead_letter_queue", dead_letter_queue)
-
-        result = self.queue_declare(queue, **kwargs)
-        return result.method.queue
-
-    def queue_declare(self, queue, **kwargs):
-        dead_letter = kwargs.pop("dead_letter", False)
-        if dead_letter:
-            dead_letter_queue = kwargs.pop("dead_letter_queue")
-            self.queue_declare(
+            dead_letter_queue = f"x.{dead_letter_routing_key}"
+            self._pika.queue_declare(
                 dead_letter_queue,
                 durable=True,
             )
@@ -181,18 +204,16 @@ class Channel(WrappedPikaThing):
             self.queue_bind(
                 queue=dead_letter_queue,
                 exchange=dead_letter_exchange,
-                routing_key=dead_letter_queue.split(".", 1)[1]
+                routing_key=dead_letter_routing_key,
             )
 
-            arguments = kwargs.pop("arguments", {}).copy()
-            self._ensure_arg(
-                arguments,
-                "x-dead-letter-exchange",
-                dead_letter_exchange,
-            )
-            kwargs["arguments"] = arguments
+            arguments[DLX_ARG] = dead_letter_exchange
 
-        return self._pika.queue_declare(queue, **kwargs)
+        return self._pika.queue_declare(
+            queue,
+            arguments=arguments,
+            **kwargs
+        )
 
     def _publish(
             self,
@@ -215,12 +236,6 @@ class Channel(WrappedPikaThing):
             ),
             mandatory=mandatory,  # Don't fail silently.
         )
-
-    @staticmethod
-    def _ensure_arg(args: dict, key: str, want_value: any):
-        if args.get(key, want_value) != want_value:
-            raise ValueError(args)
-        args[key] = want_value
 
     @staticmethod
     def _encapsulate(

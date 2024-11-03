@@ -11,6 +11,7 @@ include:
     env_file:
       - $HOME/.config/hive/hostnames.env
       - $HOME/.config/hive/mapped-ports.env
+      - $HOME/.config/hive/vane-webui.env
 
 services:
   rabbitmq:

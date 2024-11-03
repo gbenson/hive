@@ -49,6 +49,28 @@ RUN set -eux \
   && rm -f /run/adduser \
   && install -d -oroot -ghmrouter -m710 /run/secrets
 
+FROM install AS test
+RUN set -eux \
+  \
+  && install -d -ohmrouter -ghmrouter /src \
+  && /venv/bin/pip install \
+       pep440-version-utils \
+       pytest-cov
+COPY tests /src/tests
+
+USER hmrouter:hmrouter
+WORKDIR /src
+
+RUN set -eux \
+  \
+  && . /venv/bin/activate \
+  && pytest --cov hive.matrix_router \
+  && coverage report > coverage.report
+
+FROM install AS dist
+RUN --mount=type=bind,from=test,target=/test \
+  grep -q '[^ ][^0]%$' /test/src/coverage.report
+
 USER hmrouter:hmrouter
 WORKDIR /var/lib/hmrouter
 

@@ -49,6 +49,30 @@ RUN set -eux \
   && rm -f /run/adduser \
   && install -d -oroot -greadlist -m710 /run/secrets
 
+FROM install AS test
+RUN set -eux \
+  \
+  && install -d -oreadlist -greadlist /src \
+  && /venv/bin/pip install \
+       hive-email \
+       pep440-version-utils \
+       pytest-cov
+COPY tests /src/tests
+
+USER readlist:readlist
+WORKDIR /src
+
+RUN set -eux \
+  \
+  && . /venv/bin/activate \
+  && pip freeze | grep hive \
+  && pytest --cov hive.reading_list_updater \
+  && coverage report > coverage.report
+
+FROM install AS dist
+RUN --mount=type=bind,from=test,target=/test \
+  grep -q '[^ ][^0]%$' /test/src/coverage.report
+
 USER readlist:readlist
 WORKDIR /var/lib/readlist
 

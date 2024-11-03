@@ -7,10 +7,6 @@ include:
   - path: services/matrix-connector/docker-compose.yml
   - path: services/matrix-router/docker-compose.yml
 
-  - path: services/notification-sender/docker-compose.yml
-    env_file:
-      - $HOME/.config/hive/gotify.env
-
   - path: services/nginx-proxy/docker-compose.yml
     env_file:
       - $HOME/.config/hive/hostnames.env

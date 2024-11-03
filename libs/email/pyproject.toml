@@ -18,8 +18,7 @@ html = [
     "html2text",
 ]
 openai = [
-    "hive-common",
-    "openai",
+    "hive-common[openai]",
 ]
 
 [project.scripts]

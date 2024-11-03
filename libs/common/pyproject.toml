@@ -15,6 +15,11 @@ dependencies = [
 Homepage = "https://github.com/gbenson/hive/tree/main/libs/common"
 Source = "https://github.com/gbenson/hive"
 
+[project.optional-dependencies]
+openai = [
+    "openai",
+]
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"

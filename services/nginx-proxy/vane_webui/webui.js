@@ -1,7 +1,71 @@
+function httpError(response) {
+  const main = document.getElementById("output");
+  main.innerText = `${response.status} ${response.statusText}`;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  const main = document.getElementsByTagName("main")[0];
-  const form = document.getElementsByTagName("form")[0];
-  const input = form.getElementsByTagName("input")[0];
+  getSession();
+});
+
+async function getSession() {
+  const response = await fetch("api/login");
+  if (response.status == 204) {
+    return gotSession();
+  }
+  if (response.status != 200) {
+    return httpError(response);
+  }
+
+  const csrf = document.getElementById("xov");
+
+  const json = await response.json();
+  csrf.value = json.csrf;
+
+  const loginForm = document.getElementById("login");
+  const user = document.getElementById("un");
+
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const pass = document.getElementById("pw");
+
+    const response = await fetch("api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user: user.value,
+        pass: pass.value,
+        csrf: csrf.value,
+      }),
+    });
+
+    if (response.status == 204) {
+      loginForm.style.display = "none";
+      return gotSession();
+    }
+    if (response.status != 200) {
+      return httpError(response);
+    }
+
+    const button = loginForm.getElementsByTagName("button")[0];
+    button.style.backgroundColor = "red";
+
+    const json = await response.json();
+    csrf.value = json.csrf;
+
+    user.focus();
+  }, false);
+
+  loginForm.style.display = "";
+  user.focus();
+}
+
+function gotSession() {
+  const main = document.getElementById("output");
+  const form = document.getElementById("chat");
+  const input = document.getElementById("input");
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -11,7 +75,10 @@ document.addEventListener("DOMContentLoaded", () => {
     processInput(userInput, main);
   }, false);
 
-});
+  const footer = document.getElementById("footer");
+  footer.style.display = "";
+  input.focus();
+}
 
 const apiEndpointURL = ("https://nrtt8bz8be.execute-api.us" +
                         "-east-1.amazonaws.com/prod/niall2");
@@ -20,7 +87,7 @@ async function processInput(userInput, messages) {
   userInput = userInput.trim();
   addToChat(messages, "user", userInput);
 
-  const niallDiv = addToChat(messages, "niall", "...");
+  const hiveDiv = addToChat(messages, "hive", "...");
 
   const response = await fetch(apiEndpointURL, {
     method: "POST",
@@ -35,8 +102,8 @@ async function processInput(userInput, messages) {
   });
   const json = await response.json();
 
-  niallDiv.innerText = json["niall_output"];
-  niallDiv.classList.remove("waiting");
+  hiveDiv.innerText = json["niall_output"];
+  hiveDiv.classList.remove("waiting");
 }
 
 function addToChat(messages, sender, message) {
@@ -49,7 +116,7 @@ function addToChat(messages, sender, message) {
   div.appendChild(div2);
 
   const div3 = document.createElement("div");
-  if (sender == "niall") {
+  if (sender == "hive") {
     div3.classList.add("waiting");
   }
   div3.innerText = message;

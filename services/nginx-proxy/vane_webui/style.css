@@ -9,7 +9,7 @@ html, body {
 body {
     color: rgb(236, 236, 241);
     background-color: #343541;
-    font-family: sans-serif;
+    font-family: roboto, calibri, verdana, helvetica, sans-serif;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -19,6 +19,15 @@ main {
     flex-direction: column;
     justify-content: flex-start;
     overflow-y: scroll;
+}
+h1 {
+    margin-bottom: 0.5em;
+}
+#login {
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 footer {
     width: 100%;
@@ -35,13 +44,20 @@ input {
 }
 button {
     border: none;
-    color: rgb(236,236,241,0.5);
+    color: rgba(236,236,241,0.5);
+}
+#login button {
+    background-color: rgba(0,255,0,0.5);
+    color: rgb(236,236,241);
+    font-size: 18px;
+    margin-top: 1em;
+    margin-right: 0.125em;
 }
 input, button, .from-user {
     background-color: rgba(0,0,0,0.25);
 }
 @media (max-width: 768px) {
-    input {
+    #chat input {
 	width: calc(100% - 2.25em);
     }
     button {
@@ -51,20 +67,26 @@ input, button, .from-user {
 	padding: 0.5em;
 	font-size: 18px;
     }
+    .message div {
+	padding-top: 0.28125em;
+    }
 }
 @media (min-width: 768px) {
     input, button {
 	margin: 1em;
     }
-    button {
+    #chat button {
 	margin-left: 0.125em;
     }
-    input {
+    #chat input {
 	margin-right: 0.125em;
 	width: calc(100% - 5.5em);
     }
     input, button, .message {
 	padding: 1em;
+    }
+    .message div {
+	padding-top: 0.3125em;
     }
 }
 .waiting {
@@ -91,12 +113,13 @@ input, button, .from-user {
 .from-user .avatar {
     background-color: purple;
 }
-.from-niall .avatar {
-    background-color: green;
+.from-hive .avatar {
+    background-color: #ffa800;
+    color: #fcff3d;
 }
 .from-user .avatar:before {
     content: "U";
 }
-.from-niall .avatar:before {
-    content: "N";
+.from-hive .avatar:before {
+    content: "H";
 }

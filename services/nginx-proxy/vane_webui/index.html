@@ -6,15 +6,28 @@
 				 initial-scale=1.0,
 				 interactive-widget=resizes-content">
   <link rel="stylesheet" href="style.css">
-  <title>Niall2</title>
+  <meta name="theme-color" content="#343541">
+  <title>M G M T</title>
 </head>
 <body>
-  <main></main>
-  <footer>
-    <form method="post">
-      <input type="text" name="message"
+  <main id="output">
+    <form method="post" id="login" style="display: none">
+      <h1>ログインしてください</h1>
+      <label for="un">メールアドレス</label>
+      <input name="username" id="un" type="text" placeholder="メールアドレス"
+	     required autofocus>
+      <label for="pw">パスワード</label>
+      <input name="password" id="pw" type="password" placeholder="パスワード"
+	     required>
+      <input type="hidden" id="xov" name="csrfToken">
+      <button type="submit">ログイン</button>
+    </form>
+  </main>
+  <footer id="footer" style="display: none">
+    <form id="chat" method="post">
+      <input id="input" type="text" name="message"
 	     placeholder="Say something..."
-	     autocomplete="off" autofocus>
+	     autocomplete="off">
       <button type="submit">
 	<svg stroke="currentColor" fill="none" stroke-width="2"
 	     viewBox="0 0 24 24" stroke-linecap="round"

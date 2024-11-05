@@ -1,21 +1,27 @@
 import json
 import os
 import subprocess
+import time
 
+from contextlib import contextmanager
 from http import HTTPStatus
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from secrets import token_urlsafe
+from threading import Lock
 
 
-class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
+class HTTPRequestHandler(SimpleHTTPRequestHandler):
     SESSION_ID = f"sessionId={token_urlsafe()}"
     CSRF_TOKEN = token_urlsafe()
     LOGIN_PATH = "/api/login"
+    EVENTS_PATH = "/api/events"
 
     def do_GET(self):
         match self.path:
             case self.LOGIN_PATH:
                 self._do_login()
+            case self.EVENTS_PATH:
+                self._do_events()
             case _:
                 super().do_GET()
 
@@ -78,9 +84,74 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
         self.wfile.flush()
 
+    def _do_events(self, poll_interval=0.5):
+        self.send_response(HTTPStatus.OK)
+        self.send_header("X-Accel-Buffering", "no")
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.end_headers()
+
+        with self.server.new_event_stream(self.wfile) as stream:
+            while stream.is_open:
+                time.sleep(poll_interval)
+
+
+class HTTPServer(ThreadingHTTPServer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._streams_lock = Lock()
+        self._streams = []
+
+    @contextmanager
+    def new_event_stream(self, wfile):
+        stream = EventStream(wfile)
+        with self._streams_lock:
+            self._streams.append(stream)
+            self._send_initial_events(stream)
+        try:
+            yield stream
+        finally:
+            with self._streams_lock:
+                self._streams.remove(stream)
+
+    def _send_initial_events(self, stream):
+        event = json.dumps([
+            {"sender": "hive", "text": "Hello this is HIVE CHAT"},
+            {"sender": "user", "text": "wow, that's interesting!"},
+            {"sender": "hive", "text": "sure is bucko"},
+        ])
+        if "\n\n" in event:
+            raise ValueError(event)
+        stream.send(f"data: {event}\n\n".encode("utf-8"))
+
+    def send_event(self, event_type: str, event: str):
+        event = f"data: {event}"
+        if event_type:
+            event = f"event: {event_type}\n{event}"
+        if "\n\n" in event:
+            raise ValueError(event)
+        event = f"{event}\n\n".encode("utf-8")
+        with self._streams_lock:
+            for stream in self._streams:
+                stream.send(event)
+
+
+class EventStream:
+    def __init__(self, wfile):
+        self._wfile = wfile
+        self.is_open = True
+
+    def send(self, data: bytes):
+        try:
+            self._wfile.write(data)
+            self._wfile.flush()
+
+        except BrokenPipeError:
+            self.is_open = False
+
 
 def main(server_address=("127.0.0.1", 5678)):
-    httpd = ThreadingHTTPServer(server_address, TestHTTPRequestHandler)
+    httpd = HTTPServer(server_address, HTTPRequestHandler)
     host, port = httpd.server_address
     server_url = f"http://{host}:{port}/"
     print(f"Serving HTTP on: {server_url}")

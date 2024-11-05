@@ -1,6 +1,10 @@
-function httpError(response) {
+function fatalError(msg) {
   const main = document.getElementById("output");
-  main.innerText = `${response.status} ${response.statusText}`;
+  main.innerText = msg;
+}
+
+function httpError(response) {
+  fatalError(`${response.status} ${response.statusText}`);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -63,7 +67,21 @@ async function getSession() {
 }
 
 function gotSession() {
-  const main = document.getElementById("output");
+  const outputArea = document.getElementById("output");
+  const sse = new EventSource("api/events");
+
+  sse.addEventListener("error", (event) => {
+    fatalError("Event source didn't open😞");
+  });
+  sse.addEventListener("open", (event) => {
+    gotEventSource(outputArea);
+  });
+  sse.addEventListener("message", (event) => {
+    gotMessages(JSON.parse(event.data), outputArea);
+  });
+}
+
+function gotEventSource(outputArea) {
   const form = document.getElementById("chat");
   const input = document.getElementById("input");
 
@@ -72,12 +90,19 @@ function gotSession() {
 
     let userInput = input.value;
     input.value = "";
-    processInput(userInput, main);
+    processInput(userInput, outputArea);
   }, false);
 
   const footer = document.getElementById("footer");
   footer.style.display = "";
+  document.title = "H I V E";
   input.focus();
+}
+
+function gotMessages(messages, outputArea) {
+  for (let message of messages) {
+    addToChat(outputArea, message["sender"], message["text"], true);
+  }
 }
 
 const apiEndpointURL = ("https://nrtt8bz8be.execute-api.us" +
@@ -106,7 +131,7 @@ async function processInput(userInput, messages) {
   hiveDiv.classList.remove("waiting");
 }
 
-function addToChat(messages, sender, message) {
+function addToChat(messages, sender, message, noWait = false) {
   const div = document.createElement("div");
   div.classList.add("message");
   div.classList.add(`from-${sender}`);
@@ -116,7 +141,7 @@ function addToChat(messages, sender, message) {
   div.appendChild(div2);
 
   const div3 = document.createElement("div");
-  if (sender == "hive") {
+  if (!noWait && sender == "hive") {
     div3.classList.add("waiting");
   }
   div3.innerText = message;

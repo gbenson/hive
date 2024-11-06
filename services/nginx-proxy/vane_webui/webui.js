@@ -78,7 +78,7 @@ class WebUI {
 
     sse.addEventListener("message", (event) => {
       for (let message of JSON.parse(event.data)) {
-        this.addToChat(message["sender"], message["text"]);
+        this.addToChat(message);
       }
     });
   }
@@ -103,10 +103,13 @@ class WebUI {
 
   async processInput(userInput) {
     userInput = userInput.trim();
-    this.addToChat("user", userInput);
-
-    const hiveDiv = this.addToChat("hive", "...");
-    hiveDiv.classList.add("waiting");
+    const message = {
+      sender: "user",
+      text: userInput,
+      uuid: self.crypto.randomUUID(),
+    };
+    const userDiv = this.addToChat(message);
+    userDiv.classList.add("waiting");
 
     const apiEndpointURL = ("https://nrtt8bz8be.execute-api.us" +
                             "-east-1.amazonaws.com/prod/niall2");
@@ -127,13 +130,31 @@ class WebUI {
     }
 
     const json = await response.json();
+    userDiv.classList.remove("waiting");
 
-    hiveDiv.innerText = json["niall_output"];
-    hiveDiv.classList.remove("waiting");
+    this.addToChat({
+      sender: "hive",
+      text: json["niall_output"],
+    });
   }
 
-  addToChat(sender, message) {
-    const div = document.createElement("div");
+  addToChat({sender, text, uuid}) {
+    let div;
+    if (uuid) {
+      div = document.getElementById(uuid);
+    }
+
+    let newDiv;
+    if (div) {
+      div.className = "";
+      div.innerText = "";
+    } else {
+      div = newDiv = document.createElement("div");
+      if (uuid) {
+        div.id = uuid;
+      }
+    }
+
     div.classList.add("message");
     div.classList.add(`from-${sender}`);
 
@@ -142,18 +163,23 @@ class WebUI {
     div.appendChild(div2);
 
     const div3 = document.createElement("div");
-    div3.innerText = message;
+    div3.innerText = text;
     div.appendChild(div3);
 
-    const output = this.outputArea;
-    output.appendChild(div);
-    output.scrollTop = output.scrollHeight - output.clientHeight;
+    if (newDiv) {
+      const output = this.outputArea;
+      output.appendChild(newDiv);
+      output.scrollTop = output.scrollHeight - output.clientHeight;
+    }
 
     return div3;
   }
 
   fatalError(message) {
-    this.addToChat("error", message);
+    this.addToChat({
+      sender: "error",
+      text: message,
+    });
   }
 
   httpError(response) {

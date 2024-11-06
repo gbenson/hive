@@ -89,7 +89,10 @@ input, button, .from-user {
 	padding-top: 0.3125em;
     }
 }
-.waiting {
+.unsent {
+    opacity: 0.5;
+}
+.unseen {
     color: rgba(236,236,241,0.25);
 }
 .message {

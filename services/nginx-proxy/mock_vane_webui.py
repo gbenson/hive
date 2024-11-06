@@ -8,6 +8,7 @@ from http import HTTPStatus
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from secrets import token_urlsafe
 from threading import Lock
+from typing import Optional
 
 
 class HTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -15,6 +16,7 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
     CSRF_TOKEN = token_urlsafe()
     LOGIN_PATH = "/api/login"
     EVENTS_PATH = "/api/events"
+    CHAT_PATH = "/api/chat"
 
     def do_GET(self):
         match self.path:
@@ -29,6 +31,8 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
         match self.path:
             case self.LOGIN_PATH:
                 self._do_login()
+            case self.CHAT_PATH:
+                self._do_chat()
             case _:
                 self.send_error(
                     HTTPStatus.NOT_IMPLEMENTED,
@@ -36,11 +40,10 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
                 )
 
     def _do_login(self):
-        assert self.path == self.LOGIN_PATH
         for cookie in self.headers.get("cookie", "").split(";"):
             cookie = cookie.strip()
             if cookie == self.SESSION_ID:
-                self._send_got_session()
+                self.send_no_content()
                 return
             if cookie.split("=", 1)[0] == "sessionId":
                 break
@@ -57,7 +60,7 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
                 return
         self.send_json({"csrf": self.CSRF_TOKEN})
 
-    def _send_got_session(self):
+    def send_no_content(self):
         self.send_response(HTTPStatus.NO_CONTENT)
         self.end_headers()
         self.wfile.flush()
@@ -95,6 +98,22 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
             while stream.is_open:
                 time.sleep(poll_interval)
 
+    def _do_chat(self):
+        content_type = self.headers.get_content_type()
+        assert content_type == "application/json"
+        content_length = int(self.headers.get("content-length", "0"))
+        assert content_length
+        body = json.loads(self.rfile.read(content_length))
+        assert body.get("sender") == "user"
+        time.sleep(0.5)
+        self.send_no_content()
+        time.sleep(1)
+        self.server.send_messages(
+            {"sender": "hive", "text": "vvv"},
+            body,
+            {"sender": "hive", "text": "^^^"},
+        )
+
 
 class HTTPServer(ThreadingHTTPServer):
     def __init__(self, *args, **kwargs):
@@ -123,6 +142,9 @@ class HTTPServer(ThreadingHTTPServer):
         if "\n\n" in event:
             raise ValueError(event)
         stream.send(f"data: {event}\n\n".encode("utf-8"))
+
+    def send_messages(self, *messages):
+        self.send_event("", json.dumps(messages))
 
     def send_event(self, event_type: str, event: str):
         event = f"data: {event}"

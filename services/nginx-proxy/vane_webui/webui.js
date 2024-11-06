@@ -109,33 +109,21 @@ class WebUI {
       uuid: self.crypto.randomUUID(),
     };
     const userDiv = this.addToChat(message);
-    userDiv.classList.add("waiting");
+    userDiv.classList.add("unsent");
+    userDiv.classList.add("unseen");
 
-    const apiEndpointURL = ("https://nrtt8bz8be.execute-api.us" +
-                            "-east-1.amazonaws.com/prod/niall2");
-
-    const response = await fetch(apiEndpointURL, {
+    const response = await fetch("api/chat", {
       method: "POST",
       headers: {
-        // "application/json" would be better here, but
-        // then CORS preflights every single request :(
-        "Content-Type": "text/plain",
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        user_input: userInput,
-      }),
+      body: JSON.stringify(message),
     });
-    if (response.status != 200) {
+    if (response.status != 204) {
       return this.httpError(response);
     }
 
-    const json = await response.json();
-    userDiv.classList.remove("waiting");
-
-    this.addToChat({
-      sender: "hive",
-      text: json["niall_output"],
-    });
+    userDiv.classList.remove("unsent");
   }
 
   addToChat({sender, text, uuid}) {

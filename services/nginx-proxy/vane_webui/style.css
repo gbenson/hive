@@ -117,9 +117,20 @@ input, button, .from-user {
     background-color: #ffa800;
     color: #fcff3d;
 }
+.from-error .avatar {
+    background-color: red;
+    opacity: 1;
+}
 .from-user .avatar:before {
     content: "U";
 }
 .from-hive .avatar:before {
     content: "H";
+}
+.from-error .avatar:before {
+    content: "⚠️";
+}
+.from-error {
+    font-weight: bold;
+    text-transform: uppercase;
 }

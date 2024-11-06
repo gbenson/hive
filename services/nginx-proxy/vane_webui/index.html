@@ -15,10 +15,10 @@
       <h1>ログインしてください</h1>
       <label for="un">メールアドレス</label>
       <input name="username" id="un" type="text" placeholder="メールアドレス"
-	     required autofocus>
+	     required autofocus autocomplete="email">
       <label for="pw">パスワード</label>
       <input name="password" id="pw" type="password" placeholder="パスワード"
-	     required>
+	     required autocomplete="current-password">
       <input type="hidden" id="xov" name="csrfToken">
       <button type="submit">ログイン</button>
     </form>

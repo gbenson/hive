@@ -68,10 +68,6 @@ class WebUI {
   gotSession() {
     const sse = new EventSource("api/events");
 
-    sse.addEventListener("error", (event) => {
-      this.fatalError("Event source didn't open😞");
-    });
-
     sse.addEventListener("open", (event) => {
       this.gotEventSource();
     });

@@ -1,16 +1,37 @@
 services:
   vane-webui-api:
-    image: python:3.11-alpine
+    image: gbenson/hive-vane-webui-api
     init: true
     restart: unless-stopped
     networks:
       - vane-webui-api
+      - vane-valkey
+      - message-bus
+    secrets:
+      - rabbitmq.env
+      - vane-webui.env
+
+  vane-valkey:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    networks:
+      - vane-valkey
+    volumes:
+      - vane_valkey_data:/data
     command:
-      - python
-      - -m
-      - http.server
-      - "80"
+      - valkey-server
+      - --save
+      - 60 1
+
+secrets:
+  vane-webui.env:
+    file: $HOME/.config/hive/vane-webui.env
 
 networks:
   vane-webui-api:
     internal: true
+  vane-valkey:
+    internal: true
+
+volumes:
+  vane_valkey_data:

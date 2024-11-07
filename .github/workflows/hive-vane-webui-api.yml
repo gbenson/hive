@@ -1,0 +1,56 @@
+name: hive-vane-webui-api
+
+on:
+  push:
+    tags:
+      - "hive-vane-webui-api-[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  build:
+    name: Build and push hive-vane-webui-api
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: services/vane-webui-api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Write __version__.py
+        if: startsWith(github.ref, 'refs/tags/hive-vane-webui-api-')
+        run: ../../ci/write-version-py hive/vane_webui_api
+
+      - name: Collect Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: gbenson/hive-vane-webui-api
+          tags: |
+            type=match,pattern=hive-vane-webui-api-(\d+\.\d+\.\d+),group=1
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v5
+        with:
+          context: services/vane-webui-api
+          platforms: linux/amd64,linux/arm64
+          push: ${{ startsWith(github.ref, 'refs/tags/hive-vane-webui-api-') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GITHUB_SERVER_URL=${{ github.server_url }}
+            GITHUB_REPOSITORY=${{ github.repository }}
+            GITHUB_SHA=${{ github.sha }}

@@ -1,0 +1,16 @@
+services:
+  vane-webui-api:
+    image: python:3.11-alpine
+    init: true
+    restart: unless-stopped
+    networks:
+      - vane-webui-api
+    command:
+      - python
+      - -m
+      - http.server
+      - "80"
+
+networks:
+  vane-webui-api:
+    internal: true

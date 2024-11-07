@@ -3,7 +3,7 @@
 ## Invocation
 
 ```sh
-docker compose up --remove-orphans --detach
+docker compose up -d --remove-orphans
 ```
 
 ## Development

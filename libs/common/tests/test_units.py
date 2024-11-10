@@ -5,6 +5,8 @@ def test_units():
     assert (
         ("BYTE", 1),
         ("BYTES", 1),
+        ("DAY", 86400),
+        ("DAYS", 86400),
         ("GiB", 1_073_741_824),
         ("HOUR", 3600),
         ("HOURS", 3600),

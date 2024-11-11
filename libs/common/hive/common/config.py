@@ -56,7 +56,7 @@ class Reader:
         items = [line.split("=", 1) for line in lines if line]
         result = dict((k.rstrip(), v.lstrip()) for k, v in items)
         prefix = os.path.splitext(
-            os.path.basename(filename))[0].upper() + "_"
+            os.path.basename(filename))[0].upper().replace("-", "_") + "_"
         extras = dict(
             (key[len(prefix):].lower(), value)
             for key, value in result.items()

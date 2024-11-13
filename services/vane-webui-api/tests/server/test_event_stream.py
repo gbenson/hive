@@ -1,6 +1,11 @@
+import json
 import time
 
 from io import BytesIO
+
+import pytest
+
+from hive.messaging.schemas import ChatMessage
 
 
 def test_new_event_stream(mock_server):
@@ -14,14 +19,22 @@ def test_new_event_stream(mock_server):
     assert wfile.getvalue() == b"499918f53a391e95"
 
 
-def test_send_initial_events(mock_server, mock_channel):
-    timestamp = "2024-11-16 10:05:06Z"
-    uuid = "4317f794-74fc-4a5b-9af5-9dce54752ffe"
+@pytest.fixture
+def mock_message():
+    return ChatMessage(
+        timestamp="2024-11-16 10:05:06Z",
+        uuid="4317f794-74fc-4a5b-9af5-9dce54752ffe",
+        text="hello, world",
+    )
+
+
+def test_send_initial_events(mock_server, mock_channel, mock_message):
+    mock_message_json = mock_message.json()
     mock_channel.publish_event(
         routing_key="chat.messages",
-        message={"timestamp": timestamp, "uuid": uuid},
+        message=mock_message_json,
     )
-    expect_msg = f'{{"timestamp": "{timestamp}", "uuid": "{uuid}"}}'
+    expect_msg = json.dumps(mock_message_json)
 
     wfile = BytesIO()
     with mock_server.new_event_stream(wfile) as stream:

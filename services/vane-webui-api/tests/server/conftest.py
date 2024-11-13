@@ -114,6 +114,11 @@ def mock_server(mock_channel):
 
 
 @pytest.fixture
+def mock_valkey(mock_server):
+    return mock_server._valkey._db
+
+
+@pytest.fixture
 def valid_csrf(mock_server):
     return mock_server.get_login_token(("mock_client",))
 

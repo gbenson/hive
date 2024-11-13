@@ -9,12 +9,12 @@ from http.server import ThreadingHTTPServer
 from secrets import token_urlsafe
 from threading import Lock
 from typing import Any, IO, Optional
-from uuid import RFC_4122, UUID, uuid4
 
 from valkey import Valkey
 
 from hive.common.units import DAYS, MINUTE
 from hive.messaging import Channel, Message
+from hive.messaging.schemas import ChatMessage
 
 from .authenticator import Authenticator
 from .event_stream import EventStream
@@ -119,42 +119,42 @@ class HTTPServer(ThreadingHTTPServer):
         return bool(self._valkey.get(f"session:{session_id}"))
 
     def publish_message_from_client(self, message: dict[str, Any]):
+        try:
+            message = self._purify_message(message)
+            assert type(message) is dict
+            assert message.keys() == {"sender", "uuid", "text"}
+
+            if message["sender"] != "user":
+                raise ValueError(message["sender"])
+
+            message["timestamp"] = str(datetime.now(tz=timezone.utc))
+
+            parsed_message = ChatMessage.from_json(message)
+            assert not parsed_message.has_unhandled_fields
+            message["uuid"] = str(parsed_message.uuid)
+
+        except Exception as e:
+            logger.exception("EXCEPTION")
+            raise HTTPError(HTTPStatus.BAD_REQUEST) from e
+
         self._channel.connection.add_callback_threadsafe(partial(
             self._channel.publish_event,
-            message=self._sanitize_message(message),
+            message=message,
             routing_key=self._queue_name,
         ))
 
     @staticmethod
-    def _sanitize_message(message: dict[str, Any]) -> dict[str, Any]:
-        sender = message.get("sender", "user")
-        if sender != "user":
-            logger.error("%r: bad sender", message)
-            raise HTTPError(HTTPStatus.BAD_REQUEST)
-        text = message.get("text")
-        if not text:
-            logger.error('%r: no "text"', message)
-            raise HTTPError(HTTPStatus.BAD_REQUEST)
-        uuid = message.get("uuid")
-        if not uuid:
-            uuid = uuid4()
-        else:
-            try:
-                uuid = UUID(message.get("uuid", ""))
-                if uuid.variant != RFC_4122:
-                    raise ValueError(uuid.variant)
-                if uuid.version != 4:
-                    raise ValueError(uuid.version)
-            except ValueError:
-                logger.exception("EXCEPTION")
-                raise HTTPError(HTTPStatus.BAD_REQUEST)
-        uuid = str(uuid)
-        return {
-            "sender": sender,
-            "text": text,
-            "uuid": uuid,
-            "timestamp": str(datetime.now(tz=timezone.utc)),
-        }
+    def _purify_message(message: dict) -> dict[str, str]:
+        """Sanitize a message received over the HTTP API.
+
+        :raises KeyError: If any required parameter is missing.
+        :raises TypeError: If any required parameter is not a string.
+        """
+        allow_keys = ("sender", "uuid", "text")
+        values = [message[key] for key in allow_keys]
+        if any(type(value) is not str for value in values):
+            raise TypeError
+        return dict(zip(allow_keys, values))
 
     def forward_message_to_clients(
             self,
@@ -164,11 +164,17 @@ class HTTPServer(ThreadingHTTPServer):
         body = message.body
         message = message.json()
 
-        timestamp = message["timestamp"]
-        timestamp = datetime.fromisoformat(timestamp)
-        timestamp = timestamp.timestamp()
+        # Ensure what we have is suitable for send_event.
+        if b"\n\n" in body:
+            body = json.dumps(message).encode("utf-8")
+            if b"\n\n" in body:
+                raise ValueError(message.body)
+            message = json.loads(self.body)
 
-        message_id = message["uuid"]
+        message = ChatMessage.from_json(message)
+
+        timestamp = message.timestamp.timestamp()
+        message_id = str(message.uuid)
         message_key = f"message:{message_id}"
         expire_at = round(timestamp + self._message_lifetime)
 

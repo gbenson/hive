@@ -104,6 +104,11 @@ def mock_server():
 
 
 @pytest.fixture
+def valid_csrf(mock_server):
+    return mock_server.get_login_token(("mock_client",))
+
+
+@pytest.fixture
 def test_credentials(test_config_dir):  # noqa: F811
     filename = os.path.join(test_config_dir, "vane-webui.json")
     with open(filename, "w") as fp:

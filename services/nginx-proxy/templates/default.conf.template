@@ -13,6 +13,9 @@ server {
         return 405;
     }
 
+    # Never reference this host in HTTP Referer headers.
+    add_header Referrer-Policy "no-referrer" always;
+
     # https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
 
@@ -37,6 +40,9 @@ server {
     if ($request_method !~ ^(GET|HEAD|POST)$) {
         return 405;
     }
+
+    # Never reference this host in HTTP Referer headers.
+    add_header Referrer-Policy "no-referrer" always;
 
     # https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;

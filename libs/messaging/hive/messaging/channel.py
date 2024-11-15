@@ -10,6 +10,7 @@ from pika import BasicProperties, DeliveryMode
 from pika.spec import Basic
 
 from . import semantics
+from .messages import ChatMessage
 from .wrapper import WrappedPikaThing
 
 logger = logging.getLogger(__name__)
@@ -322,6 +323,16 @@ class Channel(WrappedPikaThing):
             on_message_callback=_wrapped_callback,
             *args,
             **kwargs
+        )
+
+    # Utilities
+
+    def tell_user(self, *args, **kwargs):
+        """Send a message to the user via the chat UI.
+        """
+        self.publish_event(
+            message=ChatMessage(*args, **kwargs).json(),
+            routing_key="chat.messages",
         )
 
 

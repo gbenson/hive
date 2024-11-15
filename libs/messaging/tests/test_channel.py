@@ -1,3 +1,6 @@
+import json
+import re
+
 from pika import BasicProperties, DeliveryMode
 
 from hive.messaging import Channel
@@ -331,3 +334,48 @@ def test_consume_fanout_events():
         "hello": "W0RLD",
     })]
     assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
+
+
+def test_tell_user():
+    mock = MockPika()
+    mock.exchange_declare = MockMethod()
+    mock.basic_publish = MockMethod()
+
+    channel = Channel(pika=mock)
+    channel.tell_user("bonjour!")
+
+    assert mock.exchange_declare.call_log == [((), {
+        "exchange": "hive.chat.messages",
+        "exchange_type": "fanout",
+        "durable": True,
+    })]
+
+    assert len(mock.basic_publish.call_log) == 1
+    assert len(mock.basic_publish.call_log[0]) == 2
+    got_body = mock.basic_publish.call_log[0][1]["body"]
+    assert mock.basic_publish.call_log == [((), {
+        "exchange": "hive.chat.messages",
+        "routing_key": "",
+        "body": got_body,
+        "properties": expect_properties,
+        "mandatory": False,
+    })]
+
+    assert isinstance(got_body, bytes)
+    message = json.loads(got_body)
+
+    uuid = message.pop("uuid")
+    assert isinstance(uuid, str)
+    uuid_re = "-".join(f"[0-9a-f]{{{n}}}" for n in (8, 4, 4, 4, 12))
+    uuid_re = f"^{uuid_re}$"
+    assert re.match(uuid_re, uuid)
+
+    timestamp = message.pop("timestamp")
+    assert isinstance(timestamp, str)
+    timestamp_re = r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{6}\+00:00$"
+    assert re.match(timestamp_re, timestamp)
+
+    assert message == {
+        "sender": "hive",
+        "text": "bonjour!",
+    }

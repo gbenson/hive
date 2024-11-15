@@ -1,0 +1,31 @@
+services:
+  service-monitor:
+    image: gbenson/hive-service-monitor
+    init: true
+    restart: unless-stopped
+    networks:
+      - message-bus
+      - service-monitor-valkey
+    command:
+      - hive-service-monitor
+    secrets:
+      - rabbitmq.env
+
+  service-monitor-valkey:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    networks:
+      - service-monitor-valkey
+    volumes:
+      - service_monitor_valkey_data:/data
+    command:
+      - valkey-server
+      - --save
+      - 60 1
+
+networks:
+  service-monitor-valkey:
+    internal: true
+
+volumes:
+  service_monitor_valkey_data:

@@ -1,0 +1,30 @@
+[project]
+name = "hive-service-monitor"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Service status monitor for Hive"
+dependencies = [
+    "hive-common",
+    "hive-messaging",
+    "hive-service",
+    "valkey",
+]
+
+[project.scripts]
+hive-service-monitor = "hive.service_monitor:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.service_monitor.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.service_monitor"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

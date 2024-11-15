@@ -109,18 +109,22 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def read_json_payload(self, max_length=1024):
-        if self.command != "POST":  # pragma: no cover
+        if self.command != "POST":
             raise ValueError(self.command)
         content_type = self.headers.get_content_type()
         if content_type != "application/json":
             raise HTTPError(HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
-        content_length = self.headers.get("content-length", None)
-        if not content_length:
+        content_length_str = self.headers.get("content-length", None)
+        if not content_length_str:
             raise HTTPError(HTTPStatus.LENGTH_REQUIRED)
         try:
-            content_length = int(content_length)
+            content_length = int(content_length_str)
+            if content_length == 0:
+                raise HTTPError(HTTPStatus.LENGTH_REQUIRED)
             if content_length < 0:
-                raise ValueError
+                raise ValueError(content_length_str)
+            if str(content_length) != content_length_str:
+                raise ValueError(content_length_str)
         except ValueError:
             logger.exception("EXCEPTION")
             raise HTTPError(HTTPStatus.BAD_REQUEST)

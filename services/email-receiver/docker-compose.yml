@@ -1,0 +1,35 @@
+services:
+  email-receiver:
+    image: gbenson/hive-email-receiver
+    init: true
+    restart: unless-stopped
+    networks:
+      - email-receiver
+      - email-receiver-valkey
+      - message-bus
+    command:
+      - hive-email-receiver
+    secrets:
+      - rabbitmq.env
+      - email.yml
+
+  email-receiver-valkey:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    networks:
+      - email-receiver-valkey
+    volumes:
+      - email_receiver_valkey:/data
+    command:
+      - valkey-server
+      - --save
+      - 60 1
+    hostname: valkey
+
+networks:
+  email-receiver:
+  email-receiver-valkey:
+    internal: true
+
+volumes:
+  email_receiver_valkey:

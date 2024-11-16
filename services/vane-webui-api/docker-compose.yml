@@ -11,17 +11,18 @@ services:
       - rabbitmq.env
       - vane-webui.env
 
-  vane-valkey:
+  vane-webui-api-valkey:
     image: valkey/valkey:8
     restart: unless-stopped
     networks:
       - vane-valkey
     volumes:
-      - vane_valkey_data:/data
+      - vane_webui_api_valkey:/data
     command:
       - valkey-server
       - --save
       - 60 1
+    hostname: vane-valkey
 
 secrets:
   vane-webui.env:
@@ -34,4 +35,4 @@ networks:
     internal: true
 
 volumes:
-  vane_valkey_data:
+  vane_webui_api_valkey:

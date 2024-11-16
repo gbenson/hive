@@ -18,7 +18,7 @@ d = logger.debug
 @dataclass
 class InboxProcessor(Processor):
     queue_name: str = "inbox.emails.received"
-    valkey_url: str = "valkey://valkey"
+    valkey_url: str = "valkey://email-receiver-valkey"
     valkey_key: str = "message_ids"
 
     @cached_property

@@ -17,7 +17,7 @@ services:
     networks:
       - service-monitor-valkey
     volumes:
-      - service_monitor_valkey_data:/data
+      - service_monitor_valkey:/data
     command:
       - valkey-server
       - --save
@@ -28,4 +28,4 @@ networks:
     internal: true
 
 volumes:
-  service_monitor_valkey_data:
+  service_monitor_valkey:

@@ -72,6 +72,10 @@ class MockConnection:
         callback()  # yolo
 
 
+class MockProperties:
+    content_type = "application/json"
+
+
 class MockChannel:
     def __init__(self):
         self.connection = MockConnection()
@@ -82,21 +86,24 @@ class MockChannel:
         self._consume_events[queue] = on_message_callback
 
     def publish_event(self, *, message, routing_key):
-        class Properties:
-            content_type = "application/json"
         self._consume_events[routing_key](
             channel=self,
             method=None,
-            properties=Properties(),
+            properties=MockProperties(),
             body=json.dumps(message).encode("utf-8"),
         )
 
 
 @pytest.fixture
-def mock_server():
+def mock_channel():
+    return MockChannel()
+
+
+@pytest.fixture
+def mock_server(mock_channel):
     server = HTTPServer(
         ("127.0.0.1", 0),
-        channel=MockChannel(),
+        channel=mock_channel,
         bind_and_activate=False,
     )
     server._valkey = MockValkey()

@@ -1,15 +1,17 @@
+import inspect
 import json
 import logging
 import os
 import sys
+import warnings
 
 from functools import cache, cached_property
 from typing import Callable, Optional
 
 from pika import BasicProperties, DeliveryMode
-from pika.spec import Basic
 
 from . import semantics
+from .message import Message
 from .schemas import ChatMessage
 from .wrapper import WrappedPikaThing
 
@@ -264,22 +266,38 @@ class Channel(WrappedPikaThing):
         self.basic_qos(prefetch_count=value)
         self._prefetch_count = value
 
+    def _prepare_omcb(self, cb: Callable) -> Callable:
+        """Prepare on_message_callback.
+        """
+        sig = inspect.signature(cb)
+        num_params = len(sig.parameters)
+        if num_params == 2:
+            return cb
+        if num_params != 4:
+            raise TypeError(cb)
+
+        warnings.warn(DeprecationWarning(
+            "Pika-style on-message callbacks are deprecated"
+        ))
+
+        def _wrapped_callback(channel: Channel, msg: Message):
+            return cb(channel, msg.method, msg.properties, msg.body)
+
+        return _wrapped_callback
+
     def _basic_consume(
             self,
             queue: str,
             on_message_callback: Callable,
     ):
+        on_message_callback = self._prepare_omcb(on_message_callback)
+
         self.prefetch_count = 1  # Receive one message at a time.
 
-        def _wrapped_callback(
-                channel: Channel,
-                method: Basic.Deliver,
-                *args,
-                **kwargs
-        ):
-            delivery_tag = method.delivery_tag
+        def _wrapped_callback(channel: Channel, message: Message):
+            delivery_tag = message.method.delivery_tag
             try:
-                result = on_message_callback(channel, method, *args, **kwargs)
+                result = on_message_callback(channel, message)
                 channel.basic_ack(delivery_tag=delivery_tag)
                 return result
             except Exception as e:
@@ -317,7 +335,8 @@ class Channel(WrappedPikaThing):
     ):
         def _wrapped_callback(channel, *args, **kwargs):
             assert channel is self._pika
-            return on_message_callback(self, *args, **kwargs)
+            return on_message_callback(self, Message(*args, **kwargs))
+
         return self._pika.basic_consume(
             queue=queue,
             on_message_callback=_wrapped_callback,

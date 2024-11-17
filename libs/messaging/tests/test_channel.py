@@ -1,9 +1,12 @@
 import json
 import re
 
-from pika import BasicProperties, DeliveryMode
+import pytest
 
-from hive.messaging import Channel
+from pika import BasicProperties, DeliveryMode
+from pika.spec import Basic
+
+from hive.messaging import Channel, Message
 
 
 class MockPika:
@@ -21,6 +24,32 @@ class MockMethod:
     def __call__(self, *args, **kwargs):
         self.call_log.append((args, kwargs))
         return self._returns
+
+
+class MockCallbackV1(MockMethod):
+    """Pika-style on-message callback.
+    """
+    _warning_filter = "ignore:Pika-style .* callbacks:DeprecationWarning"
+
+    def __call__(
+            self,
+            channel: Channel,
+            method: Basic.Deliver,
+            properties: BasicProperties,
+            body: bytes,
+    ):
+        return super().__call__(channel, Message(method, properties, body))
+
+
+class MockCallbackV2(MockMethod):
+    """New-style on-message callback.
+    """
+    def __call__(
+            self,
+            channel: Channel,
+            message: Message,
+    ):
+        return super().__call__(channel, message)
 
 
 expect_properties = BasicProperties(
@@ -56,7 +85,9 @@ def test_publish_request():
     })]
 
 
-def test_consume_requests():
+@pytest.mark.parametrize("callback_cls", (MockCallbackV1, MockCallbackV2))
+@pytest.mark.filterwarnings(MockCallbackV1._warning_filter)
+def test_consume_requests(callback_cls):
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_qos = MockMethod()
@@ -66,7 +97,7 @@ def test_consume_requests():
                 queue="TeStQuEu3")))))
     mock.queue_bind = MockMethod()
     mock.basic_consume = MockMethod()
-    on_message_callback = MockMethod()
+    on_message_callback = callback_cls()
     mock.basic_ack = MockMethod()
 
     channel = Channel(pika=mock)
@@ -119,15 +150,19 @@ def test_consume_requests():
     assert on_message_callback.call_log == []
     assert mock.basic_ack.call_log == []
 
-    method = type("method", (), {"delivery_tag": 5})
-    got_callback(channel._pika, method, hello="W0RLD")
+    expect_method = type("method", (), {"delivery_tag": 5})
+    expect_body = b'{"hello":"W0RLD"}'
+    got_callback(channel._pika, expect_method, expect_properties, expect_body)
 
-    assert on_message_callback.call_log == [((
-        channel,
-        method,
-    ), {
-        "hello": "W0RLD",
-    })]
+    assert len(on_message_callback.call_log) == 1
+    assert len(on_message_callback.call_log[0]) == 2
+    assert len(on_message_callback.call_log[0][0]) == 2
+    message = on_message_callback.call_log[0][0][1]
+    assert on_message_callback.call_log == [((channel, message), {})]
+    assert message.method is expect_method
+    assert message.properties is expect_properties
+    assert message.body is expect_body
+
     assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
 
 
@@ -159,7 +194,9 @@ def test_publish_mandatory_event():
     })]
 
 
-def test_consume_mandatory_events():
+@pytest.mark.parametrize("callback_cls", (MockCallbackV1, MockCallbackV2))
+@pytest.mark.filterwarnings(MockCallbackV1._warning_filter)
+def test_consume_mandatory_events(callback_cls):
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_qos = MockMethod()
@@ -169,7 +206,7 @@ def test_consume_mandatory_events():
                 queue="TeStQuEu3")))))
     mock.queue_bind = MockMethod()
     mock.basic_consume = MockMethod()
-    on_message_callback = MockMethod()
+    on_message_callback = callback_cls()
     mock.basic_ack = MockMethod()
 
     channel = Channel(pika=mock)
@@ -223,15 +260,19 @@ def test_consume_mandatory_events():
     assert on_message_callback.call_log == []
     assert mock.basic_ack.call_log == []
 
-    method = type("method", (), {"delivery_tag": 5})
-    got_callback(channel._pika, method, hello="W0RLD")
+    expect_method = type("method", (), {"delivery_tag": 5})
+    expect_body = b'{"hello":"W0RLD"}'
+    got_callback(channel._pika, expect_method, expect_properties, expect_body)
 
-    assert on_message_callback.call_log == [((
-        channel,
-        method,
-    ), {
-        "hello": "W0RLD",
-    })]
+    assert len(on_message_callback.call_log) == 1
+    assert len(on_message_callback.call_log[0]) == 2
+    assert len(on_message_callback.call_log[0][0]) == 2
+    message = on_message_callback.call_log[0][0][1]
+    assert on_message_callback.call_log == [((channel, message), {})]
+    assert message.method is expect_method
+    assert message.properties is expect_properties
+    assert message.body is expect_body
+
     assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
 
 
@@ -262,7 +303,9 @@ def test_publish_fanout_event():
     })]
 
 
-def test_consume_fanout_events():
+@pytest.mark.parametrize("callback_cls", (MockCallbackV1, MockCallbackV2))
+@pytest.mark.filterwarnings(MockCallbackV1._warning_filter)
+def test_consume_fanout_events(callback_cls):
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_qos = MockMethod()
@@ -272,7 +315,7 @@ def test_consume_fanout_events():
                 queue="TeStQuEu3")))))
     mock.queue_bind = MockMethod()
     mock.basic_consume = MockMethod()
-    on_message_callback = MockMethod()
+    on_message_callback = callback_cls()
     mock.basic_ack = MockMethod()
 
     channel = Channel(pika=mock)
@@ -324,15 +367,19 @@ def test_consume_fanout_events():
     assert on_message_callback.call_log == []
     assert mock.basic_ack.call_log == []
 
-    method = type("method", (), {"delivery_tag": 5})
-    got_callback(channel._pika, method, hello="W0RLD")
+    expect_method = type("method", (), {"delivery_tag": 5})
+    expect_body = b'{"hello":"W0RLD"}'
+    got_callback(channel._pika, expect_method, expect_properties, expect_body)
 
-    assert on_message_callback.call_log == [((
-        channel,
-        method,
-    ), {
-        "hello": "W0RLD",
-    })]
+    assert len(on_message_callback.call_log) == 1
+    assert len(on_message_callback.call_log[0]) == 2
+    assert len(on_message_callback.call_log[0][0]) == 2
+    message = on_message_callback.call_log[0][0][1]
+    assert on_message_callback.call_log == [((channel, message), {})]
+    assert message.method is expect_method
+    assert message.properties is expect_properties
+    assert message.body is expect_body
+
     assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
 
 

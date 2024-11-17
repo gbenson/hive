@@ -10,7 +10,7 @@ from pika import BasicProperties, DeliveryMode
 from pika.spec import Basic
 
 from . import semantics
-from .messages import ChatMessage
+from .schemas import ChatMessage
 from .wrapper import WrappedPikaThing
 
 logger = logging.getLogger(__name__)

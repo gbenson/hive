@@ -3,10 +3,9 @@ name = "hive-vane-webui-api"
 dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Web chat API gateway for Hive"
-requires-python = ">=3.10"  # match..case
 dependencies = [
     "hive-common",
-    "hive-messaging",
+    "hive-messaging>=0.9.0",
     "hive-service",
     "pyargon2",
     "valkey",

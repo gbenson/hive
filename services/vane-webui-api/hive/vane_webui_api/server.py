@@ -11,13 +11,10 @@ from threading import Lock
 from typing import Any, IO, Optional
 from uuid import RFC_4122, UUID, uuid4
 
-from pika import BasicProperties
-from pika.spec import Basic
-
 from valkey import Valkey
 
 from hive.common.units import DAYS, MINUTE
-from hive.messaging import Channel
+from hive.messaging import Channel, Message
 
 from .authenticator import Authenticator
 from .event_stream import EventStream
@@ -162,14 +159,10 @@ class HTTPServer(ThreadingHTTPServer):
     def forward_message_to_clients(
             self,
             channel: Channel,
-            method: Basic.Deliver,
-            properties: BasicProperties,
-            body: bytes,
+            message: Message,
     ):
-        content_type = properties.content_type
-        if content_type != "application/json":
-            raise ValueError(content_type)
-        message = json.loads(body)
+        body = message.body
+        message = message.json()
 
         timestamp = message["timestamp"]
         timestamp = datetime.fromisoformat(timestamp)

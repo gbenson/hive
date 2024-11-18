@@ -8,6 +8,7 @@ import requests
 
 from hive.common.socketserver import serving
 from hive.common.testing import test_config_dir  # noqa: F401
+from hive.messaging import Message
 from hive.vane_webui_api.server import HTTPServer
 
 
@@ -88,9 +89,11 @@ class MockChannel:
     def publish_event(self, *, message, routing_key):
         self._consume_events[routing_key](
             channel=self,
-            method=None,
-            properties=MockProperties(),
-            body=json.dumps(message).encode("utf-8"),
+            message=Message(
+                method=None,
+                properties=MockProperties(),
+                body=json.dumps(message).encode("utf-8"),
+            ),
         )
 
 

@@ -164,17 +164,27 @@ class HTTPServer(ThreadingHTTPServer):
         body = message.body
         message = message.json()
 
+        if type(message) is not dict:
+            raise TypeError(body)
+
         # Ensure what we have is suitable for send_event.
         if b"\n\n" in body:
-            body = json.dumps(message).encode("utf-8")
-            if b"\n\n" in body:
-                raise ValueError(message.body)
-            message = json.loads(self.body)
+            new_body = json.dumps(message).encode("utf-8")
+            if b"\n\n" in new_body:
+                raise ValueError(body)  # pragma: no cover
+            body = new_body
+            message = json.loads(body)
 
+        if not message.get("sender"):
+            raise ValueError()
+
+        supplied_uuid = message.get("uuid")
         message = ChatMessage.from_json(message)
 
         timestamp = message.timestamp.timestamp()
         message_id = str(message.uuid)
+        if message_id != supplied_uuid:
+            raise ValueError(supplied_uuid)
         message_key = f"message:{message_id}"
         expire_at = round(timestamp + self._message_lifetime)
 

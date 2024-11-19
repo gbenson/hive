@@ -72,7 +72,7 @@ WORKDIR /src
 RUN set -eux \
   \
   && . /venv/bin/activate \
-  && pytest --cov hive.vane_webui_api \
+  && pytest --cov hive.vane_webui_api --log-cli-level=debug \
   && coverage report > coverage.report
 
 FROM install AS dist

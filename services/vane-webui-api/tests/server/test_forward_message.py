@@ -60,8 +60,7 @@ def test_forward_valid_message(
 
     assert mock_event_stream.last_activity > 0
     expect_bytes = b"data: [" + actual_bytes + b"]\n\n"
-    with mock_event_stream._lock:
-        actual_bytes = mock_event_stream._wfile.getvalue()
+    actual_bytes = mock_event_stream._wfile.getvalue()
     assert actual_bytes == expect_bytes
 
 
@@ -103,8 +102,7 @@ def test_remove_double_newlines(
 
     assert mock_event_stream.last_activity > 0
     expect_bytes = b"data: [" + actual_bytes + b"]\n\n"
-    with mock_event_stream._lock:
-        actual_bytes = mock_event_stream._wfile.getvalue()
+    actual_bytes = mock_event_stream._wfile.getvalue()
     assert actual_bytes == expect_bytes
 
 

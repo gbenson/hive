@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.mark.parametrize("extra_checks", (False, True))
-def test_login_flow(test_credentials, test_server, http_session, extra_checks):
+def test_login_flow(test_server, http_session, extra_checks):
     api_url = test_server.api_url
     session = http_session
 

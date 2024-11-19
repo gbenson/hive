@@ -103,7 +103,7 @@ def mock_channel():
 
 
 @pytest.fixture
-def mock_server(mock_channel):
+def mock_server(test_credentials, mock_channel):
     server = HTTPServer(
         ("127.0.0.1", 0),
         channel=mock_channel,

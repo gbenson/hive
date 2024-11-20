@@ -122,7 +122,7 @@ class WebUI {
     userDiv.classList.remove("unsent");
   }
 
-  addToChat({sender, text, uuid}) {
+  addToChat({sender, text, uuid, timestamp}) {
     let div;
     if (uuid) {
       div = document.getElementById(uuid);
@@ -149,6 +149,14 @@ class WebUI {
     const div3 = document.createElement("div");
     div3.innerText = text;
     div.appendChild(div3);
+
+    if (timestamp) {
+        let datetime = new Date(timestamp);
+        const div4 = document.createElement("div");
+        div4.classList.add("timestamp");
+        div4.innerText = datetime.toLocaleString("en-GB");
+        div3.appendChild(div4);
+    }
 
     if (newDiv) {
       const output = this.outputArea;

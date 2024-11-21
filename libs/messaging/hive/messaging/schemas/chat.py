@@ -20,6 +20,9 @@ class ChatMessage:
         if not self.text and not self.html:
             raise ValueError
 
+        if not isinstance(self.sender, str):
+            raise TypeError(type(self.sender))
+
         if not isinstance(self.timestamp, datetime):
             self.timestamp = datetime.fromisoformat(self.timestamp)
 
@@ -44,15 +47,21 @@ class ChatMessage:
             raise TypeError
         if any(type(key) is not str for key in message.keys()):
             raise TypeError
+        if type(message["sender"]) is not str:
+            raise TypeError
 
         unhandled = message.copy()
         keys = cls.json_keys()
-        values = [unhandled.pop(key, "") for key in keys]
+        values = [unhandled.pop(key, None) for key in keys]
+        kwargs = dict(
+            item
+            for item in zip(keys, values)
+            if item[1] not in ("", None)
+        )
 
-        if any(type(value) is not str for value in values):
+        if any(type(value) is not str for value in kwargs.values()):
             raise TypeError
 
-        kwargs = dict(zip(keys, values))
         if unhandled:
             kwargs["_unhandled"] = unhandled
         return cls(**kwargs)

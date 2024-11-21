@@ -11,6 +11,9 @@ class MockChannel:
     def publish_request(self, **kwargs):
         self.published_requests.append(kwargs)
 
+    def publish_event(self, *, routing_key, message):
+        assert routing_key == "chat.messages"
+
 
 class MockReactionManager:
     def start_story(self, *args, **kwargs):
@@ -41,6 +44,7 @@ def test_reading_list_update(channel, body):
         "body": body,
         "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
         "server_timestamp": 1730071727043,
+        "sender": "@neo:matrix.org",
     }))
     assert channel.published_requests == [{
         "message": {
@@ -77,6 +81,7 @@ def test_challenge_response(channel, challenge, expect_response):
         "body": challenge,
         "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
         "server_timestamp": 1730071727043,
+        "sender": "@neo:matrix.org",
     }))
     assert channel.published_requests == [{
         "message": {

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from functools import cached_property
-from typing import Any
+from typing import Any, Optional
 
 
 class MatrixEvent:
@@ -31,6 +31,12 @@ class MatrixEvent:
         """The globally unique identifier for this event.
         """
         return self._decorated_event["event_id"]
+
+    @cached_property
+    def sender(self) -> str:
+        """The sender of this event.
+        """
+        return self._decorated_event["sender"]
 
     @cached_property
     def timestamp(self) -> datetime:
@@ -65,6 +71,14 @@ class MatrixEvent:
         """The textual representation of this message.
         """
         return self._decorated_event["body"]
+
+    @cached_property
+    def html(self) -> Optional[str]:
+        """The HTMLrepresentation of this message.
+        """
+        if self._decorated_event.get("format") != "org.matrix.custom.html":
+            return None
+        return self._decorated_event["formatted_body"]
 
 
 class ClientEvent:

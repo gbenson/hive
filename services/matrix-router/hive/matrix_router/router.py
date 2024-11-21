@@ -1,5 +1,7 @@
 import logging
 
+from uuid import uuid4
+
 from hive.messaging import Channel
 
 from .event import MatrixEvent
@@ -28,6 +30,26 @@ class Router:
                 raise NotImplementedError(unhandled_type)
 
     def _on_text_message(self, channel: Channel, event: MatrixEvent):
+        chatmsg = {
+                "text": event.body,
+                "html": event.html,
+                "sender": (
+                    "hive" if event.sender.startswith("@hive")
+                    else "user"
+                ),
+                "timestamp": str(event.timestamp),
+                "uuid": str(uuid4()),
+                "matrix": {
+                    "event_id": event.event_id,
+                },
+            }
+        chatmsg = dict((key, value) for key, value in chatmsg.items() if value)
+        d("SENDING: %r", chatmsg)
+        channel.publish_event(
+            message=chatmsg,
+            routing_key="chat.messages",
+        )
+
         if (response := response_for_challenge(event.body)):
             route_response_for_challenge(channel, response)
             return

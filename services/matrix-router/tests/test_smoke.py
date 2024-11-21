@@ -41,6 +41,9 @@ class MockChannel:
         for key, value in kwargs.items():
             print(f"{key:12}: {value!r}")
 
+    def publish_event(self, *, routing_key, message):
+        assert routing_key == "chat.messages"
+
 
 class MockReactionManager:
     def start_story(self, *args, **kwargs):

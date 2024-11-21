@@ -88,7 +88,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         )
         self.end_headers()
 
-    def _do_get_events(self, poll_interval=0.5):
+    def _do_get_events(self):
         self.send_response(HTTPStatus.OK)
         self.send_header("X-Accel-Buffering", "no")
         self.send_header("Content-Type", "text/event-stream")
@@ -99,8 +99,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             return
 
         with self.server.new_event_stream(self.wfile) as stream:
-            while stream.is_open:
-                stream.sleep(poll_interval)
+            stream.run()
 
     def _do_post_chat(self):
         message = self.read_json_payload()

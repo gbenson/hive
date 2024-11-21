@@ -197,17 +197,19 @@ class HTTPServer(ThreadingHTTPServer):
 
     @contextmanager
     def new_event_stream(self, wfile: IO[bytes]):
+        # This runs in the HTTP request handler thread.
         stream = EventStream(wfile)
         with self._streams_lock:
             self._streams.append(stream)
-            self._send_initial_events(stream)
         try:
+            self._send_initial_events(stream)
             yield stream
         finally:
             with self._streams_lock:
                 self._streams.remove(stream)
 
     def _send_initial_events(self, stream: EventStream):
+        # This runs in the HTTP request handler thread.
         message_ids = [
             message_id.decode("utf-8")
             for message_id in reversed(
@@ -232,9 +234,10 @@ class HTTPServer(ThreadingHTTPServer):
         if b"\n\n" in event:
             raise ValueError(event)
         event = b"".join((b"data: [", event, b"]\n\n"))
-        stream.send(event)
+        stream.send(event, first=True)
 
     def send_event(self, data: str | bytes, name: Optional[str] = None):
+        # This runs in the rabbit thread.
         if isinstance(data, str):
             data = data.encode("utf-8")
         event = bytearray()

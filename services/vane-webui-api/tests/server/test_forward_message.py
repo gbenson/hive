@@ -1,7 +1,5 @@
 import json
 
-from io import BytesIO
-
 import pytest
 
 from hive.messaging import Message
@@ -19,8 +17,7 @@ class MockMessage(Message):
 
 @pytest.fixture
 def mock_event_stream(mock_server):
-    with mock_server.new_event_stream(BytesIO()) as event_stream:
-        assert event_stream.last_activity == 0
+    with mock_server.new_event_stream(None) as event_stream:
         yield event_stream
 
 
@@ -58,9 +55,8 @@ def test_forward_valid_message(
     }
     assert actual_bytes == expect_bytes
 
-    assert mock_event_stream.last_activity > 0
     expect_bytes = b"data: [" + actual_bytes + b"]\n\n"
-    actual_bytes = mock_event_stream._wfile.getvalue()
+    actual_bytes = b"".join(mock_event_stream._send_queue)
     assert actual_bytes == expect_bytes
 
 
@@ -100,9 +96,8 @@ def test_remove_double_newlines(
     assert actual_bytes == expect_bytes
     assert b"\n\n" not in actual_bytes
 
-    assert mock_event_stream.last_activity > 0
     expect_bytes = b"data: [" + actual_bytes + b"]\n\n"
-    actual_bytes = mock_event_stream._wfile.getvalue()
+    actual_bytes = b"".join(mock_event_stream._send_queue)
     assert actual_bytes == expect_bytes
 
 
@@ -219,9 +214,8 @@ def test_forward_basic_matrix_message(
     }
     assert actual_bytes == expect_bytes
 
-    assert mock_event_stream.last_activity > 0
     expect_bytes = b"data: [" + actual_bytes + b"]\n\n"
-    actual_bytes = mock_event_stream._wfile.getvalue()
+    actual_bytes = b"".join(mock_event_stream._send_queue)
     assert actual_bytes == expect_bytes
 
 
@@ -263,9 +257,8 @@ def test_forward_html_matrix_message(
     }
     assert actual_bytes == expect_bytes
 
-    assert mock_event_stream.last_activity > 0
     expect_bytes = b"data: [" + actual_bytes + b"]\n\n"
-    actual_bytes = mock_event_stream._wfile.getvalue()
+    actual_bytes = b"".join(mock_event_stream._send_queue)
     assert actual_bytes == expect_bytes
 
 
@@ -307,7 +300,6 @@ def test_forward_matrix_message_with_null_html(
     }
     assert actual_bytes == expect_bytes
 
-    assert mock_event_stream.last_activity > 0
     expect_bytes = b"data: [" + actual_bytes + b"]\n\n"
-    actual_bytes = mock_event_stream._wfile.getvalue()
+    actual_bytes = b"".join(mock_event_stream._send_queue)
     assert actual_bytes == expect_bytes

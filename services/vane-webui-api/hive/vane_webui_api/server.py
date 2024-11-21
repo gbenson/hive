@@ -177,6 +177,8 @@ class HTTPServer(ThreadingHTTPServer):
 
         if not message.get("sender"):
             raise ValueError()
+        if not message.get("timestamp"):
+            raise ValueError()
 
         supplied_uuid = message.get("uuid")
         message = ChatMessage.from_json(message)

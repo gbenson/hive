@@ -122,7 +122,7 @@ class WebUI {
     userDiv.classList.remove("unsent");
   }
 
-  addToChat({sender, text, uuid, timestamp}) {
+  addToChat({sender, text, html, uuid, timestamp}) {
     let div;
     if (uuid) {
       div = document.getElementById(uuid);
@@ -147,7 +147,11 @@ class WebUI {
     div.appendChild(div2);
 
     const div3 = document.createElement("div");
-    div3.innerText = text;
+    if (html) {
+        div3.innerHTML = DOMPurify.sanitize(html, {USE_PROFILES: {html: true}});
+    } else {
+        div3.innerText = text;
+    }
     div.appendChild(div3);
 
     if (timestamp) {

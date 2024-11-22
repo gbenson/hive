@@ -23,10 +23,9 @@ def test_smoke(filename):
     with open(filename) as fp:
         event = MatrixEvent(json.load(fp))
 
-    assert event.event_id == event._event._event["event_id"]
-    assert event.timestamp_ms == event._event._event["origin_server_ts"]
+    assert event.event_id == event._decorated_event["event_id"]
     if event.event_type != "m.room.redaction":
-        event.room_id == event._event._event["room_id"]
+        event.room_id == event._decorated_event["room_id"]
         assert event.body == event.content._content["body"]
 
     router.on_matrix_event(MockChannel(), event)

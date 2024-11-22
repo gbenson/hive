@@ -39,12 +39,12 @@ def test_reading_list_update(channel, body):
             "type": "m.room.message",
             "content": {
                 "msgtype": "m.text",
+                "body": body,
             },
+            "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
+            "origin_server_ts": 1730071727043,
+            "sender": "@neo:matrix.org",
         },
-        "body": body,
-        "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
-        "server_timestamp": 1730071727043,
-        "sender": "@neo:matrix.org",
     }))
     assert channel.published_requests == [{
         "message": {
@@ -76,12 +76,12 @@ def test_challenge_response(channel, challenge, expect_response):
             "type": "m.room.message",
             "content": {
                 "msgtype": "m.text",
+                "body": challenge,
             },
+            "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
+            "origin_server_ts": 1730071727043,
+            "sender": "@neo:matrix.org",
         },
-        "body": challenge,
-        "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
-        "server_timestamp": 1730071727043,
-        "sender": "@neo:matrix.org",
     }))
     assert channel.published_requests == [{
         "message": {

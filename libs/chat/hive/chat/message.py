@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
+from types import NoneType
 from typing import Any, Optional
 from uuid import RFC_4122, UUID, uuid4
 
@@ -14,11 +15,15 @@ class ChatMessage:
     timestamp: str | datetime = field(
         default_factory=lambda: datetime.now(tz=timezone.utc))
     uuid: str | UUID = field(default_factory=uuid4)
-    _unhandled: Optional[dict[str, Any]] = None
+    _unhandled: Optional[dict[str, Any]] = field(default=None, repr=False)
 
     def __post_init__(self):
         if not self.text and not self.html:
             raise ValueError
+        if not isinstance(self.text, (str, NoneType)):
+            raise TypeError(type(self.text))
+        if not isinstance(self.html, (str, NoneType)):
+            raise TypeError(type(self.html))
 
         if not isinstance(self.sender, str):
             raise TypeError(type(self.sender))

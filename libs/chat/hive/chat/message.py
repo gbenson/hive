@@ -6,6 +6,8 @@ from types import NoneType
 from typing import Any, Optional
 from uuid import RFC_4122, UUID, uuid4
 
+from .matrix import ClientEvent as MatrixEvent
+
 
 @dataclass
 class ChatMessage:
@@ -15,6 +17,7 @@ class ChatMessage:
     timestamp: str | datetime = field(
         default_factory=lambda: datetime.now(tz=timezone.utc))
     uuid: str | UUID = field(default_factory=uuid4)
+    matrix: Optional[MatrixEvent] = None
     _unhandled: Optional[dict[str, Any]] = field(default=None, repr=False)
 
     def __post_init__(self):
@@ -64,11 +67,40 @@ class ChatMessage:
             if item[1] not in ("", None)
         )
 
-        if any(type(value) is not str for value in kwargs.values()):
+        if any(key != "matrix" and type(value) is not str
+               for key, value in kwargs.items()):
             raise TypeError
 
         if unhandled:
             kwargs["_unhandled"] = unhandled
+
+        return cls(**kwargs)
+
+    @classmethod
+    def from_matrix_event(
+            cls,
+            event: MatrixEvent | dict[str, Any],
+    ) -> ChatMessage:
+        if not isinstance(event, MatrixEvent):
+            event = MatrixEvent(event)
+
+        if event.event_type != "m.room.message":
+            raise ValueError(event.event_type)
+
+        content = event.content
+        if content.msgtype != "m.text":
+            raise ValueError(content.msgtype)
+
+        kwargs = {
+            "text": content.body,
+            "sender": "hive" if event.sender.startswith("@hive") else "user",
+            "timestamp": event.timestamp,
+            "matrix": event,
+        }
+
+        if content.format == "org.matrix.custom.html":
+            kwargs["html"] = content.formatted_body
+
         return cls(**kwargs)
 
     @property
@@ -77,4 +109,8 @@ class ChatMessage:
 
     def json(self) -> dict[str, Any]:
         items = ((key, getattr(self, key)) for key in self.json_keys())
-        return dict((key, str(value)) for key, value in items if value)
+        return dict(
+            (key, value if key == "matrix" else str(value))
+            for key, value in items
+            if value
+        )

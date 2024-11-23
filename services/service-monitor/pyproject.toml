@@ -4,6 +4,7 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Service status monitor for Hive"
 dependencies = [
+    "hive-chat",
     "hive-common",
     "hive-messaging",
     "hive-service",

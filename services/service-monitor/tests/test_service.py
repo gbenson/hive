@@ -1,10 +1,12 @@
 import json
 
 from datetime import datetime, timezone
+from typing import Any
 from uuid import UUID
 
 import pytest
 
+from hive.chat import ChatMessage
 from hive.service_monitor.service import Service
 
 
@@ -20,7 +22,7 @@ def test_normal_startup(mock_service, mock_channel):
         "messages": ["Service started for the first time"],
     })
     assert mock_channel.tell_user_log == [((
-        "hive-service-monitor started for the first time",
+        "service-monitor started for the first time",
     ), {
         "timestamp": datetime(
             2024, 11, 15, 19, 47, 6, 750424,
@@ -41,7 +43,7 @@ def test_report_without_messages(mock_service, mock_channel):
         "condition": "HEALTHY",
     })
     assert mock_channel.tell_user_log == [((
-        "hive-service-monitor became HEALTHY",
+        "service-monitor became HEALTHY",
     ), {
         "timestamp": datetime(
             2024, 11, 15, 19, 47, 6, 750424,
@@ -105,8 +107,13 @@ class MockChannel:
     def __init__(self):
         self.tell_user_log = []
 
-    def tell_user(self, *args, **kwargs):
-        self.tell_user_log.append((args, kwargs))
+    def publish_event(self, *, routing_key: str, message: dict[str, Any]):
+        assert routing_key == "chat.messages"
+        message = ChatMessage.from_json(message)
+        self.tell_user_log.append(((message.text,), {
+            "timestamp": message.timestamp,
+            "uuid": message.uuid,
+        }))
 
 
 class MockService(Service):

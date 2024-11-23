@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
+from html import escape
 from typing import Callable, Optional
 from uuid import RFC_4122, UUID
 
@@ -12,6 +13,7 @@ from pika.spec import Basic
 
 from valkey import Valkey
 
+from hive.chat import tell_user
 from hive.common.units import MINUTES
 from hive.messaging import Channel, blocking_connection
 
@@ -63,18 +65,36 @@ class Service:
 
         messages = report.get("messages")
         if not messages:
-            messages = [f"{service} became {condition}"]
+            messages = [f"Service became {condition}"]
 
+        service_shortname = re.sub(r"^hive-", "", service, 1)
         messages = [
-            re.sub(r"^Service\b", service, message, 1)
+            re.sub(r"^Service\b", service_shortname, message, 1)
             for message in messages
         ]
 
-        channel.tell_user(
-            "\n".join(messages),
+        text = "\n".join(messages)
+        try:
+            html = "<br>".join(map(escape, messages))
+            if html == text:
+                html = None
+        except Exception:
+            html = None
+
+        tell_user(
+            channel=channel,
+            text=text,
+            html=self._to_html(text),
             timestamp=timestamp,
             uuid=uuid,
         )
+
+    @staticmethod
+    def _to_html(text: str) -> Optional[str]:
+        lines = [line for line in text.split("\n") if line]
+        if len(lines) <= 1:
+            return None
+        return "<br>".join(map(escape, lines))
 
     def run(self):
         with blocking_connection() as conn:

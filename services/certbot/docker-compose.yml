@@ -30,7 +30,6 @@ services:
       - certbot_webroot:/var/www/letsencrypt:ro
 
 networks:
-  default:
   certbot:
   nginx-http:
 

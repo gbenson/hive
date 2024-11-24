@@ -12,9 +12,9 @@ from typing import Any, IO, Optional
 
 from valkey import Valkey
 
+from hive.chat import ChatMessage
 from hive.common.units import DAYS, MINUTE
 from hive.messaging import Channel, Message
-from hive.messaging.schemas import ChatMessage
 
 from .authenticator import Authenticator
 from .event_stream import EventStream

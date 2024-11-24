@@ -6,7 +6,7 @@ from threading import Thread
 
 import pytest
 
-from hive.messaging.schemas import ChatMessage
+from hive.chat import ChatMessage
 
 
 def get_stream_output(stream, timeout=5, poll_interval=0.5):

@@ -1,0 +1,30 @@
+[project]
+name = "hive-chat-router"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Chat message router for Hive"
+dependencies = [
+    "hive-chat",
+    "hive-common",
+    "hive-messaging",
+    "hive-service",
+]
+
+[project.scripts]
+hive-chat-router = "hive.chat_router:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.chat_router.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.chat_router"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

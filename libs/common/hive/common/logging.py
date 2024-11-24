@@ -3,8 +3,8 @@ import os
 from typing import Optional
 
 
-def getenv_log_level() -> Optional[int | str]:
-    level = os.environ.get("LL", None)
+def getenv_log_level(default=None) -> Optional[int | str]:
+    level = os.environ.get("LL", default)
     if not level:
         return None
     try:

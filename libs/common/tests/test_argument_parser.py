@@ -6,14 +6,31 @@ from hive.common import ArgumentParser
 from hive.common.testing import want_to_see
 
 
-def test_default_log_level(monkeypatch):
+def test_hive_default_log_level(monkeypatch):
+    logging_basicconfig_calls = []
+
+    def mock_bc(*args, **kwargs):
+        nonlocal logging_basicconfig_calls
+        logging_basicconfig_calls.append((args, kwargs))
+
+    with monkeypatch.context() as mp:
+        mp.setattr(logging, "basicConfig", mock_bc)
+        mp.delenv("LL", raising=False)
+        _ = ArgumentParser().parse_args()
+
+    assert logging_basicconfig_calls == [((), {"level": logging.INFO})]
+
+
+def test_library_default_log_level(monkeypatch):
     def mock_bc(*args, **kwargs):
         pytest.fail("logging.basicConfig() was called")
 
     with monkeypatch.context() as mp:
         mp.setattr(logging, "basicConfig", mock_bc)
         mp.delenv("LL", raising=False)
-        _ = ArgumentParser().parse_args()
+        parser = ArgumentParser()
+        parser.DEFAULT_LOGLEVEL = None
+        _ = parser.parse_args()
 
 
 @pytest.mark.parametrize(

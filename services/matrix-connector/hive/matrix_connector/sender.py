@@ -191,7 +191,6 @@ def main():
     )
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO)
     rsm = ReportingRestartMonitor()
     sender = Sender()
     rsm.report(sender)

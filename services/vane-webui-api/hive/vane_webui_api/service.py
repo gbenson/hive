@@ -13,8 +13,13 @@ class Service:
     on_channel_open: Optional[Callable[[Channel], None]] = None
 
     def run(self):
-        with blocking_connection(on_channel_open=self.on_channel_open) as conn:
+        with blocking_connection() as conn:
             channel = conn.channel()
-            server = HTTPServer(self.server_address, channel=channel)
+            try:
+                server = HTTPServer(self.server_address, channel=channel)
+            finally:
+                if self.on_channel_open:
+                    # deferred so we receive our own (re)start message
+                    self.on_channel_open(channel)
             with serving(server):
                 channel.start_consuming()

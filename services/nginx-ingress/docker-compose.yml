@@ -1,9 +1,9 @@
 services:
-  nginx-proxy:
+  nginx-ingress:
     image: nginx
     restart: unless-stopped
     networks:
-      - nginx-proxy
+      - nginx-ingress
       - vane-webui-api
     ports:
       - ${INBOUND_HTTPS_PORT:-443}:443/tcp
@@ -18,4 +18,4 @@ services:
       - VANE_WEBUI_PATH
 
 networks:
-  nginx-proxy:
+  nginx-ingress:

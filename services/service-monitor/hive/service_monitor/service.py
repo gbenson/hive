@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
 from html import escape
-from typing import Callable, Optional
+from typing import Optional
 from uuid import RFC_4122, UUID
 
 from pika import BasicProperties
@@ -14,16 +14,15 @@ from pika.spec import Basic
 from valkey import Valkey
 
 from hive.chat import tell_user
-from hive.common.units import MINUTES
-from hive.messaging import Channel, blocking_connection
+from hive.messaging import Channel
+from hive.service import HiveService, RestartMonitor
 
 
 @dataclass
-class Service:
+class Service(HiveService):
     service_status_event_queue: str = "service.status"
     valkey_url: str = "valkey://service-monitor-valkey"
-    service_condition_window: float = 5 * MINUTES
-    on_channel_open: Optional[Callable[[Channel], None]] = None
+    service_condition_window: float = RestartMonitor.rapid_restart_cutoff
 
     @cached_property
     def _valkey(self) -> Valkey:
@@ -97,7 +96,7 @@ class Service:
         return "<br>".join(map(escape, lines))
 
     def run(self):
-        with blocking_connection() as conn:
+        with self.blocking_connection(on_channel_open=None) as conn:
             channel = conn.channel()
             try:
                 channel.consume_events(

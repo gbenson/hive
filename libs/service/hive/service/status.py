@@ -6,6 +6,8 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID, uuid4
 
+from hive.messaging import Channel
+
 ServiceCondition = Enum("ServiceCondition", "HEALTHY DUBIOUS IN_ERROR")
 
 
@@ -40,7 +42,7 @@ class ServiceStatus:
 
     def report_via_channel(
             self,
-            channel,
+            channel: Channel,
             *,
             routing_key: str = "service.status",
             mandatory: bool = False,

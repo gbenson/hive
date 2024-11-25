@@ -1,1 +1,3 @@
-from .main import main
+from .service import Service
+
+main = Service.main

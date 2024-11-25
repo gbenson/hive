@@ -2,13 +2,13 @@ import logging
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable, Optional
 
 from pika import BasicProperties
 from pika.spec import Basic
 
 from hive.mediawiki import HiveWiki
-from hive.messaging import Channel, blocking_connection
+from hive.messaging import Channel
+from hive.service import HiveService
 
 from .entry import ReadingListEntry
 
@@ -17,10 +17,9 @@ d = logger.info  # logger.debug
 
 
 @dataclass
-class Service:
+class Service(HiveService):
     update_request_queue: str = "readinglist.update.requests"  # input
     update_event_routing_key: str = "readinglist.updates"      # output
-    on_channel_open: Optional[Callable[[Channel], None]] = None
 
     @cached_property
     def wiki(self):
@@ -49,7 +48,7 @@ class Service:
             logger.warning("EXCEPTION", exc_info=True)
 
     def run(self):
-        with blocking_connection(on_channel_open=self.on_channel_open) as conn:
+        with self.blocking_connection() as conn:
             channel = conn.channel()
             channel.consume_requests(
                 queue=self.update_request_queue,

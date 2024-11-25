@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from hive.common.units import MINUTES
+from hive.messaging import Channel
 
 from .status import ServiceCondition, ServiceStatus
 
@@ -161,7 +162,7 @@ class RestartMonitor:
         except FileNotFoundError:
             open(filename, "wb").close()
 
-    def report_via_channel(self, channel, **kwargs):
+    def report_via_channel(self, channel: Channel, **kwargs):
         """Report this startup via a :class:`hive.messaging.Channel`.
         """
         return self.status.report_via_channel(channel, **kwargs)

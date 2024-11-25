@@ -4,11 +4,11 @@ import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Callable, Optional
 
 from hive.common.units import MINUTE
 from hive.config import read_config
-from hive.messaging import publisher_connection, Channel
+from hive.messaging import Channel
+from hive.service import HiveService
 
 from . import imap
 from .processors import Processor, DEFAULT_PROCESSORS
@@ -17,11 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class Service:
+class Service(HiveService):
     config_key: str = "email"
     processors: Sequence[Processor] = field(default_factory=list)
     cycle_time: float = 1 * MINUTE
-    on_channel_open: Optional[Callable[[Channel], None]] = None
 
     def __post_init__(self):
         config = read_config(self.config_key)
@@ -43,9 +42,7 @@ class Service:
             raise RuntimeError("Service not configured") from e
 
     def run(self):
-        with publisher_connection(
-                on_channel_open=self.on_channel_open
-        ) as conn:
+        with self.publisher_connection() as conn:
             self._run(conn.channel())
 
     def _run(self, channel: Channel):

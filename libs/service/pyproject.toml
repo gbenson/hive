@@ -9,6 +9,7 @@ classifiers = [
 ]
 dependencies = [
     "hive-common",
+    "hive-messaging",
 ]
 
 [project.urls]

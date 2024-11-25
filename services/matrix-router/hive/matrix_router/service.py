@@ -1,38 +1,29 @@
 import json
 import logging
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 from pika import BasicProperties
 from pika.spec import Basic
 
 from hive.chat import ChatMessage
-from hive.messaging import Channel, blocking_connection
+from hive.messaging import Channel
+from hive.service import HiveService
 
 from . import smoke_test_corpus
 from .event import MatrixEvent
 from .reaction_manager import reaction_manager
+from .router import Router
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class Service(ABC):
+class Service(Router, HiveService):
     input_queue: str = "matrix.events.received"
     event_queues: list[str] | tuple[str] = (
         "readinglist.updates",
     )
-    on_channel_open: Optional[Callable[[Channel], None]] = None
-
-    @abstractmethod
-    def on_matrix_event(
-            self,
-            channel: Channel,
-            event: MatrixEvent,
-    ):
-        raise NotImplementedError
 
     def _on_matrix_event(
             self,
@@ -61,7 +52,7 @@ class Service(ABC):
             logger.exception("Forwarding %r failed:", event.json())
 
     def run(self):
-        with blocking_connection(on_channel_open=self.on_channel_open) as conn:
+        with self.blocking_connection() as conn:
             channel = conn.channel()
             for queue in self.event_queues:
                 channel.consume_events(

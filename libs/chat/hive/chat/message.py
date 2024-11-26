@@ -19,6 +19,7 @@ class ChatMessage:
     timestamp: str | datetime = field(
         default_factory=lambda: datetime.now(tz=timezone.utc))
     uuid: str | UUID = field(default_factory=uuid4)
+    in_reply_to: Optional[str | UUID | ChatMessage] = None
     matrix: Optional[MatrixEvent] = None
     _unhandled: Optional[dict[str, Any]] = field(default=None, repr=False)
 
@@ -37,6 +38,13 @@ class ChatMessage:
             self.timestamp = datetime.fromisoformat(self.timestamp)
 
         self.uuid = parse_uuid(self.uuid)
+
+        if self.in_reply_to is not None:
+            if isinstance(self.in_reply_to, ChatMessage):
+                self.in_reply_to = self.in_reply_to.uuid
+            self.in_reply_to = parse_uuid(self.in_reply_to)
+            if self.in_reply_to == self.uuid:
+                raise ValueError
 
     @classmethod
     def json_keys(cls) -> list[str]:

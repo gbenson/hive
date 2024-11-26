@@ -1,3 +1,5 @@
+import sys
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Optional
@@ -18,6 +20,7 @@ from .restart_monitor import RestartMonitor
 class Service(ABC):
     argument_parser: Optional[ArgumentParser] = None
     on_channel_open: Optional[Callable[[Channel], None]] = None
+    unparsed_arguments: Optional[list[str]] = None
 
     def make_argument_parser(self) -> ArgumentParser:
         parser = ArgumentParser()
@@ -32,9 +35,16 @@ class Service(ABC):
     def __post_init__(self):
         if not self.argument_parser:
             self.argument_parser = self.make_argument_parser()
-        self.args = self.argument_parser.parse_args()
 
-        if getattr(self.args, "with_restart_monitor", True):
+        in_pytest = self.argument_parser.prog == "pytest"
+        if self.unparsed_arguments is None:
+            if in_pytest:
+                self.unparsed_arguments = []
+            else:
+                self.unparsed_arguments = sys.argv[1:]
+        self.args = self.argument_parser.parse_args(self.unparsed_arguments)
+
+        if getattr(self.args, "with_restart_monitor", True) and not in_pytest:
             rsm = RestartMonitor()
             if self.on_channel_open:
                 raise NotImplementedError

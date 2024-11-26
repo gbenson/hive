@@ -110,7 +110,7 @@ class ChatMessage:
     def json(self) -> dict[str, Any]:
         items = ((key, getattr(self, key)) for key in self.json_keys())
         return dict(
-            (key, value if key == "matrix" else str(value))
+            (key, value.json() if key == "matrix" else str(value))
             for key, value in items
             if value
         )

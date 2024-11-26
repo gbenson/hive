@@ -19,6 +19,9 @@ class ClientEvent:
     def __init__(self, serialized: dict[str, Any]):
         self._event = serialized
 
+    def json(self):
+        return self._event
+
     @cached_property
     def content(self) -> EventContent:
         """The body of this event, as created by the client which sent it.

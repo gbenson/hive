@@ -129,7 +129,10 @@ class HTTPServer(ThreadingHTTPServer):
 
             message["timestamp"] = str(datetime.now(tz=timezone.utc))
 
-            parsed_message = ChatMessage.from_json(message)
+            try:
+                parsed_message = ChatMessage.from_json(message)
+            except Exception as e:
+                raise ValueError(message) from e
             assert not parsed_message.has_unhandled_fields
             message["uuid"] = str(parsed_message.uuid)
 

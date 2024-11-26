@@ -6,8 +6,6 @@ services:
     networks:
       - message-bus
       - service-monitor-valkey
-    command:
-      - hive-service-monitor
     secrets:
       - rabbitmq.env
 

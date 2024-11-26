@@ -7,8 +7,6 @@ services:
       - email-receiver
       - email-receiver-valkey
       - message-bus
-    command:
-      - hive-email-receiver
     secrets:
       - rabbitmq.env
       - email.yml

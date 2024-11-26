@@ -7,7 +7,5 @@ services:
       - message-bus
     volumes:
       - ./hive/matrix_router:/venv/lib/python3.11/site-packages/hive/matrix_router:ro
-    command:
-      - hive-matrix-router
     secrets:
       - rabbitmq.env

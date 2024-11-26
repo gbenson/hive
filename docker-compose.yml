@@ -40,8 +40,6 @@ services:
     image: gbenson/hive-reading-list-updater
     init: true
     restart: unless-stopped
-    command:
-      - hive-reading-list-updater
     secrets:
       - rabbitmq.env
       - mediawiki.yml

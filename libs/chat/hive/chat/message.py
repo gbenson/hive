@@ -4,7 +4,9 @@ from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from types import NoneType
 from typing import Any, Optional
-from uuid import RFC_4122, UUID, uuid4
+from uuid import UUID, uuid4
+
+from hive.common import parse_uuid
 
 from .matrix import ClientEvent as MatrixEvent
 
@@ -34,13 +36,7 @@ class ChatMessage:
         if not isinstance(self.timestamp, datetime):
             self.timestamp = datetime.fromisoformat(self.timestamp)
 
-        if not isinstance(self.uuid, UUID):
-            self.uuid = UUID(self.uuid)
-
-        if self.uuid.variant != RFC_4122:
-            raise ValueError(self.uuid)
-        if self.uuid.version != 4:
-            raise ValueError(self.uuid)
+        self.uuid = parse_uuid(self.uuid)
 
     @classmethod
     def json_keys(cls) -> list[str]:

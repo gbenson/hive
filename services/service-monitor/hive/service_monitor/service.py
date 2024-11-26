@@ -6,7 +6,6 @@ from datetime import datetime
 from functools import cached_property
 from html import escape
 from typing import Optional
-from uuid import RFC_4122, UUID
 
 from pika import BasicProperties
 from pika.spec import Basic
@@ -14,6 +13,7 @@ from pika.spec import Basic
 from valkey import Valkey
 
 from hive.chat import tell_user
+from hive.common import parse_uuid
 from hive.messaging import Channel
 from hive.service import HiveService, RestartMonitor
 
@@ -43,11 +43,7 @@ class Service(HiveService):
         if report["meta"]["type"] != "service_status_report":
             raise ValueError(body)
 
-        uuid = UUID(report["meta"]["uuid"])
-        if uuid.variant != RFC_4122:
-            raise ValueError(body)
-        if uuid.version != 4:
-            raise ValueError(body)
+        uuid = parse_uuid(report["meta"]["uuid"])
 
         timestamp = datetime.fromisoformat(report["meta"]["timestamp"])
 

@@ -325,31 +325,16 @@ def test_consume_fanout_events(callback_cls):
         "exchange": "hive.arr.pirates",
         "exchange_type": "fanout",
         "durable": True,
-    }), ((), {
-        "exchange": "hive.dead.letter",
-        "exchange_type": "direct",
-        "durable": True,
     })]
     assert mock.basic_qos.call_log == [((), {
         "prefetch_count": 1,
     })]
     assert mock.queue_declare.call_log == [((
-        "x.pytest.arr.pirates",
-    ), {
-        "durable": True,
-    }), ((
         "pytest.arr.pirates",
     ), {
         "exclusive": True,
-        "arguments": {
-            "x-dead-letter-exchange": "hive.dead.letter",
-        },
     })]
     assert mock.queue_bind.call_log == [((), {
-        "queue": "x.pytest.arr.pirates",
-        "exchange": "hive.dead.letter",
-        "routing_key": "pytest.arr.pirates",
-    }), ((), {
         "queue": "TeStQuEu3",
         "exchange": "hive.arr.pirates",
     })]

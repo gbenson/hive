@@ -115,7 +115,6 @@ class Channel(WrappedPikaThing):
 
         queue = self.queue_declare(
             queue,
-            dead_letter_routing_key=queue or routing_key,
             exclusive=True,
         ).method.queue
 
@@ -211,9 +210,10 @@ class Channel(WrappedPikaThing):
 
             arguments[DLX_ARG] = dead_letter_exchange
 
+        if arguments:
+            kwargs["arguments"] = arguments
         return self._pika.queue_declare(
             queue,
-            arguments=arguments,
             **kwargs
         )
 

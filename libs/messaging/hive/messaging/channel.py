@@ -15,12 +15,15 @@ from .message import Message
 from .wrapper import WrappedPikaThing
 
 logger = logging.getLogger(__name__)
-d = logger.debug
 
 
 class Channel(WrappedPikaThing):
     """The primary entry point for interacting with Hive's message bus.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._pre_publish_hooks = []
+
     # QUEUES are declared by their consuming service
 
     # CONSUME_* methods process to completion or dead-letter the message
@@ -217,7 +220,18 @@ class Channel(WrappedPikaThing):
             **kwargs
         )
 
-    def _publish(
+    def add_pre_publish_hook(self, hook: Callable):
+        self._pre_publish_hooks.append(hook)
+
+    def _publish(self, **kwargs):
+        for hook in self._pre_publish_hooks:
+            try:
+                hook(self, **kwargs)
+            except Exception:
+                logger.exception("EXCEPTION")
+        return self._basic_publish(**kwargs)
+
+    def _basic_publish(
             self,
             *,
             message: bytes | dict,

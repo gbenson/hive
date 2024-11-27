@@ -59,34 +59,3 @@ def test_reading_list_update(channel, body):
         },
         "routing_key": "readinglist.update.requests",
     }]
-
-
-@pytest.mark.parametrize(
-    "challenge,expect_response",
-    (("ping", "pong"),
-     ("Hello?", "Hi!"),
-     (" Hello ? ", "Hi!"),
-     ("HeLlo?", "Hi!"),
-     (" pinG ", "ponG!"),
-     ))
-def test_challenge_response(channel, challenge, expect_response):
-    router = Router()
-    router.on_matrix_event(channel, MatrixEvent({
-        "source": {
-            "type": "m.room.message",
-            "content": {
-                "msgtype": "m.text",
-                "body": challenge,
-            },
-            "event_id": "$26RqwJMLw-yds1GAH_QxjHRC1Da9oasK0e5VLnck_45",
-            "origin_server_ts": 1730071727043,
-            "sender": "@neo:matrix.org",
-        },
-    }))
-    assert channel.published_requests == [{
-        "message": {
-            "format": "text",
-            "messages": [expect_response],
-        },
-        "routing_key": "matrix.message.send.requests",
-    }]

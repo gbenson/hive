@@ -66,5 +66,5 @@ class Service(ABC):
         return self._connect(publisher_connection, kwargs)
 
     def _connect(self, connect, kwargs) -> Connection:
-        on_channel_open = kwargs.get("on_channel_open", self.on_channel_open)
+        on_channel_open = kwargs.pop("on_channel_open", self.on_channel_open)
         return connect(on_channel_open=on_channel_open, **kwargs)

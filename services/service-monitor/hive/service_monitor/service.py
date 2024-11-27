@@ -1,4 +1,3 @@
-import json
 import re
 
 from dataclasses import dataclass
@@ -7,14 +6,11 @@ from functools import cached_property
 from html import escape
 from typing import Optional
 
-from pika import BasicProperties
-from pika.spec import Basic
-
 from valkey import Valkey
 
 from hive.chat import tell_user
 from hive.common import parse_uuid
-from hive.messaging import Channel
+from hive.messaging import Channel, Message
 from hive.service import HiveService, RestartMonitor
 
 
@@ -29,19 +25,14 @@ class Service(HiveService):
         return Valkey.from_url(self.valkey_url)
 
     def on_service_status_event(
-        self,
-        channel: Channel,
-        method: Basic.Deliver,
-        properties: BasicProperties,
-        body: bytes,
+            self,
+            channel: Channel,
+            message: Message,
     ):
-        content_type = properties.content_type
-        if content_type != "application/json":
-            raise ValueError(content_type)
-        report = json.loads(body)
+        report = message.json()
 
         if report["meta"]["type"] != "service_status_report":
-            raise ValueError(body)
+            raise ValueError(message.body)
 
         uuid = parse_uuid(report["meta"]["uuid"])
 
@@ -52,7 +43,7 @@ class Service(HiveService):
 
         if self._valkey.set(
                 f"service:{service}:{condition}",
-                body,
+                message.body,
                 ex=self.service_condition_window,
                 get=True,
         ):

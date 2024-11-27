@@ -7,6 +7,7 @@ from uuid import UUID
 import pytest
 
 from hive.chat import ChatMessage
+from hive.messaging import Message
 from hive.service_monitor.service import Service
 
 
@@ -120,11 +121,13 @@ class MockService(Service):
     def send_test_event(self, channel, message):
         self.on_service_status_event(
             channel,
-            None,  # method: Basic.Deliver
-            type("MockProperties", (), {
-                "content_type": "application/json",
-            }),
-            json.dumps(message).encode("utf-8"),
+            Message(
+                None,  # method: Basic.Deliver
+                type("MockProperties", (), {
+                    "content_type": "application/json",
+                }),
+                json.dumps(message).encode("utf-8"),
+            ),
         )
 
 

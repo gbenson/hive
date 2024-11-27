@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 from hive.common import ArgumentParser
-from hive.common.functools import once
+from hive.common.functools import chained, once
 from hive.messaging import (
     Channel,
     Connection,
@@ -46,9 +46,10 @@ class Service(ABC):
 
         if getattr(self.args, "with_restart_monitor", True) and not in_pytest:
             rsm = RestartMonitor()
-            if self.on_channel_open:
-                raise NotImplementedError
-            self.on_channel_open = once(rsm.report_via_channel)
+            self.on_channel_open = chained(
+                once(rsm.report_via_channel),
+                self.on_channel_open,
+            )
 
     @classmethod
     def main(cls, **kwargs):

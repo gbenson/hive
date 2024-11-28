@@ -302,7 +302,9 @@ def test_publish_fanout_event():
 
 @pytest.mark.parametrize("callback_cls", (MockCallbackV1, MockCallbackV2))
 @pytest.mark.filterwarnings(MockCallbackV1._warning_filter)
-def test_consume_fanout_events(callback_cls):
+def test_consume_fanout_events(callback_cls, monkeypatch):
+    monkeypatch.delenv("HIVE_EXCLUSIVE_QUEUE_PREFIX", raising=False)
+
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_qos = MockMethod()

@@ -129,7 +129,7 @@ class Channel(WrappedPikaThing):
         return self._basic_consume(queue, on_message_callback)
 
     @cached_property
-    def consumer_name(self):
+    def consumer_name(self) -> str:
         """Name for per-consumer fanout queues to this channel.
         May be overwritten or overridden (you'll actually have
         to if more than one channel per process consumes the
@@ -139,6 +139,17 @@ class Channel(WrappedPikaThing):
             part for part in os.path.basename(sys.argv[0]).split("-")
             if part != "hive"
         )
+
+    @cached_property
+    def exclusive_queue_prefix(self) -> str:
+        """Prefix for named exclusive queues on this channel.
+        Should be the empty string for production environments.
+        """
+        envvar = "HIVE_EXCLUSIVE_QUEUE_PREFIX"
+        result = os.environ.get(envvar, "").rstrip(".")
+        if not result:
+            return ""
+        return f"{result}."
 
     # Exchanges
 
@@ -189,6 +200,9 @@ class Channel(WrappedPikaThing):
             arguments: Optional[dict[str, str]] = None,
             **kwargs
     ):
+        if kwargs.get("exclusive", False) and queue:
+            queue = f"{self.exclusive_queue_prefix}{queue}"
+
         if dead_letter_routing_key:
             DLX_ARG = "x-dead-letter-exchange"
             if arguments:

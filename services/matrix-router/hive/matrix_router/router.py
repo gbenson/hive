@@ -3,7 +3,6 @@ import logging
 from hive.messaging import Channel
 
 from .event import MatrixEvent
-from .reading_list import is_reading_list_update, route_reading_list_update
 
 logger = logging.getLogger(__name__)
 d = logger.info  # logger.debug
@@ -27,7 +26,4 @@ class Router:
                 raise NotImplementedError(unhandled_type)
 
     def _on_text_message(self, channel: Channel, event: MatrixEvent):
-        if is_reading_list_update(event):
-            route_reading_list_update(channel, event)
-            return
         raise NotImplementedError(f"event.body={event.body!r}")

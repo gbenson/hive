@@ -150,3 +150,15 @@ input, button, .from-user {
     font-weight: bold;
     text-transform: uppercase;
 }
+a:link {
+    color: #9dc6f2;
+}
+a:visited {
+    color: #6da1da;
+}
+a {
+    text-decoration: none;
+}
+a:hover, a:active {
+    text-decoration: underline;
+}

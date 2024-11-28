@@ -3,8 +3,8 @@ import re
 
 from typing import Optional
 
-from hive.messaging import Channel
 from hive.chat import ChatMessage, tell_user
+from hive.messaging import Channel
 
 from ..handler import Handler
 

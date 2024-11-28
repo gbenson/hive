@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
+
 from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
+from itertools import starmap
 from types import NoneType
 from typing import Any, Optional
 from uuid import UUID, uuid4
@@ -113,8 +116,16 @@ class ChatMessage:
 
     def json(self) -> dict[str, Any]:
         items = ((key, getattr(self, key)) for key in self.json_keys())
-        return dict(
-            (key, value.json() if key == "matrix" else str(value))
-            for key, value in items
-            if value
-        )
+        items = starmap(self._for_json, items)
+        return dict(item for item in items if item)
+
+    def _for_json(self, key, value) -> Optional[tuple[str, Any]]:
+        if callable(func := getattr(value, "json", None)):
+            value = func()
+        if not value and value in (None, "", {}):
+            return None  # omit
+        try:
+            _ = json.dumps(value)
+            return key, value
+        except Exception:
+            return key, str(value)

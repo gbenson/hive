@@ -54,5 +54,27 @@ RUN set -eux \
   && rm -f /run/adduser \
   && install -d -oroot -ghivetrix -m710 /run/secrets
 
+FROM install AS test
+RUN set -eux \
+  \
+  && install -d -ohivetrix -ghivetrix /src \
+  && /venv/bin/pip install \
+       pep440-version-utils \
+       pytest-cov
+COPY tests /src/tests
+
+USER hivetrix:hivetrix
+WORKDIR /src
+
+RUN set -eux \
+  \
+  && . /venv/bin/activate \
+  && pytest --cov hive.matrix_connector \
+  && coverage report > coverage.report
+
+FROM install AS dist
+RUN --mount=type=bind,from=test,target=/test \
+  grep -q '[^ ][^0]%$' /test/src/coverage.report
+
 USER hivetrix:hivetrix
 WORKDIR /var/lib/matrix

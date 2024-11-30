@@ -90,3 +90,21 @@ def test_image(mock_channel, mock_receiver):
         }),
     ]
     assert str(excinfo.value) == repr(event)
+
+
+def test_redaction(mock_channel, mock_receiver):
+    event = json.loads(read_resource("resources/redaction.json"))
+    with pytest.raises(ValueError) as excinfo:
+        mock_receiver.on_matrix_event(event)
+    assert len(mock_channel.call_log) == 1
+    _, _, kwargs = mock_channel.call_log[0]
+    kwargs["message"] = json.loads(kwargs["message"])
+    assert mock_channel.call_log == [
+        ("publish_event", (), {
+            "message": event,
+            "content_type": "application/json",
+            "routing_key": "matrix.events.received",
+            "mandatory": True,
+        }),
+    ]
+    assert str(excinfo.value) == repr(event)

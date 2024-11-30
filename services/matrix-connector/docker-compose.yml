@@ -26,7 +26,6 @@ services:
       - matrix_received_media:/var/lib/matrix/media
     command:
       - hive-matrix-receiver
-      - --debug
     secrets:
       - rabbitmq.env
 

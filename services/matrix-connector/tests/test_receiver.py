@@ -76,11 +76,12 @@ def test_html(mock_channel, mock_receiver):
 
 def test_image(mock_channel, mock_receiver):
     event = json.loads(read_resource("resources/image.json"))
-    with pytest.raises(ValueError) as excinfo:
-        mock_receiver.on_matrix_event(event)
-    assert len(mock_channel.call_log) == 1
+    mock_receiver.on_matrix_event(event)
+    assert len(mock_channel.call_log) == 2
     _, _, kwargs = mock_channel.call_log[0]
     kwargs["message"] = json.loads(kwargs["message"])
+    _, _, kwargs = mock_channel.call_log[1]
+    uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
         ("publish_event", (), {
             "message": event,
@@ -88,8 +89,17 @@ def test_image(mock_channel, mock_receiver):
             "routing_key": "matrix.events.received",
             "mandatory": True,
         }),
+        ("publish_event", (), {
+            "message": {
+                "text": "Wi-Fi_QR_code_Guest.jpg",
+                "sender": "user",
+                "timestamp": "2024-10-26 22:49:53.880000+00:00",
+                "uuid": uuid,
+                "matrix": event["source"],
+             },
+            "routing_key": "chat.messages",
+         }),
     ]
-    assert str(excinfo.value) == repr(event)
 
 
 def test_redaction(mock_channel, mock_receiver):

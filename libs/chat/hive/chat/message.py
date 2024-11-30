@@ -95,7 +95,7 @@ class ChatMessage:
             raise ValueError(event.event_type)
 
         content = event.content
-        if content.msgtype != "m.text":
+        if content.msgtype not in {"m.text", "m.image"}:
             raise ValueError(content.msgtype)
 
         kwargs = {

@@ -36,3 +36,17 @@ def test_html():
     assert message.in_reply_to is None
     assert message.matrix.json() == event
     assert not message.has_unhandled_fields
+
+
+def test_image():
+    event = read_event("resources/image.json")
+    message = ChatMessage.from_matrix_event(event)
+    assert message.text == "Wi-Fi_QR_code_Guest.jpg"
+    assert message.html is None
+    assert message.sender == "user"
+    assert message.timestamp == datetime.fromisoformat(
+        "2024-10-26 22:49:53.88Z",
+    )
+    assert message.in_reply_to is None
+    assert message.matrix.json() == event
+    assert not message.has_unhandled_fields

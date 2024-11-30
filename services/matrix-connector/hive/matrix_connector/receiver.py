@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Literal, Sequence
 
+from hive.chat import ChatMessage, tell_user
 from hive.service import HiveService
 
 logger = logging.getLogger(__name__)
@@ -82,7 +83,7 @@ class Receiver(HiveService):
         try:
             self.on_matrix_event(json_max)
         except Exception:
-            logger.exception("LOGGED EXCEPTION")
+            logger.exception("EXCEPTION")
 
     def on_matrix_event(self, event: dict):
         """Called whenever an event is received.
@@ -98,6 +99,12 @@ class Receiver(HiveService):
             routing_key="matrix.events.received",
             mandatory=True,
         )
+
+        try:
+            message = ChatMessage.from_matrix_event(event["source"])
+        except Exception as e:
+            raise ValueError(event) from e
+        tell_user(message, channel=self._channel)
 
 
 main = Receiver.main

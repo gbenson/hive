@@ -7,7 +7,10 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Literal, Sequence
 
+from valkey import Valkey
+
 from hive.chat import ChatMessage, tell_user
+from hive.common.units import HOUR
 from hive.service import HiveService
 
 logger = logging.getLogger(__name__)
@@ -22,6 +25,12 @@ class Receiver(HiveService):
         "--download-media-name", "eventid",
         "--output", "json-max",
     )
+    valkey_url: str = "valkey://matrix-valkey"
+    id_correlation_lifetime: float = 1 * HOUR
+
+    @cached_property
+    def _valkey(self) -> Valkey:
+        return Valkey.from_url(self.valkey_url)
 
     def __post_init__(self):
         super().__post_init__()
@@ -105,6 +114,19 @@ class Receiver(HiveService):
         except Exception as e:
             raise ValueError(event) from e
         tell_user(message, channel=self._channel)
+
+        message_id = str(message.uuid)
+        event_id = message.matrix.event_id
+        self._valkey.set(
+            f"message:{message_id}:event_id",
+            event_id,
+            ex=self.id_correlation_lifetime,
+        )
+        self._valkey.set(
+            f"event:{event_id}:message_id",
+            message_id,
+            ex=self.id_correlation_lifetime,
+        )
 
 
 main = Receiver.main

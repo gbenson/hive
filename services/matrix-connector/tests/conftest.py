@@ -1,7 +1,7 @@
 import pytest
 
 
-class MockChannel:
+class CallLogger:
     def __init__(self):
         self.call_log = []
 
@@ -20,4 +20,9 @@ class MockMethod:
 
 @pytest.fixture
 def mock_channel():
-    return MockChannel()
+    return CallLogger()
+
+
+@pytest.fixture
+def mock_valkey():
+    return CallLogger()

@@ -4,7 +4,8 @@ services:
     init: true
     restart: unless-stopped
     networks:
-      - matrix-sender
+      - matrix-connector
+      - matrix-valkey
       - message-bus
     volumes:
       - matrix_sender:/var/lib/matrix
@@ -19,7 +20,8 @@ services:
     init: true
     restart: unless-stopped
     networks:
-      - matrix-receiver
+      - matrix-connector
+      - matrix-valkey
       - message-bus
     volumes:
       - matrix_receiver:/var/lib/matrix
@@ -29,11 +31,26 @@ services:
     secrets:
       - rabbitmq.env
 
+  matrix-valkey:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    networks:
+      - vane-valkey
+    volumes:
+      - matrix_valkey:/data
+    command:
+      - valkey-server
+      - --save
+      - 60 1
+    hostname: vane-valkey
+
 networks:
-  matrix-sender:
-  matrix-receiver:
+  matrix-connector:
+  matrix-valkey:
+    internal: true
 
 volumes:
   matrix_sender:
   matrix_receiver:
   matrix_received_media:
+  matrix_valkey:

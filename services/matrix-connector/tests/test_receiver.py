@@ -8,16 +8,17 @@ from hive.matrix_connector.receiver import Receiver
 
 
 @pytest.fixture
-def mock_receiver(mock_channel):
+def mock_receiver(mock_channel, mock_valkey):
     receiver = Receiver()
     receiver._channel = mock_channel
+    receiver._valkey = mock_valkey
     try:
         yield receiver
     finally:
         sys.modules.pop("matrix_commander")
 
 
-def test_basic(mock_channel, mock_receiver):
+def test_basic(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/text.json"))
     mock_receiver.on_matrix_event(event)
     assert len(mock_channel.call_log) == 2
@@ -43,9 +44,23 @@ def test_basic(mock_channel, mock_receiver):
             "routing_key": "chat.messages",
          }),
     ]
+    assert mock_valkey.call_log == [
+        ("set", (
+            f"message:{uuid}:event_id",
+            "$NWixTiloQs5UwmlcdJfSfFVtw5SX3awbu3NXvDdOZwo",
+        ), {
+            "ex": 3600,
+        }),
+        ("set", (
+            "event:$NWixTiloQs5UwmlcdJfSfFVtw5SX3awbu3NXvDdOZwo:message_id",
+            uuid,
+        ), {
+            "ex": 3600,
+        }),
+    ]
 
 
-def test_html(mock_channel, mock_receiver):
+def test_html(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/html.json"))
     mock_receiver.on_matrix_event(event)
     assert len(mock_channel.call_log) == 2
@@ -72,9 +87,23 @@ def test_html(mock_channel, mock_receiver):
             "routing_key": "chat.messages",
          }),
     ]
+    assert mock_valkey.call_log == [
+        ("set", (
+            f"message:{uuid}:event_id",
+            "$r9Ul_OMug-vwLOY0yQY2kLtQtIFlxNff6nROekWc4Co",
+        ), {
+            "ex": 3600,
+        }),
+        ("set", (
+            "event:$r9Ul_OMug-vwLOY0yQY2kLtQtIFlxNff6nROekWc4Co:message_id",
+            uuid,
+        ), {
+            "ex": 3600,
+        }),
+    ]
 
 
-def test_image(mock_channel, mock_receiver):
+def test_image(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/image.json"))
     mock_receiver.on_matrix_event(event)
     assert len(mock_channel.call_log) == 2
@@ -100,9 +129,23 @@ def test_image(mock_channel, mock_receiver):
             "routing_key": "chat.messages",
          }),
     ]
+    assert mock_valkey.call_log == [
+        ("set", (
+            f"message:{uuid}:event_id",
+            "$pOp5KHHL3ECE3ZWtRw_PmnrH-mRqDFlDHcKgzMBSEVY",
+        ), {
+            "ex": 3600,
+        }),
+        ("set", (
+            "event:$pOp5KHHL3ECE3ZWtRw_PmnrH-mRqDFlDHcKgzMBSEVY:message_id",
+            uuid,
+        ), {
+            "ex": 3600,
+        }),
+    ]
 
 
-def test_redaction(mock_channel, mock_receiver):
+def test_redaction(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/redaction.json"))
     with pytest.raises(ValueError) as excinfo:
         mock_receiver.on_matrix_event(event)
@@ -117,4 +160,5 @@ def test_redaction(mock_channel, mock_receiver):
             "mandatory": True,
         }),
     ]
+    assert mock_valkey.call_log == []
     assert str(excinfo.value) == repr(event)

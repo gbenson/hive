@@ -35,7 +35,7 @@ services:
     image: valkey/valkey:8
     restart: unless-stopped
     networks:
-      - vane-valkey
+      - matrix-valkey
     volumes:
       - matrix_valkey:/data
     command:

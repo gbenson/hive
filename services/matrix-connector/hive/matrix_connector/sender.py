@@ -96,6 +96,17 @@ class Sender(HiveService):
             timeout = min(max_timeout, timeout * 2)
             d("Timeout is now {timeout} seconds")
 
+    def on_reading_list_update(self, channel: Channel, message: Message):
+        event = message.json()
+        origin = event.get("meta", {}).get("origin", {})
+        if origin.get("channel") != "chat":
+            return
+        message = ChatMessage.from_json(origin["message"])
+        event = message.matrix
+        if not event:
+            return
+        self.send_reaction("👍", event.event_id)
+
     def send_reaction(
             self,
             reaction: str,
@@ -115,7 +126,7 @@ class Sender(HiveService):
             },
         }).encode("utf-8")
 
-        command = [self._command, "--event", "-"]
+        command = [self.command, "--event", "-"]
         d("Executing: %s", command)
 
         timeout = initial_timeout
@@ -150,6 +161,10 @@ class Sender(HiveService):
                 channel.consume_events(
                     queue="chat.messages",
                     on_message_callback=self.on_chat_message,
+                )
+                channel.consume_events(
+                    queue="readinglist.updates",
+                    on_message_callback=self.on_reading_list_update,
                 )
             finally:
                 if self.on_channel_open:

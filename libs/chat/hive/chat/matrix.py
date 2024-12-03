@@ -19,6 +19,11 @@ class ClientEvent:
     def __init__(self, serialized: dict[str, Any]):
         self._event = serialized
 
+    def __eq__(self, other):
+        if not isinstance(other, ClientEvent):
+            return False
+        return self._event == other._event
+
     def json(self):
         return self._event
 

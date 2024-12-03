@@ -22,6 +22,7 @@ def test_basic():
     assert message.in_reply_to is None
     assert message.matrix.json() == event
     assert not message.has_unhandled_fields
+    assert ChatMessage.from_json(message.json()) == message
 
 
 def test_html():
@@ -36,6 +37,7 @@ def test_html():
     assert message.in_reply_to is None
     assert message.matrix.json() == event
     assert not message.has_unhandled_fields
+    assert ChatMessage.from_json(message.json()) == message
 
 
 def test_image():
@@ -50,3 +52,4 @@ def test_image():
     assert message.in_reply_to is None
     assert message.matrix.json() == event
     assert not message.has_unhandled_fields
+    assert ChatMessage.from_json(message.json()) == message

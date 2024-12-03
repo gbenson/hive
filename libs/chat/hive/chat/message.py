@@ -23,7 +23,7 @@ class ChatMessage:
         default_factory=lambda: datetime.now(tz=timezone.utc))
     uuid: str | UUID = field(default_factory=uuid4)
     in_reply_to: Optional[str | UUID | ChatMessage] = None
-    matrix: Optional[MatrixEvent] = None
+    matrix: Optional[dict | MatrixEvent] = None
     _unhandled: Optional[dict[str, Any]] = field(default=None, repr=False)
 
     def __post_init__(self):
@@ -48,6 +48,9 @@ class ChatMessage:
             self.in_reply_to = parse_uuid(self.in_reply_to)
             if self.in_reply_to == self.uuid:
                 raise ValueError
+
+        if not isinstance(self.matrix, (MatrixEvent, NoneType)):
+            self.matrix = MatrixEvent(self.matrix)
 
     @classmethod
     def json_keys(cls) -> list[str]:

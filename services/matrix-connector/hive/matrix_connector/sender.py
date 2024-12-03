@@ -5,15 +5,13 @@ import subprocess
 
 from dataclasses import dataclass
 from enum import Enum
-from functools import cached_property
 from shutil import which
-
-from valkey import Valkey
 
 from hive.chat import ChatMessage
 from hive.common.units import SECONDS, MINUTES
 from hive.messaging import Channel, Message
-from hive.service import HiveService
+
+from .connector import ConnectorService
 
 logger = logging.getLogger(__name__)
 d = logger.debug
@@ -22,18 +20,13 @@ MessageFormat = Enum("MessageFormat", "TEXT HTML MARKDOWN CODE EMOJIZE")
 
 
 @dataclass
-class Sender(HiveService):
+class Sender(ConnectorService):
     command: str = "matrix-commander"
-    valkey_url: str = "valkey://matrix-valkey"
 
     def __post_init__(self):
         super().__post_init__()
         if not os.path.dirname(self.command):
             self.command = which(self.command)
-
-    @cached_property
-    def _valkey(self) -> Valkey:
-        return Valkey.from_url(self.valkey_url)
 
     def _should_forward(self, message: ChatMessage) -> bool:
         if message.sender != "hive":

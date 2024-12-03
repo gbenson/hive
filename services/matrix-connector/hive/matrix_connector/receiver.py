@@ -7,30 +7,24 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Literal, Sequence
 
-from valkey import Valkey
-
 from hive.chat import ChatMessage, tell_user
 from hive.common.units import HOUR
-from hive.service import HiveService
+
+from .connector import ConnectorService
 
 logger = logging.getLogger(__name__)
 d = logger.debug
 
 
 @dataclass
-class Receiver(HiveService):
+class Receiver(ConnectorService):
     matrix_commander_args: Sequence[str] = (
         "--listen", "forever",
         "--download-media", "media",
         "--download-media-name", "eventid",
         "--output", "json-max",
     )
-    valkey_url: str = "valkey://matrix-valkey"
     id_correlation_lifetime: float = 1 * HOUR
-
-    @cached_property
-    def _valkey(self) -> Valkey:
-        return Valkey.from_url(self.valkey_url)
 
     def __post_init__(self):
         super().__post_init__()

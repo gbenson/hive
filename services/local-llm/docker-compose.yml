@@ -1,0 +1,19 @@
+services:
+  local-llm:
+    image: gbenson/hive-local-llm
+    init: true
+    restart: unless-stopped
+    networks:
+      - message-bus
+    volumes:
+      - local_llm:/data
+    environment:
+      - DO_NOT_TRACK=1
+      - HF_HUB_CACHE=/data
+      - HF_HUB_OFFLINE=1
+      - HF_HUB_VERBOSITY=debug
+    secrets:
+      - rabbitmq.env
+
+volumes:
+  local_llm:

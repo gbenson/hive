@@ -1,0 +1,32 @@
+[project]
+name = "hive-local-llm"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Local LLM for Hive"
+dependencies = [
+    "accelerate>=0.26.0",
+    "hive-common",
+    "hive-messaging",
+    "hive-service",
+    "torch",
+    "transformers>=4.37.0",
+]
+
+[project.scripts]
+hive-local-llm = "hive.local_llm:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.local_llm.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.local_llm"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

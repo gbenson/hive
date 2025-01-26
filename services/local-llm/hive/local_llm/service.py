@@ -22,6 +22,10 @@ class Service(HiveService):
     tokenizer: Optional[AutoTokenizer] = None
     request_queue: str = "local.llm.requests"
 
+    @property
+    def memory_footprint(self):
+        return self.model.get_memory_footprint()
+
     def make_argument_parser(self) -> ArgumentParser:
         parser = super().make_argument_parser()
         parser.add_argument(
@@ -47,6 +51,9 @@ class Service(HiveService):
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name
             )
+        d(f"Memory footprint: {self.memory_footprint / 1e6:.2f} MB")
+        # Qwen2.5-0.5B-Instruct: 988.07 MB
+        # SmolLM2-135M-Instruct: 269.03 MB
 
     def on_request(self, channel: Channel, message: Message):
         request = message.json()

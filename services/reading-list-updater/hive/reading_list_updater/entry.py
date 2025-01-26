@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -20,10 +18,6 @@ class ReadingListEntry:
             self.title = None
         if not self.notes:
             self.notes = None
-
-    @classmethod
-    def from_email_summary_bytes(cls, data: bytes) -> ReadingListEntry:
-        return cls.from_email_summary(json.loads(data))
 
     @classmethod
     def from_email_summary(cls, email: dict[str, str]) -> ReadingListEntry:

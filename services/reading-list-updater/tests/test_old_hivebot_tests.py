@@ -1,5 +1,3 @@
-import json
-
 from base64 import a85decode
 
 import pytest
@@ -146,7 +144,6 @@ TY0eP-h$:A`LFCf?3/Q@"7ANCrUAU&;ME,8rsDEA:7+Cf(nEcYf64`tjY/N=1H6Z6jaASuTA
      ))
 def test_rewrites(description, email_bytes, expect_wikitext):
     email = EmailMessage.from_bytes(email_bytes)
-    summary_bytes = json.dumps(email.summary).encode()
-    entry = ReadingListEntry.from_email_summary_bytes(summary_bytes)
+    entry = ReadingListEntry.from_email_summary(email.summary)
     actual_wikitext = entry.as_wikitext()
     assert actual_wikitext == expect_wikitext

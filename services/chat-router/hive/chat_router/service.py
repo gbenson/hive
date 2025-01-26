@@ -33,6 +33,8 @@ class Service(HiveService):
 
     def on_chat_message(self, channel: Channel, message: Message):
         message = ChatMessage.from_json(message.json())
+        if message.sender != "user":
+            return
         if message.uuid in self.our_recently_sent_messages:
             return
 

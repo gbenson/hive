@@ -29,12 +29,13 @@ class ReadingListEntry:
         if not body:
             raise ValueError
 
+        if body.startswith("<"):
+            body = body[1:].replace(">", "", 1)
+
         body_parts = body.split(maxsplit=1)
         if len(body_parts) == 1:
             body_parts.append(None)
         link, notes = body_parts
-        if link.startswith("<") and link.endswith(">"):
-            link = link[1:-1]
         if not link:
             raise ValueError
 

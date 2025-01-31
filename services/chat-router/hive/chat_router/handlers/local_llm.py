@@ -3,6 +3,7 @@ import logging
 from functools import cached_property
 from threading import Thread
 from typing import Any
+from uuid import uuid4
 
 from hive.chat import ChatMessage, tell_user
 from hive.messaging import Channel, Message, blocking_connection
@@ -27,7 +28,6 @@ class LLMHandler(Handler):
 
 class LLMInteraction(Thread):
     def __init__(self, message: ChatMessage):
-        self._channel = None
         self.chat_message = message
         if not self.user_prompt:
             raise ValueError
@@ -35,6 +35,7 @@ class LLMInteraction(Thread):
             name=f"LLM-interaction-{message.timestamp:%Y%m%d-%H%M%S}",
             daemon=True,
         )
+        self.chat_responses_uuid = uuid4()
 
     SYSTEM_PROMPT = "You are Hive, a helpful assistant."
 
@@ -90,11 +91,7 @@ class LLMInteraction(Thread):
         response = message.json()
         d("%s: received: %s", self.name, response)
         if response.get("status") == "received":
-            tell_user(
-                "✨The LLM is thinking...",
-                in_reply_to=self.chat_message,
-                channel=channel,
-            )
+            self.tell_user("✨The LLM is thinking...", channel=channel)
             return
         try:
             self.on_response(channel, response)
@@ -108,4 +105,12 @@ class LLMInteraction(Thread):
             raise ValueError(role)
         if not (content := message["content"]):
             raise ValueError
-        tell_user(content, in_reply_to=self.chat_message, channel=channel)
+        self.tell_user(content, channel=channel)
+
+    def tell_user(self, text: str, **kwargs):
+        tell_user(
+            text,
+            in_reply_to=self.chat_message,
+            uuid=self.chat_responses_uuid,
+            **kwargs
+        )

@@ -1,0 +1,28 @@
+services:
+  ollama-connector:
+    image: gbenson/hive-ollama
+    init: true
+    restart: unless-stopped
+    networks:
+      - message-bus
+      - ollama
+    secrets:
+      - rabbitmq.env
+
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    networks:
+      - ollama
+    volumes:
+      - ollama_models:/ollama/models
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_MODELS=/ollama/models
+
+networks:
+  ollama:
+
+volumes:
+  ollama_models:

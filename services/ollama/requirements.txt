@@ -1,0 +1,4 @@
+-r ../../requirements.txt
+-e ../../libs/common
+-e ../../libs/messaging
+-e ../../libs/service

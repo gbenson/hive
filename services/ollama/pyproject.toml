@@ -1,0 +1,30 @@
+[project]
+name = "hive-ollama"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Ollama connector service for Hive"
+requires-python = ">=3.10"  # match..case
+dependencies = [
+    "hive-messaging",
+    "hive-service",
+    "requests",
+]
+
+[project.scripts]
+hive-ollama-proxy = "hive.ollama:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.ollama.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.ollama"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

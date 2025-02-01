@@ -21,7 +21,7 @@ class LLMHandler(Handler):
 
     def handle(self, channel: Channel, message: ChatMessage) -> bool:
         interaction = LLMInteraction(message)
-        d("LLM request: %s", interaction.llm_request)
+        d("LLM request: %s", interaction.ollama_api_request)
         interaction.start()
         return True
 
@@ -35,7 +35,8 @@ class LLMInteraction(Thread):
             name=f"LLM-interaction-{message.timestamp:%Y%m%d-%H%M%S}",
             daemon=True,
         )
-        self.chat_responses_uuid = uuid4()
+        self.response_uuid = uuid4()
+        self.response_text = ""
 
     SYSTEM_PROMPT = "You are Hive, a helpful assistant."
 
@@ -46,13 +47,24 @@ class LLMInteraction(Thread):
         raise NotImplementedError("html2text")
 
     @cached_property
-    def llm_request(self) -> dict[str, Any]:
-        return {"messages": [
+    def llm_context(self) -> dict[str, Any]:
+        return [
             {"role": "system",
              "content": self.SYSTEM_PROMPT},
             {"role": "user",
              "content": self.user_prompt},
-        ]}
+        ]
+
+    @cached_property
+    def ollama_api_request(self) -> dict[str, Any]:
+        return {
+            "method": "POST",
+            "request_uri": "/api/chat",
+            "data": {
+                "model": "smollm2:135m",
+                "messages": self.llm_context,
+            },
+        }
 
     @property
     def responses_queue_basename(self) -> str:
@@ -79,8 +91,8 @@ class LLMInteraction(Thread):
         )
 
         channel.publish_rpc_request(
-            request=self.llm_request,
-            routing_key="local.llm.requests",
+            request=self.ollama_api_request,
+            routing_key="ollama.api.requests",
             correlation_id=str(self.chat_message.uuid),
             reply_to=responses_queue,
         )
@@ -88,29 +100,34 @@ class LLMInteraction(Thread):
         channel.start_consuming()
 
     def on_rpc_response(self, channel: Channel, message: Message):
-        response = message.json()
-        d("%s: received: %s", self.name, response)
-        if response.get("status") == "received":
-            self.tell_user("✨The LLM is thinking...", channel=channel)
-            return
         try:
+            response = message.json()
+            d("%s: received: %s", self.name, response)
             self.on_response(channel, response)
+            if not response.get("done", True):
+                return  # keep consuming
         except Exception:
             logger.exception("%s: EXCEPTION", self.name)
         channel.stop_consuming()
 
     def on_response(self, channel: Channel, response: dict[str, Any]):
+        if (error_message := response.get("error")):
+            tell_user(
+                f"error: {error_message}",
+                in_reply_to=self.chat_message,
+                channel=channel,
+            )
+            response["done"] = True  # hack
+            return
+
         message = response["message"]
         if (role := message["role"]) != "assistant":
             raise ValueError(role)
-        if not (content := message["content"]):
-            raise ValueError
-        self.tell_user(content, channel=channel)
-
-    def tell_user(self, text: str, **kwargs):
+        self.response_text += message["content"]
         tell_user(
-            text,
+            self.response_text,
+            timestamp=response["created_at"],
+            uuid=self.response_uuid,
             in_reply_to=self.chat_message,
-            uuid=self.chat_responses_uuid,
-            **kwargs
+            channel=channel,
         )

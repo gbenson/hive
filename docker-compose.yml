@@ -14,6 +14,7 @@ include:
       - $HOME/.config/hive/mapped-ports.env
       - $HOME/.config/hive/vane-webui.env
 
+  - path: services/ollama/docker-compose.yml
   - path: services/service-monitor/docker-compose.yml
   - path: services/vane-webui-api/docker-compose.yml
 

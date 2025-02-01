@@ -16,7 +16,7 @@ services:
       - rabbitmq.env
     command:
       - --model
-      - HuggingFaceTB/SmolLM2-135M-Instruct
+      - HuggingFaceTB/SmolLM2-360M-Instruct
 
 volumes:
   local_llm:

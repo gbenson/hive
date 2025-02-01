@@ -55,6 +55,8 @@ class Service(HiveService):
         d(f"Memory footprint: {self.memory_footprint / 1e6:.2f} MB")
         # Qwen2.5-0.5B-Instruct: 988.07 MB
         # SmolLM2-135M-Instruct: 269.03 MB
+        # SmolLM2-360M-Instruct: 723.64 MB
+        # DeepSeek-R1-Distill-Qwen-1.5B: 3,554.18 MB
 
     def _announce(self, channel: Channel):
         model = self.model_name.rsplit("/", 1)[-1]

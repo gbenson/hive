@@ -5,6 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Local LLM for Hive"
 dependencies = [
     "accelerate>=0.26.0",
+    "hive-chat",
     "hive-common",
     "hive-messaging",
     "hive-service",

@@ -6,6 +6,7 @@ from typing import ClassVar, Optional
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from hive.chat import tell_user
 from hive.common import ArgumentParser
 from hive.messaging import Channel, Message
 from hive.service import HiveService
@@ -54,6 +55,11 @@ class Service(HiveService):
         d(f"Memory footprint: {self.memory_footprint / 1e6:.2f} MB")
         # Qwen2.5-0.5B-Instruct: 988.07 MB
         # SmolLM2-135M-Instruct: 269.03 MB
+
+    def _announce(self, channel: Channel):
+        model = self.model_name.rsplit("/", 1)[-1]
+        footprint = f"{self.memory_footprint / 1e6:.2f} MB"
+        tell_user(f"Using {model} (memory footprint {footprint})")
 
     def on_request(self, channel: Channel, message: Message):
         request = message.json()
@@ -131,4 +137,5 @@ class Service(HiveService):
                 queue=self.request_queue,
                 on_message_callback=self.on_request,
             )
+            self._announce(channel)
             channel.start_consuming()

@@ -5,6 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Ollama connector service for Hive"
 requires-python = ">=3.10"  # match..case
 dependencies = [
+    "hive-common",
     "hive-messaging",
     "hive-service",
     "requests",

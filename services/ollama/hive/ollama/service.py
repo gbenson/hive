@@ -9,6 +9,7 @@ from urllib.parse import urlparse, urljoin
 
 import requests
 
+from hive.common import ArgumentParser
 from hive.messaging import Channel, Message
 from hive.service import HiveService
 
@@ -18,8 +19,44 @@ d = logger.info
 
 @dataclass
 class Service(HiveService):
-    ollama_api_url: str = "http://ollama:11434"
-    request_queue: str = "ollama.api.requests"
+    DEFAULT_API_URL: ClassVar[str] = "http://ollama:11434"
+    ollama_api_url: Optional[str] = None
+
+    DEFAULT_QUEUE: ClassVar[str] = "ollama.api.requests"
+    request_queue: Optional[str] = None
+
+    def make_argument_parser(self) -> ArgumentParser:
+        parser = super().make_argument_parser()
+        parser.add_argument(
+            "--ollama-api-url",
+            metavar="URL",
+            default=self.DEFAULT_API_URL,
+            help=(f"URL to proxy requests to"
+                  f" [default: {self.DEFAULT_API_URL}]"),
+        )
+        parser.add_argument(
+            "--request-queue",
+            metavar="QUEUE",
+            default=self.DEFAULT_QUEUE,
+            help=(f"Queue to consume requests from"
+                  f" [default: {self.DEFAULT_QUEUE}]"),
+        )
+        parser.add_argument(
+            "--request-queue-prefix",
+            metavar="PREFIX",
+            help=("Prefix to prepend to request queue name"
+                  " [default: no prefix]"),
+        )
+        return parser
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not self.ollama_api_url:
+            self.ollama_api_url = self.args.ollama_api_url
+        if not self.request_queue:
+            self.request_queue = self.args.request_queue
+        if (prefix := self.args.request_queue_prefix):
+            self.request_queue = f"{prefix}{self.request_queue}"
 
     def run(self):
         with self.blocking_connection() as conn:

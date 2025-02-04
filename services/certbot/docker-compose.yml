@@ -18,6 +18,20 @@ services:
     profiles:
       - certbot
 
+  certbot-autorenew:
+    image: certbot/certbot
+    init: true
+    restart: unless-stopped
+    networks:
+      - certbot
+    volumes:
+      - hive_letsencrypt:/etc/letsencrypt
+      - certbot_webroot:/var/www/letsencrypt
+      - certbot_workdir:/var/lib/letsencrypt
+      - ./autorenew.py:/opt/hive/autorenew.py:ro
+    entrypoint: python
+    command: /opt/hive/autorenew.py
+
   nginx-http:
     image: nginx
     restart: unless-stopped

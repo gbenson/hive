@@ -1,6 +1,0 @@
-#!/bin/bash
-cd $(dirname $0)
-cd $(dirname $(pwd))
-cd $(dirname $(pwd))
-sleep $(awk 'BEGIN{srand(); print int(rand()*(3600+1))}')
-exec docker compose run --rm -it certbot renew -q

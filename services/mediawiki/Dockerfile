@@ -1,28 +1,26 @@
-FROM mediawiki:1.35.10
+FROM mediawiki:1.35.10-fpm
 
-ARG GITHUB_SERVER_URL=https://github.com
-ARG GITHUB_REPOSITORY=gbenson/hivesite
-ARG GITHUB_SHA=72daf16765d4dc5aedab0c51a95fbaf973f8191f
+ARG MOBILE_FRONTEND=extensions/MobileFrontend-REL1_35-1421405.tar.gz
+ARG SCRIBUNTO=extensions/Scribunto-REL1_35-d21b655.tar.gz
+ARG TEMPLATE_STYLES=extensions/TemplateStyles-REL1_35-7a40a6a.tar.gz
+ARG MINERVA_NEUE=skins/MinervaNeue-REL1_35-d82e32c.tar.gz
 
-ARG repo_url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
-ARG image_source_url=${repo_url}/blob/${GITHUB_SHA}/source
+RUN --mount=type=bind,source=${MOBILE_FRONTEND},target=/tmp/MobileFrontend.tar.gz \
+  set -eux \
+  && tar -C extensions -xzf /tmp/MobileFrontend.tar.gz \
+  && find -name '.git*' -print0 | xargs -0 rm -f
 
-RUN set -eux; \
-# Extensions
-  for i in \
-    MobileFrontend-REL1_35-1421405.tar.gz \
-    Scribunto-REL1_35-d21b655.tar.gz \
-    TemplateStyles-REL1_35-7a40a6a.tar.gz \
-  ;do \
-    curl -fSL ${image_source_url}/$i?raw=true \
-      | tar -C extensions -xz \
-  ;done; \
-# Skins
-  for i in \
-    MinervaNeue-REL1_35-d82e32c.tar.gz \
-  ;do \
-    curl -fSL ${image_source_url}/$i?raw=true \
-      | tar -C skins -xz \
-  ;done; \
-# Remove any .gitignore etc files that got dropped in
-  find -name '.git*' -print0 | xargs -0 rm -f
+RUN --mount=type=bind,source=${SCRIBUNTO},target=/tmp/Scribunto.tar.gz \
+  set -eux \
+  && tar -C extensions -xzf /tmp/Scribunto.tar.gz \
+  && find -name '.git*' -print0 | xargs -0 rm -f
+
+RUN --mount=type=bind,source=${TEMPLATE_STYLES},target=/tmp/TemplateStyles.tar.gz \
+  set -eux \
+  && tar -C extensions -xzf /tmp/TemplateStyles.tar.gz \
+  && find -name '.git*' -print0 | xargs -0 rm -f
+
+RUN --mount=type=bind,source=${MINERVA_NEUE},target=/tmp/MinervaNeue.tar.gz \
+  set -eux \
+  && tar -C extensions -xzf /tmp/MinervaNeue.tar.gz \
+  && find -name '.git*' -print0 | xargs -0 rm -f

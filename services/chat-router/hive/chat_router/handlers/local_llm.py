@@ -1,8 +1,11 @@
 import logging
 
+from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import cached_property
+from inspect import get_annotations, stack
 from threading import Thread
-from typing import Any
+from typing import Any, Callable, ClassVar, TypeVar
 from uuid import uuid4
 
 from hive.chat import ChatMessage, tell_user
@@ -26,7 +29,76 @@ class LLMHandler(Handler):
         return True
 
 
-class LLMInteraction(Thread):
+class LLMToolbox:
+    @property
+    def llm_tools(self) -> list[dict[str, Any]]:
+        locs = [(frame.filename, frame.lineno) for frame in stack()]
+        if locs[1] in locs[2:]:
+            return []  # recursion!
+        return list(self._llm_tools)
+
+    @property
+    def _llm_tools(self) -> Iterable[dict[str, Any]]:
+        for name in dir(self):
+            if name.startswith("_"):
+                continue
+            candidate = getattr(self, name)
+            if not getattr(candidate, "__llm_tool__", False):
+                continue
+            yield LLMTool(name, candidate).definition
+
+
+@dataclass
+class LLMTool:
+    name: str
+    func: Callable
+
+    @property
+    def definition(self) -> dict[str, Any]:
+        return {
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": self.parameters,
+            },
+        }
+
+    @property
+    def description(self) -> str:
+        return self.func.__doc__.partition(":param ")[0].strip()
+
+    @property
+    def parameters(self) -> dict[str, Any]:
+        params = dict(self._parameters)
+        return {
+            "type": "object",
+            "properties": params,
+            "required": list(params.keys()),
+        }
+
+    @property
+    def _parameters(self) -> Iterable[str, dict[str, Any]]:
+        for param_doc in self.func.__doc__.split(":param ")[1:]:
+            name, description = param_doc.split(":", 1)
+            _type = get_annotations(self.func)[name]
+            yield name, {
+                "type": self._TYPE_NAMES[_type],
+                "description": description.strip(),
+            }
+
+    _TYPE_NAMES: ClassVar[dict[TypeVar, str]] = {
+        int: "integer",
+        str: "string",
+    }
+
+
+def llm_tool(func):
+    func.__llm_tool__ = True
+    return func
+
+
+class LLMInteraction(LLMToolbox, Thread):
     def __init__(self, message: ChatMessage):
         self.chat_message = message
         if not self.user_prompt:
@@ -61,8 +133,9 @@ class LLMInteraction(Thread):
             "method": "POST",
             "request_uri": "/api/chat",
             "data": {
-                "model": "smollm2:135m",
+                "model": "qwen2.5:0.5b",
                 "messages": self.llm_context,
+                "tools": self.llm_tools,
             },
         }
 
@@ -131,3 +204,17 @@ class LLMInteraction(Thread):
             in_reply_to=self.chat_message,
             channel=channel,
         )
+
+    @llm_tool
+    def get_email_address_for_service(self, service: str):
+        """Get the email address for a service.
+
+        :param service: The service to get the email address for.
+        """
+
+    @llm_tool
+    def get_password_for_service(self, service: str):
+        """Get the password for a service.
+
+        :param service: The service to get the password for.
+        """

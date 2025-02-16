@@ -66,6 +66,10 @@ class LLMTool:
         int: "integer",
         str: "string",
     }
+    _TYPE_NAMES.update(
+        (key.__name__, value)
+        for key, value in list(_TYPE_NAMES.items())
+    )
 
 
 def llm_tool(func):

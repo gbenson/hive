@@ -31,3 +31,6 @@ omit = [
     "*/venv/*",
     "*/.venv/*",
 ]
+
+[tool.coverage.report]
+skip_covered = true

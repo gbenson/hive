@@ -40,3 +40,6 @@ omit = [
     "*/.venv/*",
     "*/hive/email/research/*",
 ]
+
+[tool.coverage.report]
+skip_covered = true

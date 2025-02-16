@@ -5,7 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Chat message router for Hive"
 dependencies = [
     "hive-chat",
-    "hive-common",
+    "hive-common[openai]",
     "hive-messaging",
     "hive-service",
 ]

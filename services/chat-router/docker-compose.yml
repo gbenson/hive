@@ -5,7 +5,12 @@ services:
     restart: unless-stopped
     networks:
       - message-bus
+      - chat-router
     volumes:
       - ./hive/chat_router:/venv/lib/python3.11/site-packages/hive/chat_router:ro
     secrets:
       - rabbitmq.env
+      - openai.env
+
+networks:
+  chat-router:

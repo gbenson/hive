@@ -55,6 +55,8 @@ secrets:
     file: $HOME/.config/hive/email.yml
   mediawiki.yml:
     file: $HOME/.config/hive/mediawiki.yml
+  openai.env:
+    file: $HOME/.config/hive/openai.env
 
 networks:
   default:

@@ -24,6 +24,7 @@ class Service(HiveService):
 
     def on_update_request(self, channel: Channel, message: Message):
         email_summary = message.json()
+        d("Update request: %r", email_summary)
         entry = ReadingListEntry.from_email_summary(email_summary)
         wikitext = entry.as_wikitext()
         self.wiki.page("Reading list").append(f"* {wikitext}")

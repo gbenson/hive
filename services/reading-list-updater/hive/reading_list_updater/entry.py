@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
+from .url_rewriters import maybe_rewrite_url
 from .wikitext import format_reading_list_entry
 
 
@@ -18,6 +19,7 @@ class ReadingListEntry:
             self.title = None
         if not self.notes:
             self.notes = None
+        self.url = maybe_rewrite_url(self.url)
 
     @classmethod
     def from_email_summary(cls, email: dict[str, str]) -> ReadingListEntry:

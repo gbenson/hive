@@ -24,7 +24,6 @@ def format_reading_list_entry(
 
 REWRITES = (
     (r"^https?://en\.(m\.)?wikipedia\.org/wiki/", "wikipedia:"),
-    (r"^https?://youtu\.be/", "https://www.youtube.com/watch?v="),
     (r"\?igshid=[a-z0-9+/]*={0,2}", ""),
 )
 

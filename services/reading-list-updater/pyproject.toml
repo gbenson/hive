@@ -11,7 +11,6 @@ dependencies = [
 ]
 
 [project.scripts]
-shl-ng = "hive.reading_list_updater.share_link:main"
 hive-reading-list-updater = "hive.reading_list_updater:main"
 
 [build-system]

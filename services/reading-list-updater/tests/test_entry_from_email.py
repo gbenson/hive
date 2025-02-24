@@ -10,7 +10,7 @@ from hive.reading_list_updater.entry import ReadingListEntry
 
 
 @pytest.mark.parametrize(
-    ("testcase", "expect_link", "expect_timestamp"),
+    ("testcase", "expect_url", "expect_timestamp"),
     (("shl-url-only",
       "https://platform.openai.com/docs/guides/function-calling",
       datetime(2024, 9, 27, 15, 0, 17)),
@@ -19,17 +19,17 @@ from hive.reading_list_updater.entry import ReadingListEntry
       "llm_prompt_format_comparisontest_mixtral_8x7b/?rdt=49183",
       datetime(2024, 9, 27, 10, 10, 8)),
      ))
-def test_link_only(testcase, expect_link, expect_timestamp):
+def test_link_only(testcase, expect_url, expect_timestamp):
     entry = ReadingListEntry.from_email_summary(
         read_email_summary_resource(testcase))
-    assert entry.link == expect_link
+    assert entry.url == expect_url
     assert entry.title is None
     assert entry.notes is None
     assert entry.timestamp == format_datetime(expect_timestamp)
 
 
 @pytest.mark.parametrize(
-    ("testcase", "expect_link", "expect_title", "expect_notes",
+    ("testcase", "expect_url", "expect_title", "expect_notes",
      "expect_timestamp"),
     (("k9-url+subject+long-excerpt",
       "https://docs.python.org/3/library/asyncio-task.html#creating-tasks",
@@ -50,14 +50,14 @@ def test_link_only(testcase, expect_link, expect_timestamp):
      ))
 def test_full_monty(
         testcase,
-        expect_link,
+        expect_url,
         expect_title,
         expect_notes,
         expect_timestamp,
 ):
     entry = ReadingListEntry.from_email_summary(
         read_email_summary_resource(testcase))
-    assert entry.link == expect_link
+    assert entry.url == expect_url
     assert entry.title == expect_title
     assert entry.notes == expect_notes
     assert entry.timestamp == format_datetime(expect_timestamp)

@@ -6,13 +6,13 @@ from urllib.parse import unquote
 
 def format_reading_list_entry(
         timestamp: str,
-        link: str,
+        url: str,
         title: Optional[str] = None,
         notes: Optional[str] = None,
 ) -> str:
     """Generate wikitext for a reading list entry.
     """
-    entry = _format_reading_list_entry(link, title)
+    entry = _format_reading_list_entry(url, title)
     entry = f"{{{{at|{timestamp}}}}} {entry}"
     if notes:
         entry = f"{entry} {notes}"

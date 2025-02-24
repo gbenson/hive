@@ -8,7 +8,7 @@ from .wikitext import format_reading_list_entry
 
 @dataclass
 class ReadingListEntry:
-    link: str
+    url: str
     title: Optional[str] = None
     notes: Optional[str] = None
     timestamp: str = field(default_factory=NotImplemented)
@@ -35,8 +35,8 @@ class ReadingListEntry:
         body_parts = body.split(maxsplit=1)
         if len(body_parts) == 1:
             body_parts.append(None)
-        link, notes = body_parts
-        if not link:
+        url, notes = body_parts
+        if not url:
             raise ValueError
 
         if (title := email.get("subject")):
@@ -46,12 +46,12 @@ class ReadingListEntry:
         if (date := email.get("date")):
             kwargs["timestamp"] = date
 
-        return cls(link, title, notes, **kwargs)
+        return cls(url, title, notes, **kwargs)
 
     def as_wikitext(self):
         return format_reading_list_entry(
             timestamp=self.timestamp,
-            link=self.link,
+            url=self.url,
             title=self.title,
             notes=self.notes,
         )

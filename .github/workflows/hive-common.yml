@@ -45,7 +45,7 @@ jobs:
       - name: Install packages
         run: >-
           python3 -m
-          pip install --user dist/*.whl
+          pip install --user $(echo dist/*.whl)[httpx,brotli]
 
       - name: Test packages
         run: pytest

@@ -16,6 +16,13 @@ Homepage = "https://github.com/gbenson/hive/tree/main/libs/common"
 Source = "https://github.com/gbenson/hive"
 
 [project.optional-dependencies]
+brotli = [
+    "httpx[brotli]",
+]
+httpx = [
+    "hishel",
+    "httpx[http2]",
+]
 openai = [
     "openai",
 ]

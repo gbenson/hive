@@ -7,6 +7,7 @@ from hive.mediawiki import HiveWiki
 from hive.messaging import Channel, Message
 from hive.service import HiveService
 
+from .decoration import maybe_decorate_entry
 from .entry import ReadingListEntry
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ class Service(HiveService):
         email_summary = message.json()
         d("Update request: %r", email_summary)
         entry = ReadingListEntry.from_email_summary(email_summary)
+        maybe_decorate_entry(entry)
         wikitext = entry.as_wikitext()
         self.wiki.page("Reading list").append(f"* {wikitext}")
         try:

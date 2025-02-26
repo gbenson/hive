@@ -3,19 +3,11 @@ import logging
 from typing import Optional
 
 from .entry import ReadingListEntry
-from .opengraph import opengraph_properties
 
 logger = logging.getLogger(__name__)
 
 
-def maybe_decorate_entry(entry: ReadingListEntry) -> None:
-    try:
-        _maybe_decorate_entry(entry, opengraph_properties(entry.url))
-    except Exception:
-        logger.warning("EXCEPTION", exc_info=True)
-
-
-def _maybe_decorate_entry(entry: ReadingListEntry, og: dict[str, str]) -> None:
+def maybe_decorate_entry(entry: ReadingListEntry, og: dict[str, str]) -> None:
     if (url := og.get("url")) and url != entry.url:
         logger.warning("og:url %r != shared link URL %r", url, entry.url)
     if (title := og.get("title")):

@@ -1,7 +1,12 @@
 import pytest
 
-from hive.reading_list_updater.decoration import maybe_decorate_entry
 from hive.reading_list_updater.entry import ReadingListEntry
+from hive.reading_list_updater.service import Service
+
+
+class MockChannel:
+    def maybe_publish_event(self, **kwargs):
+        pass
 
 
 @pytest.mark.parametrize("update_request", ({
@@ -21,7 +26,7 @@ from hive.reading_list_updater.entry import ReadingListEntry
 def test_youtube_decorator(update_request):
     entry = ReadingListEntry.from_email_summary(update_request)
     original_title = entry.title
-    maybe_decorate_entry(entry)
+    Service().maybe_decorate_entry(MockChannel(), entry)
 
     assert entry.url == "https://www.youtube.com/watch?v=OBkMbPpLCqw"
 

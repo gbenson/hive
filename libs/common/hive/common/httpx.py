@@ -4,10 +4,10 @@ from collections.abc import Iterator
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryFile
-from typing import Optional
+from typing import Any, Optional
 
 from hishel import CacheClient, FileStorage
-from httpx import Client, URL  # noqa: F401
+from httpx import Client, Request, Response, URL  # noqa: F401
 
 from .config import read as read_config
 from .__version__ import __version__
@@ -85,3 +85,14 @@ globals().update(
             "stream",
     )
 )
+
+
+def response_as_json(r: Response) -> dict[str, Any]:
+    return {
+        "url": str(r.url),
+        "http_version": r.http_version,
+        "status_code": r.status_code,
+        "reason_phrase": r.reason_phrase,
+        "headers": r.headers.multi_items(),
+        "body": r.text,
+    }

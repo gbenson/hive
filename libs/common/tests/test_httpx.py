@@ -26,7 +26,7 @@ class TestServerRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(response)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def test_server():
     server = HTTPServer(("127.0.0.1", 0), TestServerRequestHandler)
     with serving(server):
@@ -44,3 +44,31 @@ def test_get(test_server):
     user_agent = req["headers"]["user-agent"]
     assert user_agent.startswith("HiveBot/0.0.")
     assert " (bot; +https://" in user_agent
+
+
+def test_response_as_json(test_server):
+    r = httpx.get(test_server.base_url)
+    r.raise_for_status()
+    res = httpx.response_as_json(r)
+    assert res.keys() == {
+        "body",
+        "headers",
+        "http_version",
+        "reason_phrase",
+        "status_code",
+        "url",
+    }
+    assert res["url"] == test_server.base_url
+    assert res["http_version"].startswith("HTTP/1.")
+    assert res["status_code"] == 200
+    assert res["reason_phrase"] == "OK"
+    assert json.loads(res["body"]) == r.json()
+    headers = dict(res["headers"])
+    assert headers.keys() == {
+        "content-length",
+        "content-type",
+        "date",
+        "server",
+    }
+    assert headers["content-type"] == "application/json"
+    assert headers["content-length"] == str(len(r.content))

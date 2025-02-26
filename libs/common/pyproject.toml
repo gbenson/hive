@@ -26,6 +26,9 @@ httpx = [
 openai = [
     "openai",
 ]
+zstd = [
+    "httpx[zstd]",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

@@ -9,6 +9,35 @@ class MockChannel:
         pass
 
 
+@pytest.mark.parametrize("update_request,expect_json,expect_wikitext", (({
+    # Shared via shl
+    "date": "Tue, 25 Feb 2025 19:43:50 +0000",
+    "from": NotImplemented,
+    "body": "https://en.wikipedia.org/wiki/Roguelike",
+}, {
+    "timestamp": "Tue, 25 Feb 2025 19:43:50 +0000",
+    "url": "https://en.wikipedia.org/wiki/Roguelike",
+    "title": "Roguelike - Wikipedia",
+}, (
+    "{{at|Tue, 25 Feb 2025 19:43:50 +0000}} "
+    "[[wikipedia:Roguelike]]"
+)),))
+def test_wikipedia_decoration(update_request, expect_json, expect_wikitext):
+    entry = ReadingListEntry.from_email_summary(update_request)
+    Service().maybe_decorate_entry(MockChannel(), entry)
+
+    assert entry.url == "https://en.wikipedia.org/wiki/Roguelike"
+
+    if not entry.title:
+        pytest.skip("No internet?")
+
+    # The decorator added a (pointless) title.
+    assert entry.json() == expect_json
+
+    # The pointless title didn't end up in the wikitext.
+    assert entry.as_wikitext() == expect_wikitext
+
+
 @pytest.mark.parametrize("update_request", ({
     # Shared via Element
     "meta": NotImplemented,
@@ -23,7 +52,7 @@ class MockChannel:
     "message_id": NotImplemented,
     "body": "<https://youtu.be/OBkMbPpLCqw?si=LDz6PQVjCyE_ARAB>",
 }))
-def test_youtube_decorator(update_request):
+def test_youtube_decoration(update_request):
     entry = ReadingListEntry.from_email_summary(update_request)
     original_title = entry.title
     Service().maybe_decorate_entry(MockChannel(), entry)

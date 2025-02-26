@@ -40,8 +40,9 @@ def _format_reading_list_entry(
 
     if entry.startswith("wikipedia:"):
         entry = unquote(entry).replace("_", " ")
+        title = entry.removeprefix("wikipedia:")
         entry = "[[%s]]" % entry
-        if subject:
+        if subject and subject != f"{title} - Wikipedia":
             entry = "%s ''<q>%s</q>''" % (entry, subject)
 
     elif subject:

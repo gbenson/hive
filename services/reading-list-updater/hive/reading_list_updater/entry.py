@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import asdict, dataclass, field
+from typing import Any, Optional
 
 from .url_rewriters import maybe_rewrite_url
 from .wikitext import format_reading_list_entry
@@ -56,4 +56,11 @@ class ReadingListEntry:
             url=self.url,
             title=self.title,
             notes=self.notes,
+        )
+
+    def json(self) -> dict[str, Any]:
+        return dict(
+            (key, value)
+            for key, value in asdict(self).items()
+            if value
         )

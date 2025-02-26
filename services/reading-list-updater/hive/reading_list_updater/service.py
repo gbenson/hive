@@ -30,6 +30,11 @@ class Service(HiveService):
         maybe_decorate_entry(entry)
         wikitext = entry.as_wikitext()
         self.wiki.page("Reading list").append(f"* {wikitext}")
+
+        meta = email_summary.get("meta", {})
+        if not meta:
+            email_summary["meta"] = meta
+        meta["reading_list_entry"] = entry.json()
         try:
             channel.publish_event(
                 message=email_summary,

@@ -4,12 +4,11 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Reading list updater for Hive"
 dependencies = [
-    "hishel",
-    "hive-common",
+    "beautifulsoup4",
+    "hive-common[httpx,brotli]>=0.0.14",
     "hive-mediawiki",
     "hive-messaging",
     "hive-service",
-    "httpx[http2,brotli,zstd]",
     "lxml",
 ]
 

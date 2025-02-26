@@ -1,47 +1,28 @@
 import logging
 
-from pathlib import Path
 from typing import Optional
 
-from bs4 import BeautifulSoup
-from hishel import CacheClient
-
 from .entry import ReadingListEntry
+from .opengraph import opengraph_properties
 
 logger = logging.getLogger(__name__)
 
 
 def maybe_decorate_entry(entry: ReadingListEntry) -> None:
-    client = CacheClient(http2=True)
-
-    cf = Path(__file__)
-    ua = ["https://github.com/gbenson/hive/blob/main", cf.name]
-    for pp in cf.parents[:5]:
-        ua.insert(1, pp.name)
-    client.headers["user-agent"] = f"HiveBot (bot; +{'/'.join(ua)})"
-
     try:
-        response = client.get(entry.url)
-        soup = BeautifulSoup(response.text, "lxml")
-        _maybe_decorate_entry(entry, soup)
-
+        _maybe_decorate_entry(entry, opengraph_properties(entry.url))
     except Exception:
         logger.warning("EXCEPTION", exc_info=True)
-        raise
 
 
-def _maybe_decorate_entry(
-        entry: ReadingListEntry,
-        soup: BeautifulSoup,
-) -> None:
-    for tag in soup.find_all("meta"):
-        match tag.get("property"):
-            case "og:url":
-                if (og_url := tag.get("content")) != entry.url:
-                    logger.warning("og:url %r != %r", og_url, entry.url)
-            case "og:title":
-                _maybe_update_title(entry, tag.get("content"))
-                return
+def _maybe_decorate_entry(entry: ReadingListEntry, og: dict[str, str]) -> None:
+    if (url := og.get("url")) and url != entry.url:
+        logger.warning("og:url %r != shared link URL %r", url, entry.url)
+    if (title := og.get("title")):
+        _maybe_update_title(entry, title)
+    if entry.title and (site_name := og.get("site_name")):
+        if site_name not in entry.title:
+            entry.title = f"{entry.title} | {site_name}"
 
 
 def _maybe_update_title(entry: ReadingListEntry, title: Optional[str]) -> None:

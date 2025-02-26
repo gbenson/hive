@@ -28,7 +28,14 @@ def test_youtube_decorator(update_request):
     if entry.title == original_title:
         pytest.skip("No internet?")
 
-    assert entry.title == (
+    expect_title = (
         "How to Make Small Language Models Work."
-        " Yejin Choi Presents at Data + AI Summit 2024"
+        " Yejin Choi Presents at Data + AI Summit 2024 | YouTube"
     )
+    assert entry.title == expect_title
+
+    assert entry.json() == {
+        "timestamp": "Fri, 21 Feb 2025 09:52:29 +0000",
+        "url": "https://www.youtube.com/watch?v=OBkMbPpLCqw",
+        "title": expect_title,
+    }

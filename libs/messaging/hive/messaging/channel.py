@@ -123,6 +123,13 @@ class Channel(WrappedPikaThing):
             )
         return self._publish_fanout(**kwargs)
 
+    def maybe_publish_event(self, **kwargs):
+        semantics.publish_may_drop(kwargs)
+        try:
+            self.publish_event(**kwargs)
+        except Exception:
+            logger.warning("EXCEPTION", exc_info=True)
+
     def consume_events(
             self,
             queue: str,

@@ -99,8 +99,7 @@ class Receiver(ConnectorService):
         self._channel.publish_event(
             message=serialized_event,
             content_type="application/json",
-            routing_key="matrix.events.received",
-            mandatory=True,
+            routing_key="matrix.events",
         )
 
         try:

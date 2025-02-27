@@ -30,8 +30,7 @@ def test_basic(mock_receiver, mock_channel, mock_valkey):
         ("publish_event", (), {
             "message": event,
             "content_type": "application/json",
-            "routing_key": "matrix.events.received",
-            "mandatory": True,
+            "routing_key": "matrix.events",
         }),
         ("publish_event", (), {
             "message": {
@@ -72,8 +71,7 @@ def test_html(mock_receiver, mock_channel, mock_valkey):
         ("publish_event", (), {
             "message": event,
             "content_type": "application/json",
-            "routing_key": "matrix.events.received",
-            "mandatory": True,
+            "routing_key": "matrix.events",
         }),
         ("publish_event", (), {
             "message": {
@@ -115,8 +113,7 @@ def test_image(mock_receiver, mock_channel, mock_valkey):
         ("publish_event", (), {
             "message": event,
             "content_type": "application/json",
-            "routing_key": "matrix.events.received",
-            "mandatory": True,
+            "routing_key": "matrix.events",
         }),
         ("publish_event", (), {
             "message": {
@@ -156,8 +153,7 @@ def test_redaction(mock_receiver, mock_channel, mock_valkey):
         ("publish_event", (), {
             "message": event,
             "content_type": "application/json",
-            "routing_key": "matrix.events.received",
-            "mandatory": True,
+            "routing_key": "matrix.events",
         }),
     ]
     assert mock_valkey.call_log == []

@@ -16,7 +16,6 @@ dependencies = [
 
 [project.scripts]
 hive-email-receiver = "hive.email_receiver:main"
-ultradump = "hive.email_receiver.ultradump:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

@@ -1,0 +1,19 @@
+services:
+  event-vault:
+    image: gbenson/hive-event-vault
+    init: true
+    restart: unless-stopped
+    networks:
+      - message-bus
+    volumes:
+      - event_vault:/data
+    secrets:
+      - rabbitmq.env
+    command:
+      - inbox.emails
+      - matrix.events
+      - readinglist.shares
+      - readinglist.updates
+
+volumes:
+  event_vault:

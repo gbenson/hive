@@ -5,6 +5,7 @@ include:
 
   - path: services/chat-router/docker-compose.yml
   - path: services/email-receiver/docker-compose.yml
+  - path: services/event-vault/docker-compose.yml
   - path: services/matrix-connector/docker-compose.yml
 
   - path: services/nginx-ingress/docker-compose.yml

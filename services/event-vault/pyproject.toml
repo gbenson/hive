@@ -1,0 +1,29 @@
+[project]
+name = "hive-event-vault"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Event vault for Hive"
+dependencies = [
+    "hive-common",
+    "hive-messaging",
+    "hive-service",
+]
+
+[project.scripts]
+hive-event-vault = "hive.event_vault:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.event_vault.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.event_vault"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

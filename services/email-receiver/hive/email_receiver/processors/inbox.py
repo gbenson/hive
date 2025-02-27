@@ -17,7 +17,7 @@ d = logger.debug
 
 @dataclass
 class InboxProcessor(Processor):
-    queue_name: str = "inbox.emails.received"
+    queue_name: str = "inbox.emails"
     valkey_url: str = "valkey://email-receiver-valkey"
     valkey_key: str = "message_ids"
 
@@ -54,7 +54,6 @@ class InboxProcessor(Processor):
                             message=message_bytes,
                             content_type="message/rfc822",
                             routing_key=self.queue_name,
-                            mandatory=True,
                         )
                         d("Message %s queued", message_id)
 

@@ -49,6 +49,28 @@ RUN set -eux \
   && rm -f /run/adduser \
   && install -d -oroot -ghivemail -m710 /run/secrets
 
+FROM install AS test
+RUN set -eux \
+  \
+  && install -d -ohivemail -ghivemail /src \
+  && /venv/bin/pip install \
+       pep440-version-utils \
+       pytest-cov
+COPY tests /src/tests
+
+USER hivemail:hivemail
+WORKDIR /src
+
+RUN set -eux \
+  \
+  && . /venv/bin/activate \
+  && pytest --cov hive.email_receiver \
+  && coverage report > coverage.report
+
+FROM install AS dist
+RUN --mount=type=bind,from=test,target=/test \
+  grep -q '[^ ][^0]%$' /test/src/coverage.report
+
 USER hivemail:hivemail
 WORKDIR /var/lib/hivemail
 

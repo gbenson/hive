@@ -50,6 +50,7 @@ class Service(HiveService):
 
     EXTENSIONS: ClassVar[dict[str, str]] = {
         "application/json": ".json",
+        "message/rfc822": ".eml",
     }
 
     def on_message(self, queue: str, channel: Channel, message: Message):

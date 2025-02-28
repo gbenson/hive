@@ -14,7 +14,7 @@ from hive.messaging import Channel, Message
 from .connector import ConnectorService
 
 logger = logging.getLogger(__name__)
-d = logger.debug
+d = logger.info  # logger.debug
 
 MessageFormat = Enum("MessageFormat", "TEXT HTML MARKDOWN CODE EMOJIZE")
 
@@ -39,12 +39,23 @@ class Sender(ConnectorService):
 
     def on_chat_message(self, channel: Channel, message: Message):
         message = ChatMessage.from_json(message.json())
+        d("%s: Received", message.uuid)
+        try:
+            self._on_chat_message(channel, message)
+        finally:
+            d("%s: Processing complete", message.uuid)
+
+    def _on_chat_message(self, channel: Channel, message: ChatMessage):
         if not self._should_forward(message):
+            d("%s: Nothing to do", message.uuid)
             return
-        if message.html:
-            self.send_messages(message.html, "html")
+
+        kwargs = {"message_uuid": message.uuid}
+        if (messages := message.html):
+            kwargs["_format"] = MessageFormat.HTML
         else:
-            self.send_messages(message.text)
+            messages = message.text
+        self.send_messages(messages, **kwargs)
 
     def send_messages(
             self,
@@ -53,6 +64,7 @@ class Sender(ConnectorService):
             max_retries: int = 4,
             initial_timeout: float = 30 * SECONDS,
             max_timeout: float = 5 * MINUTES,
+            message_uuid: str = "[no-uuid]",
     ):
         if not messages:
             logger.warning("Nothing to send")
@@ -63,10 +75,10 @@ class Sender(ConnectorService):
             command.append(f"--{_format.name.lower()}")
         command.append("--message")
         command.extend(messages)
-        d("Executing: %s", command)
 
         timeout = initial_timeout
         while True:
+            d("%s: Executing: %s", message_uuid, command)
             try:
                 subprocess.run(
                     command,
@@ -95,10 +107,15 @@ class Sender(ConnectorService):
         if origin.get("channel") != "chat":
             return
         message = ChatMessage.from_json(origin["message"])
+        d("%s: Received", message.uuid)
         event = message.matrix
         if not event:
+            d("%s: Nothing to do", message.uuid)
             return
-        self.send_reaction("👍", event.event_id)
+        try:
+            self.send_reaction("👍", event.event_id, message_uuid=message.uuid)
+        finally:
+            d("%s: Processing complete", message.uuid)
 
     def send_reaction(
             self,
@@ -107,6 +124,7 @@ class Sender(ConnectorService):
             max_retries: int = 4,
             initial_timeout: float = 30 * SECONDS,
             max_timeout: float = 5 * MINUTES,
+            message_uuid: str = "[no-uuid]",
     ):
         event = json.dumps({
             "type": "m.reaction",
@@ -120,10 +138,10 @@ class Sender(ConnectorService):
         }).encode("utf-8")
 
         command = [self.command, "--event", "-"]
-        d("Executing: %s", command)
 
         timeout = initial_timeout
         while True:
+            d("%s: Executing: %s", message_uuid, command)
             try:
                 subprocess.run(
                     command,

@@ -19,6 +19,8 @@ services:
       - ollama
     volumes:
       - ollama_models:/ollama/models
+      - ollama_workspace:/root
+      - $HOME/.ollama:/root/.ollama
     environment:
       - OLLAMA_HOST=0.0.0.0
       - OLLAMA_KEEP_ALIVE=24h
@@ -29,3 +31,4 @@ networks:
 
 volumes:
   ollama_models:
+  ollama_workspace:

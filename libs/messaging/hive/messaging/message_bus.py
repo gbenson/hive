@@ -13,7 +13,8 @@ from pika.exceptions import AMQPConnectionError
 from hive.common import read_config
 
 from .channel import Channel
-from .connection import Connection, PublisherConnection
+from .connection import Connection
+from .publisher import PublisherConnection
 
 
 @dataclass

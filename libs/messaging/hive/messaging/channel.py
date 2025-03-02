@@ -4,9 +4,7 @@ import os
 import sys
 
 from functools import cache, cached_property
-from traceback import format_exc
 from typing import Callable, Optional
-from uuid import uuid4
 
 from pika import BasicProperties, DeliveryMode
 
@@ -44,67 +42,6 @@ class Channel(WrappedPikaThing):
             self.requests_exchange,
             **kwargs
         )
-
-    # RPC REQUESTS wrap standard requests, and mostly share the same
-    # semantics.
-
-    def publish_rpc_request(
-            self,
-            request: bytes | dict,
-            *,
-            routing_key: str,
-            correlation_id: Optional[str] = None,
-            reply_to: Optional[str] = None,
-            **kwargs
-    ) -> str:
-        if not reply_to:
-            reply_to = self.rpc_responses_queue_for(routing_key)
-        if not correlation_id:
-            correlation_id = str(uuid4())
-        self.publish_request(
-            message=request,
-            routing_key=routing_key,
-            correlation_id=correlation_id,
-            reply_to=reply_to,
-            **kwargs
-        )
-        return correlation_id
-
-    def consume_rpc_requests(
-            self,
-            *,
-            on_message_callback: Callable,
-            **kwargs
-    ):
-        def _wrapped_callback(channel: Channel, request: Message):
-            response_routing_key = request.reply_to
-            correlation_id = request.correlation_id
-
-            try:
-                response = on_message_callback(channel, request)
-            except Exception:
-                response = {"error": format_exc()}
-
-            return self._publish_direct(
-                message=response,
-                routing_key=response_routing_key,
-                exchange="",
-                correlation_id=correlation_id,
-            )
-
-        return self.consume_requests(
-            on_message_callback=_wrapped_callback,
-            **kwargs
-        )
-
-    def consume_rpc_responses_for(self, requests_queue: str, **kwargs):
-        return self.consume_rpc_responses(
-            queue=self.rpc_responses_queue_for(requests_queue),
-            **kwargs
-        )
-
-    def consume_rpc_responses(self, **kwargs):
-        return self._basic_consume(**kwargs)
 
     # EVENTS are things that have happened:
     #   - Transient events fan-out to zero-many consuming services
@@ -232,13 +169,6 @@ class Channel(WrappedPikaThing):
 
     # Queues
 
-    def rpc_responses_queue_for(self, request_queue: str) -> str:
-        stem = request_queue.removesuffix(".requests")
-        return self.queue_declare(
-            f"{self.consumer_name}.{stem}.responses",
-            exclusive=True,
-        ).method.queue
-
     def queue_declare(
             self,
             queue: str,
@@ -299,10 +229,8 @@ class Channel(WrappedPikaThing):
             exchange: str = "",
             routing_key: str = "",
             content_type: Optional[str] = None,
-            correlation_id: Optional[str] = None,
             delivery_mode: DeliveryMode = DeliveryMode.Persistent,
             mandatory: bool = True,
-            reply_to: Optional[str] = None,
     ):
         payload, content_type = self._encapsulate(message, content_type)
         return self.basic_publish(
@@ -311,9 +239,7 @@ class Channel(WrappedPikaThing):
             body=payload,
             properties=BasicProperties(
                 content_type=content_type,
-                correlation_id=correlation_id,
                 delivery_mode=delivery_mode,  # Persist across broker restarts.
-                reply_to=reply_to,
             ),
             mandatory=mandatory,  # Don't fail silently.
         )

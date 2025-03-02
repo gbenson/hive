@@ -109,39 +109,19 @@ class Channel(WrappedPikaThing):
         return self._basic_consume(**kwargs)
 
     # EVENTS are things that have happened:
-    # - DIRECT EVENTS have the same semantics as requests
-    #
-    # - FANOUT EVENTS are different:
     #   - Transient events fan-out to zero-many consuming services
     #   - Publish drops messages with no consumers
 
-    def publish_event(self, *, mandatory: bool = False, **kwargs):
-        if mandatory:
-            return self._publish_direct(
-                self.direct_events_exchange,
-                **kwargs
-            )
+    def publish_event(self, **kwargs):
         return self._publish_fanout(**kwargs)
 
     def maybe_publish_event(self, **kwargs):
-        semantics.publish_may_drop(kwargs)
         try:
             self.publish_event(**kwargs)
         except Exception:
             logger.warning("EXCEPTION", exc_info=True)
 
-    def consume_events(
-            self,
-            queue: str,
-            mandatory: bool = False,
-            **kwargs
-    ):
-        if mandatory:
-            return self._consume_direct(
-                self.direct_events_exchange,
-                queue=queue,
-                **kwargs
-            )
+    def consume_events(self, queue: str, **kwargs):
         return self._consume_fanout(queue, **kwargs)
 
     # Lower level handlers for REQUESTS and EVENTS
@@ -228,14 +208,6 @@ class Channel(WrappedPikaThing):
         return self._hive_exchange(
             exchange=routing_key,
             exchange_type="fanout",
-            durable=True,
-        )
-
-    @cached_property
-    def direct_events_exchange(self) -> str:
-        return self._hive_exchange(
-            exchange="events",
-            exchange_type="direct",
             durable=True,
         )
 

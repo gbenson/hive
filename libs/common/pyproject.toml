@@ -32,6 +32,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.dynamic]
 version = {attr = "hive.common.__version__.__version__"}
 
+[tool.mypy]
+warn_unused_configs = true
+strict = true
+
 [tool.pytest.ini_options]
 addopts = "--cov=hive.common"
 log_level="debug"

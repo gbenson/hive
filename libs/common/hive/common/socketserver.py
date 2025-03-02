@@ -1,5 +1,6 @@
 import logging
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import timedelta
 from socketserver import BaseServer
@@ -16,7 +17,7 @@ def serving(
         *,
         shutdown_timeout: timedelta = 30 * SECOND,
         daemon: bool = True,
-) -> Thread:
+) -> Iterator[Thread]:
     """Run a :class:`socketserver.BaseServer` in another thread.
     """
     thread = Thread(target=server.serve_forever, daemon=daemon)

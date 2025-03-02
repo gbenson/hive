@@ -1,9 +1,14 @@
 import os
 
-from typing import Optional
+from typing import Optional, TypeAlias
+
+LogLevel: TypeAlias = int | str
 
 
-def getenv_log_level(default=None) -> Optional[int | str]:
+def getenv_log_level(default: Optional[LogLevel] = None) -> Optional[LogLevel]:
+    if default is not None:
+        default = str(default)
+
     level = os.environ.get("LL", default)
     if not level:
         return None

@@ -3,6 +3,7 @@ import os
 import yaml
 
 from collections.abc import Iterable
+from typing import Any
 
 from .xdg import user_config_dir
 
@@ -32,14 +33,17 @@ class Reader:
                     return filename
         raise KeyError(key)
 
-    def read(self, key: str, type: str = "yaml"):
+    def read(self, key: str, type: str = "yaml") -> dict[str, Any]:
         filename = self.get_filename_for(key)
         ext = os.path.splitext(filename)[1].lstrip(".")
         if ext in {"env", "json"}:
             type = ext
-        return getattr(self, f"_read_{type}")(filename)
+        result = getattr(self, f"_read_{type}")(filename)
+        if not isinstance(result, dict):
+            raise TypeError(__builtins__.type(result))
+        return result
 
-    def _read_env(self, filename):
+    def _read_env(self, filename: str) -> dict[str, Any]:
         with open(filename) as fp:
             lines = fp.readlines()
         lines = [line.split("#", 1)[0].strip() for line in lines]
@@ -55,11 +59,11 @@ class Reader:
         extras.update(result)
         return extras
 
-    def _read_json(self, filename):
+    def _read_json(self, filename: str) -> Any:
         with open(filename) as fp:
             return json.load(fp)
 
-    def _read_yaml(self, filename):
+    def _read_yaml(self, filename: str) -> Any:
         with open(filename) as fp:
             return yaml.safe_load(fp)
 

@@ -1,6 +1,7 @@
 import logging
 
 from argparse import ArgumentParser
+from typing import Any
 
 from .logging import getenv_log_level
 
@@ -11,7 +12,7 @@ class HiveArgumentParser(ArgumentParser):
     DEFAULT_EPILOG = "Run with LL=debug for so much extra logging."
     DEFAULT_LOGLEVEL = logging.INFO
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
 
         if not self.epilog:

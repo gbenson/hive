@@ -46,6 +46,8 @@ def _default_user_agent(name: str = "HiveBot") -> str:
         template = read_config(config_key)[config_key]["user_agent"]
     except KeyError:
         template = f"{name}/{{version}} (bot; +{__url__})"
+    if not isinstance(template, str):
+        raise TypeError(type(template))
     return template.format(version=__version__)
 
 

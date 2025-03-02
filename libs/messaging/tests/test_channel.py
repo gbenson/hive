@@ -169,7 +169,7 @@ def test_publish():
     })]
 
 
-def test_consume_events(monkeypatch):
+def test_consume(monkeypatch):
     monkeypatch.delenv("HIVE_EXCLUSIVE_QUEUE_PREFIX", raising=False)
 
     mock = MockPika()
@@ -185,7 +185,7 @@ def test_consume_events(monkeypatch):
     mock.basic_ack = MockMethod()
 
     channel = Channel(pika=mock)
-    channel.consume_events(
+    channel.consume(
         queue="arr.pirates",
         on_message_callback=on_message_callback,
     )
@@ -194,25 +194,40 @@ def test_consume_events(monkeypatch):
         "exchange": "hive.arr.pirates",
         "exchange_type": "fanout",
         "durable": True,
+    }), ((), {
+        "exchange": "hive.dead.letter",
+        "exchange_type": "direct",
+        "durable": True,
     })]
     assert mock.basic_qos.call_log == [((), {
         "prefetch_count": 1,
     })]
     assert mock.queue_declare.call_log == [((
+        "x.pytest.arr.pirates",
+    ), {
+        "durable": True,
+    }), ((
         "pytest.arr.pirates",
     ), {
-        "exclusive": True,
+        "durable": True,
+        "arguments": {
+            "x-dead-letter-exchange": "hive.dead.letter",
+        },
     })]
     assert mock.queue_bind.call_log == [((), {
-        "queue": "TeStQuEu3",
+        "queue": "x.pytest.arr.pirates",
+        "exchange": "hive.dead.letter",
+        "routing_key": "pytest.arr.pirates",
+    }), ((), {
         "exchange": "hive.arr.pirates",
+        "queue": "pytest.arr.pirates",
     })]
 
     assert len(mock.basic_consume.call_log) == 1
     assert len(mock.basic_consume.call_log[0]) == 2
     got_callback = mock.basic_consume.call_log[0][1]["on_message_callback"]
     assert mock.basic_consume.call_log == [((), {
-        "queue": "TeStQuEu3",
+        "queue": "pytest.arr.pirates",
         "on_message_callback": got_callback,
     })]
     assert on_message_callback.call_log == []

@@ -34,6 +34,32 @@ class Channel(WrappedPikaThing):
         except Exception:
             logger.warning("EXCEPTION", exc_info=True)
 
+    def consume(
+            self,
+            *,
+            queue: str,
+            on_message_callback: Callable,
+    ):
+        exchange = self._fanout_exchange_for(queue)
+
+        if (prefix := self.consumer_name):
+            queue = f"{prefix}.{queue}"
+        if (prefix := self.exclusive_queue_prefix):
+            queue = f"{prefix}{queue}"
+
+        self.queue_declare(
+            queue,
+            dead_letter_routing_key=queue,
+            durable=True,
+        )
+
+        self.queue_bind(
+            queue=queue,
+            exchange=exchange,
+        )
+
+        return self._basic_consume(queue, on_message_callback)
+
     # QUEUES are declared by their consuming service
 
     # CONSUME_* methods process to completion or dead-letter the message
@@ -50,6 +76,7 @@ class Channel(WrappedPikaThing):
             **kwargs
         )
 
+    @deprecated("Use 'consume'")
     def consume_requests(self, **kwargs):
         return self._consume_direct(
             self.requests_exchange,
@@ -68,8 +95,9 @@ class Channel(WrappedPikaThing):
     def maybe_publish_event(self, **kwargs):
         return self.maybe_publish(**kwargs)
 
+    @deprecated("Use 'consume'")
     def consume_events(self, queue: str, **kwargs):
-        return self._consume_fanout(queue, **kwargs)
+        return self.consume(queue=queue, **kwargs)
 
     # Lower level handlers for REQUESTS and EVENTS
 
@@ -94,28 +122,6 @@ class Channel(WrappedPikaThing):
             queue=queue,
             exchange=exchange,
             routing_key=queue,
-        )
-
-        return self._basic_consume(queue, on_message_callback)
-
-    def _consume_fanout(
-            self,
-            routing_key: str,
-            *,
-            on_message_callback: Callable,
-    ):
-        exchange = self._fanout_exchange_for(routing_key)
-        if (queue := self.consumer_name):
-            queue = f"{queue}.{routing_key}"
-
-        queue = self.queue_declare(
-            queue,
-            exclusive=True,
-        ).method.queue
-
-        self.queue_bind(
-            queue=queue,
-            exchange=exchange,
         )
 
         return self._basic_consume(queue, on_message_callback)
@@ -185,7 +191,9 @@ class Channel(WrappedPikaThing):
             **kwargs
     ):
         if kwargs.get("exclusive", False) and queue:
-            queue = f"{self.exclusive_queue_prefix}{queue}"
+            if (prefix := self.exclusive_queue_prefix):
+                if not queue.hasprefix(prefix):
+                    queue = f"{prefix}{queue}"
 
         if dead_letter_routing_key:
             DLX_ARG = "x-dead-letter-exchange"

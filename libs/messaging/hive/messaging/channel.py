@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+from deprecated import deprecated
 from functools import cache, cached_property
 from typing import Callable, Optional
 
@@ -22,6 +23,17 @@ class Channel(WrappedPikaThing):
         super().__init__(*args, **kwargs)
         self._pre_publish_hooks = []
 
+    def publish(self, *, routing_key: str, **kwargs):
+        semantics.publish_may_drop(kwargs)
+        exchange = self._fanout_exchange_for(routing_key)
+        return self._publish(exchange=exchange, **kwargs)
+
+    def maybe_publish(self, **kwargs):
+        try:
+            return self.publish(**kwargs)
+        except Exception:
+            logger.warning("EXCEPTION", exc_info=True)
+
     # QUEUES are declared by their consuming service
 
     # CONSUME_* methods process to completion or dead-letter the message
@@ -31,6 +43,7 @@ class Channel(WrappedPikaThing):
     # - Publish delivers the message or raises an exception
     # - Consume processes to completion or dead-letters the message
 
+    @deprecated("Use 'publish'")
     def publish_request(self, **kwargs):
         return self._publish_direct(
             self.requests_exchange,
@@ -47,14 +60,13 @@ class Channel(WrappedPikaThing):
     #   - Transient events fan-out to zero-many consuming services
     #   - Publish drops messages with no consumers
 
+    @deprecated("Use 'publish'")
     def publish_event(self, **kwargs):
-        return self._publish_fanout(**kwargs)
+        return self.publish(**kwargs)
 
+    @deprecated("Use 'maybe_publish'")
     def maybe_publish_event(self, **kwargs):
-        try:
-            self.publish_event(**kwargs)
-        except Exception:
-            logger.warning("EXCEPTION", exc_info=True)
+        return self.maybe_publish(**kwargs)
 
     def consume_events(self, queue: str, **kwargs):
         return self._consume_fanout(queue, **kwargs)
@@ -63,11 +75,6 @@ class Channel(WrappedPikaThing):
 
     def _publish_direct(self, exchange: str, **kwargs):
         semantics.publish_must_succeed(kwargs)
-        return self._publish(exchange=exchange, **kwargs)
-
-    def _publish_fanout(self, routing_key: str, **kwargs):
-        semantics.publish_may_drop(kwargs)
-        exchange = self._fanout_exchange_for(routing_key)
         return self._publish(exchange=exchange, **kwargs)
 
     def _consume_direct(

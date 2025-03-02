@@ -33,6 +33,7 @@ expect_properties = BasicProperties(
 )
 
 
+@pytest.mark.filterwarnings("ignore:Call to deprecated method publish_request")
 def test_publish_request():
     mock = MockPika()
     mock.exchange_declare = MockMethod()
@@ -141,13 +142,13 @@ def test_consume_requests():
     assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
 
 
-def test_publish_event():
+def test_publish():
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_publish = MockMethod()
 
     channel = Channel(pika=mock)
-    channel.publish_event(
+    channel.publish(
         message={
             "bonjour": "madame",
         },

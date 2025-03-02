@@ -1,7 +1,6 @@
 import pytest
 
 from pika import BasicProperties, DeliveryMode
-from pika.spec import Basic
 
 from hive.messaging import Channel, Message
 
@@ -23,29 +22,8 @@ class MockMethod:
         return self._returns
 
 
-class MockCallbackV1(MockMethod):
-    """Pika-style on-message callback.
-    """
-    _warning_filter = "ignore:Pika-style .* callbacks:DeprecationWarning"
-
-    def __call__(
-            self,
-            channel: Channel,
-            method: Basic.Deliver,
-            properties: BasicProperties,
-            body: bytes,
-    ):
-        return super().__call__(channel, Message(method, properties, body))
-
-
-class MockCallbackV2(MockMethod):
-    """New-style on-message callback.
-    """
-    def __call__(
-            self,
-            channel: Channel,
-            message: Message,
-    ):
+class MockCallback(MockMethod):
+    def __call__(self, channel: Channel, message: Message):
         return super().__call__(channel, message)
 
 
@@ -82,9 +60,9 @@ def test_publish_request():
     })]
 
 
-@pytest.mark.parametrize("callback_cls", (MockCallbackV1, MockCallbackV2))
-@pytest.mark.filterwarnings(MockCallbackV1._warning_filter)
-def test_consume_requests(callback_cls):
+@pytest.mark.filterwarnings(
+    "ignore:Call to deprecated method consume_requests")
+def test_consume_requests():
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_qos = MockMethod()
@@ -94,7 +72,7 @@ def test_consume_requests(callback_cls):
                 queue="TeStQuEu3")))))
     mock.queue_bind = MockMethod()
     mock.basic_consume = MockMethod()
-    on_message_callback = callback_cls()
+    on_message_callback = MockCallback()
     mock.basic_ack = MockMethod()
 
     channel = Channel(pika=mock)
@@ -190,9 +168,7 @@ def test_publish_event():
     })]
 
 
-@pytest.mark.parametrize("callback_cls", (MockCallbackV1, MockCallbackV2))
-@pytest.mark.filterwarnings(MockCallbackV1._warning_filter)
-def test_consume_events(callback_cls, monkeypatch):
+def test_consume_events(monkeypatch):
     monkeypatch.delenv("HIVE_EXCLUSIVE_QUEUE_PREFIX", raising=False)
 
     mock = MockPika()
@@ -204,7 +180,7 @@ def test_consume_events(callback_cls, monkeypatch):
                 queue="TeStQuEu3")))))
     mock.queue_bind = MockMethod()
     mock.basic_consume = MockMethod()
-    on_message_callback = callback_cls()
+    on_message_callback = MockCallback()
     mock.basic_ack = MockMethod()
 
     channel = Channel(pika=mock)

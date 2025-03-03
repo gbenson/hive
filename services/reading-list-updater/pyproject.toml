@@ -7,8 +7,8 @@ dependencies = [
     "beautifulsoup4",
     "hive-common[httpx,brotli,zstd]>=0.0.15",
     "hive-mediawiki",
-    "hive-messaging>=0.9.8",
-    "hive-service",
+    "hive-messaging>=0.10.0",
+    "hive-service>=0.0.7",
     "lxml",
 ]
 

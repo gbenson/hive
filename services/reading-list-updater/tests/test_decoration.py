@@ -5,7 +5,7 @@ from hive.reading_list_updater.service import Service
 
 
 class MockChannel:
-    def maybe_publish_event(self, **kwargs):
+    def maybe_publish(self, **kwargs):
         pass
 
 

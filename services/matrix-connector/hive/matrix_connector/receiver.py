@@ -9,6 +9,7 @@ from typing import Literal, Sequence
 
 from hive.chat import ChatMessage, tell_user
 from hive.common.units import HOUR
+from hive.messaging import Channel, Message
 
 from .connector import ConnectorService
 
@@ -47,6 +48,10 @@ class Receiver(ConnectorService):
         argv = [sys.argv[0]] + list(self.matrix_commander_args)
         with self.publisher_connection() as conn:
             with self.patched_print_output(conn.channel()):
+                self._channel.consume(
+                    queue="matrix.events",
+                    on_message_callback=self.on_matrix_event,
+                )
                 d("Entering matrix_commander.main")
                 return self.matrix_commander.main(argv)
 
@@ -84,29 +89,29 @@ class Receiver(ConnectorService):
         if not json_max:
             return
         try:
-            self.on_matrix_event(json_max)
+            serialized_event = json.dumps(
+                json_max,
+                default=self.obj_to_dict
+            ).encode("utf-8")
+
+            self._channel.publish(
+                message=serialized_event,
+                content_type="application/json",
+                routing_key="matrix.events",
+            )
+
         except Exception:
             logger.exception("EXCEPTION")
 
-    def on_matrix_event(self, event: dict):
-        """Called whenever an event is received.
-        """
-        serialized_event = json.dumps(
-            event,
-            default=self.obj_to_dict
-        ).encode("utf-8")
-
-        self._channel.publish(
-            message=serialized_event,
-            content_type="application/json",
-            routing_key="matrix.events",
-        )
-
+    def on_matrix_event(self, channel: Channel, message: Message):
+        matrix_event = message.json()["source"]
         try:
-            message = ChatMessage.from_matrix_event(event["source"])
-        except Exception as e:
-            raise ValueError(event) from e
-        tell_user(message, channel=self._channel)
+            message = ChatMessage.from_matrix_event(matrix_event)
+        except Exception:
+            logger.exception("EXCEPTION")
+            return
+
+        tell_user(message, channel=channel)
 
         message_id = str(message.uuid)
         event_id = message.matrix.event_id

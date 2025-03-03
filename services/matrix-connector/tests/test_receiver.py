@@ -3,8 +3,11 @@ import sys
 
 import pytest
 
+from pika import BasicProperties
+
 from hive.common import parse_uuid, read_resource
 from hive.matrix_connector.receiver import Receiver
+from hive.messaging import Message
 
 
 @pytest.fixture
@@ -18,17 +21,37 @@ def mock_receiver(mock_channel, mock_valkey):
         sys.modules.pop("matrix_commander")
 
 
+def message_from_event_bytes(event_bytes) -> Message:
+    return Message(
+        None,
+        BasicProperties(
+            content_type="application/json",
+        ),
+        event_bytes,
+    )
+
+
 def test_basic(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/text.json"))
-    mock_receiver.on_matrix_event(event)
-    assert len(mock_channel.call_log) == 2
+
+    # on_matrix_commander_output() publishes a Matrix event
+    mock_receiver.on_matrix_commander_output(0, text=0, json_max=event)
+    assert len(mock_channel.call_log) == 1
     _, _, kwargs = mock_channel.call_log[0]
-    kwargs["message"] = json.loads(kwargs["message"])
+    assert kwargs.keys() == {"content_type", "message", "routing_key"}
+    event_bytes = kwargs["message"]
+    assert json.loads(event_bytes) == event
+
+    # on_matrix_event() publishes a chat event
+    message = message_from_event_bytes(event_bytes)
+    mock_receiver.on_matrix_event(mock_channel, message)
+    assert len(mock_channel.call_log) == 2
+
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
         ("publish", (), {
-            "message": event,
+            "message": event_bytes,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
@@ -61,15 +84,24 @@ def test_basic(mock_receiver, mock_channel, mock_valkey):
 
 def test_html(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/html.json"))
-    mock_receiver.on_matrix_event(event)
-    assert len(mock_channel.call_log) == 2
+
+    # on_matrix_commander_output() publishes a Matrix event
+    mock_receiver.on_matrix_commander_output(0, text=0, json_max=event)
+    assert len(mock_channel.call_log) == 1
     _, _, kwargs = mock_channel.call_log[0]
-    kwargs["message"] = json.loads(kwargs["message"])
+    assert kwargs.keys() == {"content_type", "message", "routing_key"}
+    event_bytes = kwargs["message"]
+    assert json.loads(event_bytes) == event
+
+    # on_matrix_event() publishes a chat event
+    message = message_from_event_bytes(event_bytes)
+    mock_receiver.on_matrix_event(mock_channel, message)
+
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
         ("publish", (), {
-            "message": event,
+            "message": event_bytes,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
@@ -103,15 +135,24 @@ def test_html(mock_receiver, mock_channel, mock_valkey):
 
 def test_image(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/image.json"))
-    mock_receiver.on_matrix_event(event)
-    assert len(mock_channel.call_log) == 2
+
+    # on_matrix_commander_output() publishes a Matrix event
+    mock_receiver.on_matrix_commander_output(0, text=0, json_max=event)
+    assert len(mock_channel.call_log) == 1
     _, _, kwargs = mock_channel.call_log[0]
-    kwargs["message"] = json.loads(kwargs["message"])
+    assert kwargs.keys() == {"content_type", "message", "routing_key"}
+    event_bytes = kwargs["message"]
+    assert json.loads(event_bytes) == event
+
+    # on_matrix_event() publishes a chat event
+    message = message_from_event_bytes(event_bytes)
+    mock_receiver.on_matrix_event(mock_channel, message)
+
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
         ("publish", (), {
-            "message": event,
+            "message": event_bytes,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
@@ -144,17 +185,24 @@ def test_image(mock_receiver, mock_channel, mock_valkey):
 
 def test_redaction(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/redaction.json"))
-    with pytest.raises(ValueError) as excinfo:
-        mock_receiver.on_matrix_event(event)
+
+    # on_matrix_commander_output() publishes a Matrix event
+    mock_receiver.on_matrix_commander_output(0, text=0, json_max=event)
     assert len(mock_channel.call_log) == 1
     _, _, kwargs = mock_channel.call_log[0]
-    kwargs["message"] = json.loads(kwargs["message"])
+    assert kwargs.keys() == {"content_type", "message", "routing_key"}
+    event_bytes = kwargs["message"]
+    assert json.loads(event_bytes) == event
+
+    # on_matrix_event() doesn't publish a chat event
+    message = message_from_event_bytes(event_bytes)
+    mock_receiver.on_matrix_event(mock_channel, message)
+
     assert mock_channel.call_log == [
         ("publish", (), {
-            "message": event,
+            "message": event_bytes,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
     ]
     assert mock_valkey.call_log == []
-    assert str(excinfo.value) == repr(event)

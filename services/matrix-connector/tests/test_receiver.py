@@ -27,12 +27,12 @@ def test_basic(mock_receiver, mock_channel, mock_valkey):
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
-        ("publish_event", (), {
+        ("publish", (), {
             "message": event,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
-        ("publish_event", (), {
+        ("publish", (), {
             "message": {
                 "text": "hello world",
                 "sender": "user",
@@ -68,12 +68,12 @@ def test_html(mock_receiver, mock_channel, mock_valkey):
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
-        ("publish_event", (), {
+        ("publish", (), {
             "message": event,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
-        ("publish_event", (), {
+        ("publish", (), {
             "message": {
                 "text": "hello **WORLD**",
                 "html": "hello <strong>WORLD</strong>",
@@ -110,12 +110,12 @@ def test_image(mock_receiver, mock_channel, mock_valkey):
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
-        ("publish_event", (), {
+        ("publish", (), {
             "message": event,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
-        ("publish_event", (), {
+        ("publish", (), {
             "message": {
                 "text": "Wi-Fi_QR_code_Guest.jpg",
                 "sender": "user",
@@ -150,7 +150,7 @@ def test_redaction(mock_receiver, mock_channel, mock_valkey):
     _, _, kwargs = mock_channel.call_log[0]
     kwargs["message"] = json.loads(kwargs["message"])
     assert mock_channel.call_log == [
-        ("publish_event", (), {
+        ("publish", (), {
             "message": event,
             "content_type": "application/json",
             "routing_key": "matrix.events",

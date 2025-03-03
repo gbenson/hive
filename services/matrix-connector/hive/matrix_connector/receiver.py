@@ -96,7 +96,7 @@ class Receiver(ConnectorService):
             default=self.obj_to_dict
         ).encode("utf-8")
 
-        self._channel.publish_event(
+        self._channel.publish(
             message=serialized_event,
             content_type="application/json",
             routing_key="matrix.events",

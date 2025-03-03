@@ -5,10 +5,10 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Matrix connector service for Hive"
 readme = "README.md"
 dependencies = [
-    "hive-chat",
+    "hive-chat>=0.0.8",
     "hive-common",
-    "hive-messaging",
-    "hive-service",
+    "hive-messaging>=0.10.0",
+    "hive-service>=0.0.7",
     "matrix-commander",
     "valkey",
 ]

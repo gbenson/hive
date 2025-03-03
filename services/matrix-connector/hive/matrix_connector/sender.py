@@ -169,11 +169,11 @@ class Sender(ConnectorService):
         with self.blocking_connection(on_channel_open=None) as conn:
             channel = conn.channel()
             try:
-                channel.consume_events(
+                channel.consume(
                     queue="chat.messages",
                     on_message_callback=self.on_chat_message,
                 )
-                channel.consume_events(
+                channel.consume(
                     queue="readinglist.updates",
                     on_message_callback=self.on_reading_list_update,
                 )

@@ -7,7 +7,7 @@ readme = "README.md"
 dependencies = [
     "hive-chat",
     "hive-common",
-    "hive-messaging",
+    "hive-messaging>=0.10.0",
     "hive-service",
     "matrix-commander",
     "valkey",

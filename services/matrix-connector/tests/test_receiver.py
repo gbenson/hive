@@ -20,19 +20,19 @@ def mock_receiver(mock_channel, mock_valkey):
 
 def test_basic(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/text.json"))
-    mock_receiver.on_matrix_event(event)
+    mock_receiver.on_matrix_commander_output(0, text=0, json_max=event)
     assert len(mock_channel.call_log) == 2
     _, _, kwargs = mock_channel.call_log[0]
     kwargs["message"] = json.loads(kwargs["message"])
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
-        ("publish_event", (), {
+        ("publish", (), {
             "message": event,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
-        ("publish_event", (), {
+        ("publish", (), {
             "message": {
                 "text": "hello world",
                 "sender": "user",
@@ -61,19 +61,19 @@ def test_basic(mock_receiver, mock_channel, mock_valkey):
 
 def test_html(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/html.json"))
-    mock_receiver.on_matrix_event(event)
+    mock_receiver.on_matrix_commander_output(0, text=0, json_max=event)
     assert len(mock_channel.call_log) == 2
     _, _, kwargs = mock_channel.call_log[0]
     kwargs["message"] = json.loads(kwargs["message"])
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
-        ("publish_event", (), {
+        ("publish", (), {
             "message": event,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
-        ("publish_event", (), {
+        ("publish", (), {
             "message": {
                 "text": "hello **WORLD**",
                 "html": "hello <strong>WORLD</strong>",
@@ -103,19 +103,19 @@ def test_html(mock_receiver, mock_channel, mock_valkey):
 
 def test_image(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/image.json"))
-    mock_receiver.on_matrix_event(event)
+    mock_receiver.on_matrix_commander_output(0, text=0, json_max=event)
     assert len(mock_channel.call_log) == 2
     _, _, kwargs = mock_channel.call_log[0]
     kwargs["message"] = json.loads(kwargs["message"])
     _, _, kwargs = mock_channel.call_log[1]
     uuid = str(parse_uuid(kwargs["message"]["uuid"]))
     assert mock_channel.call_log == [
-        ("publish_event", (), {
+        ("publish", (), {
             "message": event,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
-        ("publish_event", (), {
+        ("publish", (), {
             "message": {
                 "text": "Wi-Fi_QR_code_Guest.jpg",
                 "sender": "user",
@@ -144,17 +144,15 @@ def test_image(mock_receiver, mock_channel, mock_valkey):
 
 def test_redaction(mock_receiver, mock_channel, mock_valkey):
     event = json.loads(read_resource("resources/redaction.json"))
-    with pytest.raises(ValueError) as excinfo:
-        mock_receiver.on_matrix_event(event)
+    mock_receiver.on_matrix_commander_output(0, text=0, json_max=event)
     assert len(mock_channel.call_log) == 1
     _, _, kwargs = mock_channel.call_log[0]
     kwargs["message"] = json.loads(kwargs["message"])
     assert mock_channel.call_log == [
-        ("publish_event", (), {
+        ("publish", (), {
             "message": event,
             "content_type": "application/json",
             "routing_key": "matrix.events",
         }),
     ]
     assert mock_valkey.call_log == []
-    assert str(excinfo.value) == repr(event)

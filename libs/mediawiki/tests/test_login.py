@@ -200,3 +200,7 @@ class MockResponse:
 
     def json(self):
         return self._json
+
+    @property
+    def status_code(self):
+        return 200

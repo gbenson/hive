@@ -28,7 +28,7 @@ def tell_user(
 
 
 def _tell_user(channel: Channel, message: ChatMessage) -> ChatMessage:
-    channel.publish_event(
+    channel.publish(
         message=message.json(),
         routing_key="chat.messages",
     )

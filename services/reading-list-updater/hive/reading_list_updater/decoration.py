@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 def maybe_decorate_entry(entry: ReadingListEntry, og: dict[str, str]) -> None:
-    if (url := og.get("url")) and url != entry.url:
+    if (url := og.get("url")) and (
+            url != entry.url and not entry.url.startswith(f"{url}#")):
         logger.warning("og:url %r != shared link URL %r", url, entry.url)
     if (title := og.get("title")):
         _maybe_update_title(entry, title)

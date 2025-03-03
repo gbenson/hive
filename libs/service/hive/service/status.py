@@ -45,12 +45,10 @@ class ServiceStatus:
             channel: Channel,
             *,
             routing_key: str = "service.status",
-            mandatory: bool = False,
     ):
         """Publish this report via a :class:`hive.messaging.Channel`.
         """
-        return channel.publish_event(
+        return channel.maybe_publish(
             message=self._as_dict(),
             routing_key=routing_key,
-            mandatory=mandatory,
         )

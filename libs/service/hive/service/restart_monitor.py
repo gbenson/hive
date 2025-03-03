@@ -162,7 +162,7 @@ class RestartMonitor:
         except FileNotFoundError:
             open(filename, "wb").close()
 
-    def report_via_channel(self, channel: Channel, **kwargs):
+    def report_via_channel(self, channel: Channel):
         """Report this startup via a :class:`hive.messaging.Channel`.
         """
-        return self.status.report_via_channel(channel, **kwargs)
+        return self.status.report_via_channel(channel)

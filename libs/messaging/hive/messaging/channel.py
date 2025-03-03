@@ -4,6 +4,7 @@ import os
 import sys
 
 from deprecated import deprecated
+from enum import Enum, auto
 from functools import cache, cached_property
 from typing import Callable, Optional
 
@@ -16,12 +17,24 @@ from .wrapper import WrappedPikaThing
 logger = logging.getLogger(__name__)
 
 
+class Semantics(Enum):
+    PUBLISH_SUBSCRIBE = auto()    # events
+    COMPETING_CONSUMERS = auto()  # requests
+
+
 class Channel(WrappedPikaThing):
     """The primary entry point for interacting with Hive's message bus.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._pre_publish_hooks = []
+
+    # Messages are:
+    #  - PUBLISHED to EXCHANGES
+    #  - CONSUMED from QUEUES
+    #
+    # QUEUES are declared (created) by their consuming service;
+    # EXCHANGES are declared by both consumers and publishers.
 
     def publish(self, *, routing_key: str, **kwargs):
         semantics.publish_may_drop(kwargs)
@@ -34,18 +47,44 @@ class Channel(WrappedPikaThing):
         except Exception:
             logger.warning("EXCEPTION", exc_info=True)
 
-    def consume(
+    # REQUESTS are things we're asking to be done.  They have competing-
+    # consumers semantics:
+    #  - Multiple services may consume one requests queue
+    #  - Each message should be consumed by exactly one service
+    #
+    # EVENTS are things that have happened.  The have publish-subscribe
+    # semantics:
+    # - Each events queue *should be* consumed by exactly one
+    #   consumer, but note that this isn't enforced;  hive-messaging
+    #   prior to 0.10.0 used exclusive queues for these semantics,
+    #   but exclusive queues can't be durable so hive-messaging now
+    #   0.10.0 declares all queues as durable and tries to create
+    #   exclusive queues by prefixing their names.
+    # - Each message is received by each consuming service.
+    #
+    # Consumed messages are processed to completion or dead-lettered
+    # in both cases.
+
+    def consume_requests(self, **kwargs):
+        return self._consume(Semantics.COMPETING_CONSUMERS, **kwargs)
+
+    def consume_events(self, **kwargs):
+        return self._consume(Semantics.PUBLISH_SUBSCRIBE, **kwargs)
+
+    def _consume(
             self,
+            semantics: Semantics,
             *,
             queue: str,
             on_message_callback: Callable,
     ):
         exchange = self._fanout_exchange_for(queue)
 
-        if (prefix := self.consumer_name):
-            queue = f"{prefix}.{queue}"
-        if (prefix := self.exclusive_queue_prefix):
-            queue = f"{prefix}{queue}"
+        if semantics is Semantics.PUBLISH_SUBSCRIBE:
+            if (prefix := self.consumer_name):
+                queue = f"{prefix}.{queue}"
+            if (prefix := self.exclusive_queue_prefix):
+                queue = f"{prefix}{queue}"
 
         self.queue_declare(
             queue,
@@ -60,32 +99,11 @@ class Channel(WrappedPikaThing):
 
         return self._basic_consume(queue, on_message_callback)
 
-    # QUEUES are declared by their consuming service
-
     # CONSUME_* methods process to completion or dead-letter the message
-
-    # REQUESTS are things we're asking to be done:
-    # - Each request queue has exactly one consuming service
-    # - Publish delivers the message or raises an exception
-    # - Consume processes to completion or dead-letters the message
 
     @deprecated("Use 'publish'")
     def publish_request(self, **kwargs):
-        return self._publish_direct(
-            self.requests_exchange,
-            **kwargs
-        )
-
-    @deprecated("Use 'consume'")
-    def consume_requests(self, **kwargs):
-        return self._consume_direct(
-            self.requests_exchange,
-            **kwargs
-        )
-
-    # EVENTS are things that have happened:
-    #   - Transient events fan-out to zero-many consuming services
-    #   - Publish drops messages with no consumers
+        return self.publish(**kwargs)
 
     @deprecated("Use 'publish'")
     def publish_event(self, **kwargs):
@@ -95,36 +113,11 @@ class Channel(WrappedPikaThing):
     def maybe_publish_event(self, **kwargs):
         return self.maybe_publish(**kwargs)
 
-    @deprecated("Use 'consume'")
-    def consume_events(self, queue: str, **kwargs):
-        return self.consume(queue=queue, **kwargs)
+    @deprecated("Use 'consume_events' or 'consume_requests'")
+    def consume(self, **kwargs):
+        return self.consume_events(**kwargs)
 
-    # Lower level handlers for REQUESTS and EVENTS
-
-    def _publish_direct(self, exchange: str, **kwargs):
-        semantics.publish_must_succeed(kwargs)
-        return self._publish(exchange=exchange, **kwargs)
-
-    def _consume_direct(
-            self,
-            exchange: str,
-            *,
-            queue: str,
-            on_message_callback: Callable,
-    ):
-        self.queue_declare(
-            queue,
-            dead_letter_routing_key=queue,
-            durable=True,
-        )
-
-        self.queue_bind(
-            queue=queue,
-            exchange=exchange,
-            routing_key=queue,
-        )
-
-        return self._basic_consume(queue, on_message_callback)
+    # Queue-name disambiguation for consume_events().
 
     @cached_property
     def consumer_name(self) -> str:
@@ -156,14 +149,6 @@ class Channel(WrappedPikaThing):
         return self._hive_exchange(
             exchange=routing_key,
             exchange_type="fanout",
-            durable=True,
-        )
-
-    @cached_property
-    def requests_exchange(self) -> str:
-        return self._hive_exchange(
-            exchange="requests",
-            exchange_type="direct",
             durable=True,
         )
 

@@ -1,5 +1,3 @@
-import pytest
-
 from pika import BasicProperties, DeliveryMode
 
 from hive.messaging import Channel, Message
@@ -33,36 +31,6 @@ expect_properties = BasicProperties(
 )
 
 
-@pytest.mark.filterwarnings("ignore:Call to deprecated method publish_request")
-def test_publish_request():
-    mock = MockPika()
-    mock.exchange_declare = MockMethod()
-    mock.basic_publish = MockMethod()
-
-    channel = Channel(pika=mock)
-    channel.publish_request(
-        message={
-            "hello": "world",
-        },
-        routing_key="hallo.wereld",
-    )
-
-    assert mock.exchange_declare.call_log == [((), {
-        "exchange": "hive.requests",
-        "exchange_type": "direct",
-        "durable": True,
-    })]
-    assert mock.basic_publish.call_log == [((), {
-        "exchange": "hive.requests",
-        "routing_key": "hallo.wereld",
-        "body": b'{"hello": "world"}',
-        "properties": expect_properties,
-        "mandatory": True,
-    })]
-
-
-@pytest.mark.filterwarnings(
-    "ignore:Call to deprecated method consume_requests")
 def test_consume_requests():
     mock = MockPika()
     mock.exchange_declare = MockMethod()
@@ -83,8 +51,8 @@ def test_consume_requests():
     )
 
     assert mock.exchange_declare.call_log == [((), {
-        "exchange": "hive.requests",
-        "exchange_type": "direct",
+        "exchange": "hive.arr.pirates",
+        "exchange_type": "fanout",
         "durable": True,
     }), ((), {
         "exchange": "hive.dead.letter",
@@ -112,8 +80,7 @@ def test_consume_requests():
         "routing_key": "arr.pirates",
     }), ((), {
         "queue": "arr.pirates",
-        "exchange": "hive.requests",
-        "routing_key": "arr.pirates",
+        "exchange": "hive.arr.pirates",
     })]
 
     assert len(mock.basic_consume.call_log) == 1
@@ -169,7 +136,7 @@ def test_publish():
     })]
 
 
-def test_consume(monkeypatch):
+def test_consume_events(monkeypatch):
     monkeypatch.delenv("HIVE_EXCLUSIVE_QUEUE_PREFIX", raising=False)
 
     mock = MockPika()
@@ -185,7 +152,7 @@ def test_consume(monkeypatch):
     mock.basic_ack = MockMethod()
 
     channel = Channel(pika=mock)
-    channel.consume(
+    channel.consume_events(
         queue="arr.pirates",
         on_message_callback=on_message_callback,
     )

@@ -69,7 +69,7 @@ class Service(HiveService):
     def run(self):
         with self.blocking_connection() as conn:
             channel = conn.channel()
-            channel.consume(
+            channel.consume_requests(
                 queue=self.update_request_queue,
                 on_message_callback=self.on_update_request,
             )

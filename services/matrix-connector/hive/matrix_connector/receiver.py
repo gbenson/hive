@@ -48,7 +48,7 @@ class Receiver(ConnectorService):
         argv = [sys.argv[0]] + list(self.matrix_commander_args)
         with self.publisher_connection() as conn:
             with self.patched_print_output(conn.channel()):
-                self._channel.consume(
+                self._channel.consume_events(
                     queue="matrix.events",
                     on_message_callback=self.on_matrix_event,
                 )

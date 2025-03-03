@@ -12,9 +12,11 @@ def maybe_rewrite_youtube_url(url: str) -> Optional[str]:
             return None
         scheme = "https"
 
+    is_short = False
     is_youtu_be = (netloc == "youtu.be")
     if not is_youtu_be:
-        if path != "/watch":
+        is_short = path.startswith("/shorts/")
+        if not is_short and path != "/watch":
             return None
         if netloc != "www.youtube.com":
             if netloc != "youtube.com":
@@ -27,6 +29,14 @@ def maybe_rewrite_youtube_url(url: str) -> Optional[str]:
         if not video:
             return None
         netloc = "www.youtube.com"
+        path = "/watch"
+        query["v"].append(video)
+        del video
+
+    if is_short:
+        video = path.removeprefix("/shorts/")
+        if not video:
+            return None
         path = "/watch"
         query["v"].append(video)
         del video

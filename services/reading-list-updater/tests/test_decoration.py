@@ -22,7 +22,7 @@ class MockChannel:
     "{{at|Tue, 25 Feb 2025 19:43:50 +0000}} "
     "[[wikipedia:Roguelike]]"
 )),))
-def test_wikipedia_decoration(update_request, expect_json, expect_wikitext):
+def test_wikipedia(update_request, expect_json, expect_wikitext):
     entry = ReadingListEntry.from_email_summary(update_request)
     Service().maybe_decorate_entry(MockChannel(), entry)
 
@@ -52,7 +52,7 @@ def test_wikipedia_decoration(update_request, expect_json, expect_wikitext):
     "message_id": NotImplemented,
     "body": "<https://youtu.be/OBkMbPpLCqw?si=LDz6PQVjCyE_ARAB>",
 }))
-def test_youtube_decoration(update_request):
+def test_youtube(update_request):
     entry = ReadingListEntry.from_email_summary(update_request)
     original_title = entry.title
     Service().maybe_decorate_entry(MockChannel(), entry)
@@ -71,5 +71,33 @@ def test_youtube_decoration(update_request):
     assert entry.json() == {
         "timestamp": "Fri, 21 Feb 2025 09:52:29 +0000",
         "url": "https://www.youtube.com/watch?v=OBkMbPpLCqw",
+        "title": expect_title,
+    }
+
+
+@pytest.mark.parametrize("update_request", ({
+    "meta": NotImplemented,
+    "date": "Fri, 28 Feb 2025 23:58:29 +0000",
+    "body": "https://www.youtube.com/shorts/_N39UWtPK9k",
+},))
+def test_youtube_short(update_request):
+    entry = ReadingListEntry.from_email_summary(update_request)
+    original_title = entry.title
+    Service().maybe_decorate_entry(MockChannel(), entry)
+
+    assert entry.url == "https://www.youtube.com/watch?v=_N39UWtPK9k"
+
+    if entry.title == original_title:
+        pytest.skip("No internet?")
+
+    expect_title = (
+        "Why taxes keep rising but public services keep getting worse"
+        " | YouTube"
+    )
+    assert entry.title == expect_title
+
+    assert entry.json() == {
+        "timestamp": "Fri, 28 Feb 2025 23:58:29 +0000",
+        "url": "https://www.youtube.com/watch?v=_N39UWtPK9k",
         "title": expect_title,
     }

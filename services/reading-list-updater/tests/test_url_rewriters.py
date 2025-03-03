@@ -11,6 +11,8 @@ from hive.reading_list_updater.url_rewriters import maybe_rewrite_url
       "https://www.youtube.com/watch?v=OBkMbPpLCqw"),
      ("https://youtu.be/OBkMbPpLCqw?si=LDz6PQVjCyE_ARAB&t=2",
       "https://www.youtube.com/watch?v=OBkMbPpLCqw&t=2"),
+     ("https://www.youtube.com/shorts/_N39UWtPK9k",
+      "https://www.youtube.com/watch?v=_N39UWtPK9k"),
      ))
 def test_url_rewriting(original_url: str, expect_rewritten: str) -> None:
     assert maybe_rewrite_url(original_url) == expect_rewritten

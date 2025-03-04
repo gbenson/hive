@@ -4,10 +4,10 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Web chat API gateway for Hive"
 dependencies = [
-    "hive-chat",
+    "hive-chat>=0.0.8",
     "hive-common",
-    "hive-messaging>=0.9.0",
-    "hive-service",
+    "hive-messaging>=0.11.0",
+    "hive-service>=0.0.7",
     "pyargon2",
     "valkey",
 ]

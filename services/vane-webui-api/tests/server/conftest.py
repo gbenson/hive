@@ -83,11 +83,11 @@ class MockChannel:
         self.connection = MockConnection()
         self._consume_events = {}
 
-    def consume_events(self, queue, on_message_callback):
+    def consume_events(self, *, queue, on_message_callback):
         assert queue not in self._consume_events
         self._consume_events[queue] = on_message_callback
 
-    def publish_event(self, *, message, routing_key):
+    def publish(self, *, message, routing_key):
         self._consume_events[routing_key](
             channel=self,
             message=Message(

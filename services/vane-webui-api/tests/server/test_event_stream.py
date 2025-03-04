@@ -50,7 +50,7 @@ def test_send_initial_events(
         two_step,
 ):
     mock_message_json = mock_message.json()
-    mock_channel.publish_event(
+    mock_channel.publish(
         routing_key="chat.messages",
         message=mock_message_json,
     )

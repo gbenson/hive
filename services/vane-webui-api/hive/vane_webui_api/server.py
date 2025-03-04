@@ -141,7 +141,7 @@ class HTTPServer(ThreadingHTTPServer):
             raise HTTPError(HTTPStatus.BAD_REQUEST) from e
 
         self._channel.connection.add_callback_threadsafe(partial(
-            self._channel.publish_event,
+            self._channel.publish,
             message=message,
             routing_key=self._queue_name,
         ))

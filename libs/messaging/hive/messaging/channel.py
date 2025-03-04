@@ -3,7 +3,6 @@ import logging
 import os
 import sys
 
-from deprecated import deprecated
 from functools import cache, cached_property
 from typing import Callable, Optional
 
@@ -67,20 +66,6 @@ class Channel(WrappedPikaThing):
 
     def consume_events(self, **kwargs):
         return self._consume(Semantics.PUBLISH_SUBSCRIBE, **kwargs)
-
-    # Deprecations
-
-    @deprecated("Use 'publish_request' or 'publish_event'")
-    def publish(self, **kwargs):
-        return self.publish_event(**kwargs)
-
-    @deprecated("Use 'maybe_publish_event'")
-    def maybe_publish(self, **kwargs):
-        return self.maybe_publish_event(**kwargs)
-
-    @deprecated("Use 'consume_events' or 'consume_requests'")
-    def consume(self, **kwargs):
-        return self.consume_events(**kwargs)
 
     # Lower-level handlers for PUBLISH_* and CONSUME_*
     #  - Everything should go through these

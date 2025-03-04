@@ -41,7 +41,7 @@ class ReadingListUpdateHandler(Handler):
             channel: Channel,
             message: ChatMessage
     ):
-        channel.publish_request(
+        channel.publish(
             message={
                 "meta": {
                     "origin": {

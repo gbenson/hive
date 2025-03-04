@@ -24,7 +24,7 @@ def test_reading_list_update(mock_channel, body, expect_html):
         uuid="1c0a44e5-48ac-4464-b9ef-0117b11c2140",
     ))
     assert mock_channel.call_log == [(
-        "publish_request", (), {
+        "publish", (), {
             "message": {
                 "meta": {
                     "origin": {
@@ -43,7 +43,7 @@ def test_reading_list_update(mock_channel, body, expect_html):
             "routing_key": "readinglist.update.requests",
         },
     ), (
-        "publish_event", (), {
+        "publish", (), {
             "message": {
                 "text": body,
                 "html": expect_html,

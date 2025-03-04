@@ -11,17 +11,21 @@ from threading import Thread
 from typing import Any, Optional
 from uuid import UUID
 
-from openai.types.chat import ChatCompletionMessageToolCall
+# from openai.types.chat import ChatCompletionMessageToolCall
 
 from hive.chat import ChatMessage, tell_user
-from hive.common.llm import LLMToolbox, llm_tool
-from hive.common.openai import OpenAI
+# from hive.common.llm import LLMToolbox, llm_tool
+# from hive.common.openai import OpenAI
 from hive.messaging import Channel, blocking_connection
 
-from ..handler import Handler
+# from ..handler import Handler
 
 logger = logging.getLogger(__name__)
 d = logger.info
+
+ChatCompletionMessageToolCall = OpenAI = NotImplemented
+Handler = LLMToolbox = type("XXXDisabled", (), {})
+llm_tool = lambda f: f  # noqa: E731
 
 
 class LLMHandler(Handler):
@@ -185,7 +189,7 @@ class LLMInteraction(LLMToolbox, Thread):
         request = asdict(tool_call)
         if response_uuid:
             request["response_uuid"] = str(response_uuid)
-        channel.publish_request(
+        channel.publish(
             message=request,
             routing_key="mediawiki.lookup.requests",
         )

@@ -170,7 +170,7 @@ class Channel(WrappedPikaThing):
     ):
         if kwargs.get("exclusive", False) and queue:
             if (prefix := self.exclusive_queue_prefix):
-                if not queue.hasprefix(prefix):
+                if not queue.startswith(prefix):
                     queue = f"{prefix}{queue}"
 
         if dead_letter_routing_key:

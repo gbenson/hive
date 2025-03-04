@@ -5,7 +5,10 @@ import pytest
 # from openai.types.chat import ChatCompletionMessageToolCall
 
 from hive.chat import ChatMessage
-from hive.chat_router.handlers.llm_router import LLMInteraction, LLMToolCall
+from hive.chat_router.handlers.openai_llm_router import (
+    LLMInteraction,
+    LLMToolCall,
+)
 from hive.common.testing import test_config_dir  # noqa: F401
 
 ChatCompletionMessageToolCall = NotImplemented

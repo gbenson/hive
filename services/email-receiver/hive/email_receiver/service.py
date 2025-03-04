@@ -5,8 +5,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from hive.common import read_config
 from hive.common.units import MINUTE
-from hive.config import read_config
 from hive.messaging import Channel
 from hive.service import HiveService
 

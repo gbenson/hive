@@ -25,10 +25,6 @@ services:
     volumes:
       - matrix_receiver:/var/lib/matrix
       - matrix_received_media:/var/lib/matrix/media
-      - $HOME/projects/hive/libs/chat/hive/chat:/venv/lib/python3.11/site-packages/hive/chat:ro
-      - $HOME/projects/hive/libs/messaging/hive/messaging:/venv/lib/python3.11/site-packages/hive/messaging:ro
-      - $HOME/projects/hive/libs/service/hive/service:/venv/lib/python3.11/site-packages/hive/service:ro
-      - $HOME/projects/hive/services/matrix-connector/hive/matrix_connector:/venv/lib/python3.11/site-packages/hive/matrix_connector:ro
     command:
       - hive-matrix-receiver
     secrets:

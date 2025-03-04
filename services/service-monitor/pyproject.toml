@@ -6,7 +6,7 @@ description = "Service status monitor for Hive"
 dependencies = [
     "hive-chat>=0.0.8",
     "hive-common",
-    "hive-messaging>=0.10.0",
+    "hive-messaging>=0.11.0",
     "hive-service>=0.0.7",
     "valkey",
 ]

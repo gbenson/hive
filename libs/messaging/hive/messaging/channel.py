@@ -4,22 +4,16 @@ import os
 import sys
 
 from deprecated import deprecated
-from enum import Enum, auto
 from functools import cache, cached_property
 from typing import Callable, Optional
 
 from pika import BasicProperties, DeliveryMode
 
-from . import semantics
 from .message import Message
+from .semantics import Semantics
 from .wrapper import WrappedPikaThing
 
 logger = logging.getLogger(__name__)
-
-
-class Semantics(Enum):
-    PUBLISH_SUBSCRIBE = auto()    # events
-    COMPETING_CONSUMERS = auto()  # requests
 
 
 class Channel(WrappedPikaThing):
@@ -29,24 +23,16 @@ class Channel(WrappedPikaThing):
         super().__init__(*args, **kwargs)
         self._pre_publish_hooks = []
 
+    def add_pre_publish_hook(self, hook: Callable):
+        self._pre_publish_hooks.append(hook)
+
     # Messages are:
     #  - PUBLISHED to EXCHANGES
     #  - CONSUMED from QUEUES
     #
     # QUEUES are declared (created) by their consuming service;
     # EXCHANGES are declared by both consumers and publishers.
-
-    def publish(self, *, routing_key: str, **kwargs):
-        semantics.publish_may_drop(kwargs)
-        exchange = self._fanout_exchange_for(routing_key)
-        return self._publish(exchange=exchange, **kwargs)
-
-    def maybe_publish(self, **kwargs):
-        try:
-            return self.publish(**kwargs)
-        except Exception:
-            logger.warning("EXCEPTION", exc_info=True)
-
+    #
     # REQUESTS are things we're asking to be done.  They have competing-
     # consumers semantics:
     #  - Multiple services may consume one requests queue
@@ -62,14 +48,54 @@ class Channel(WrappedPikaThing):
     #   exclusive queues by prefixing their names.
     # - Each message is received by each consuming service.
     #
-    # Consumed messages are processed to completion or dead-lettered
-    # in both cases.
+    # CONSUME_* methods process to completion or dead-letter the message.
+
+    def publish_request(self, **kwargs):
+        return self._publish(mandatory=True, **kwargs)
+
+    def publish_event(self, **kwargs):
+        return self._publish(**kwargs)
+
+    def maybe_publish_event(self, **kwargs):
+        try:
+            return self.publish_event(**kwargs)
+        except Exception:
+            logger.warning("EXCEPTION", exc_info=True)
 
     def consume_requests(self, **kwargs):
         return self._consume(Semantics.COMPETING_CONSUMERS, **kwargs)
 
     def consume_events(self, **kwargs):
         return self._consume(Semantics.PUBLISH_SUBSCRIBE, **kwargs)
+
+    # Deprecations
+
+    @deprecated("Use 'publish_request' or 'publish_event'")
+    def publish(self, **kwargs):
+        return self.publish_event(**kwargs)
+
+    @deprecated("Use 'maybe_publish_event'")
+    def maybe_publish(self, **kwargs):
+        return self.maybe_publish_event(**kwargs)
+
+    @deprecated("Use 'consume_events' or 'consume_requests'")
+    def consume(self, **kwargs):
+        return self.consume_events(**kwargs)
+
+    # Lower-level handlers for PUBLISH_* and CONSUME_*
+    #  - Everything should go through these
+    #  - XXX merge into _basic_{publish,consume}?
+
+    def _publish(self, *, routing_key: str, **kwargs):
+        exchange = self._fanout_exchange_for(routing_key)
+
+        for hook in self._pre_publish_hooks:
+            try:
+                hook(self, **kwargs)
+            except Exception:
+                logger.exception("EXCEPTION")
+
+        return self._basic_publish(exchange=exchange, **kwargs)
 
     def _consume(
             self,
@@ -98,24 +124,6 @@ class Channel(WrappedPikaThing):
         )
 
         return self._basic_consume(queue, on_message_callback)
-
-    # CONSUME_* methods process to completion or dead-letter the message
-
-    @deprecated("Use 'publish'")
-    def publish_request(self, **kwargs):
-        return self.publish(**kwargs)
-
-    @deprecated("Use 'publish'")
-    def publish_event(self, **kwargs):
-        return self.publish(**kwargs)
-
-    @deprecated("Use 'maybe_publish'")
-    def maybe_publish_event(self, **kwargs):
-        return self.maybe_publish(**kwargs)
-
-    @deprecated("Use 'consume_events' or 'consume_requests'")
-    def consume(self, **kwargs):
-        return self.consume_events(**kwargs)
 
     # Queue-name disambiguation for consume_events().
 
@@ -211,17 +219,6 @@ class Channel(WrappedPikaThing):
             **kwargs
         )
 
-    def add_pre_publish_hook(self, hook: Callable):
-        self._pre_publish_hooks.append(hook)
-
-    def _publish(self, **kwargs):
-        for hook in self._pre_publish_hooks:
-            try:
-                hook(self, **kwargs)
-            except Exception:
-                logger.exception("EXCEPTION")
-        return self._basic_publish(**kwargs)
-
     def _basic_publish(
             self,
             *,
@@ -230,8 +227,11 @@ class Channel(WrappedPikaThing):
             routing_key: str = "",
             content_type: Optional[str] = None,
             delivery_mode: DeliveryMode = DeliveryMode.Persistent,
-            mandatory: bool = True,
+            mandatory: bool = False,
     ):
+        if mandatory and delivery_mode is not DeliveryMode.Persistent:
+            raise ValueError(delivery_mode)
+
         payload, content_type = self._encapsulate(message, content_type)
         return self.basic_publish(
             exchange=exchange,

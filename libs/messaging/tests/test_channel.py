@@ -31,6 +31,33 @@ expect_properties = BasicProperties(
 )
 
 
+def test_publish_request():
+    mock = MockPika()
+    mock.exchange_declare = MockMethod()
+    mock.basic_publish = MockMethod()
+
+    channel = Channel(pika=mock)
+    channel.publish_request(
+        message={
+            "bonjour": "madame",
+        },
+        routing_key="egg.nog",
+    )
+
+    assert mock.exchange_declare.call_log == [((), {
+        "exchange": "hive.egg.nog",
+        "exchange_type": "fanout",
+        "durable": True,
+    })]
+    assert mock.basic_publish.call_log == [((), {
+        "exchange": "hive.egg.nog",
+        "routing_key": "",
+        "body": b'{"bonjour": "madame"}',
+        "properties": expect_properties,
+        "mandatory": True,
+    })]
+
+
 def test_consume_requests():
     mock = MockPika()
     mock.exchange_declare = MockMethod()
@@ -109,13 +136,13 @@ def test_consume_requests():
     assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
 
 
-def test_publish():
+def test_publish_event():
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_publish = MockMethod()
 
     channel = Channel(pika=mock)
-    channel.publish(
+    channel.publish_event(
         message={
             "bonjour": "madame",
         },

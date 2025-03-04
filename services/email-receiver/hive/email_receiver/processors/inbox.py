@@ -50,7 +50,7 @@ class InboxProcessor(Processor):
                         continue
 
                     try:
-                        channel.publish_event(
+                        channel.publish(
                             message=message_bytes,
                             content_type="message/rfc822",
                             routing_key=self.queue_name,

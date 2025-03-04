@@ -32,10 +32,9 @@ class ReadingListProcessor(Processor):
                 return False
 
         try:
-            channel.publish_request(
+            channel.publish(
                 message=email.summary,
                 routing_key=self.queue_name,
-                mandatory=True,
             )
         except UnroutableError:
             logger.info("Retaining message %s on %s", email.uid, email.server)

@@ -189,7 +189,7 @@ class LLMInteraction(LLMToolbox, Thread):
         request = asdict(tool_call)
         if response_uuid:
             request["response_uuid"] = str(response_uuid)
-        channel.publish(
+        channel.publish_request(
             message=request,
             routing_key="mediawiki.lookup.requests",
         )

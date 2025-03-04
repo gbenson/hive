@@ -32,7 +32,7 @@ class ReadingListProcessor(Processor):
                 return False
 
         try:
-            channel.publish(
+            channel.publish_request(
                 message=email.summary,
                 routing_key=self.queue_name,
             )

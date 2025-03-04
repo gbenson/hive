@@ -87,7 +87,7 @@ class MockChannel:
         assert queue not in self._consume_events
         self._consume_events[queue] = on_message_callback
 
-    def publish(self, *, message, routing_key):
+    def publish_event(self, *, message, routing_key):
         self._consume_events[routing_key](
             channel=self,
             message=Message(

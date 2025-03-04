@@ -45,7 +45,7 @@ class MockConnection:
 class MockChannel:
     mock_messagebus: MockMessageBus
 
-    def publish(self, *, routing_key: str, message: dict[str, Any]):
+    def publish_event(self, *, routing_key: str, message: dict[str, Any]):
         event = MockEvent(routing_key, message)
         self.mock_messagebus.published_events.append(event)
 

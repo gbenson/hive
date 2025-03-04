@@ -7,7 +7,7 @@ from hive.service import RestartMonitor, ServiceCondition
 
 
 class MockChannel:
-    def maybe_publish(self, **kwargs):
+    def maybe_publish_event(self, **kwargs):
         return kwargs
 
 

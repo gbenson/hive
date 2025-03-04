@@ -4,10 +4,10 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Service status monitor for Hive"
 dependencies = [
-    "hive-chat>=0.0.8",
+    "hive-chat>=0.0.9",
     "hive-common",
-    "hive-messaging>=0.11.0",
-    "hive-service>=0.0.7",
+    "hive-messaging>=0.12.0",
+    "hive-service>=0.0.8",
     "valkey",
 ]
 

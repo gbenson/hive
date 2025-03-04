@@ -48,7 +48,7 @@ class ServiceStatus:
     ):
         """Publish this report via a :class:`hive.messaging.Channel`.
         """
-        return channel.maybe_publish(
+        return channel.maybe_publish_event(
             message=self._as_dict(),
             routing_key=routing_key,
         )

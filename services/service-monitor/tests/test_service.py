@@ -108,7 +108,7 @@ class MockChannel:
     def __init__(self):
         self.tell_user_log = []
 
-    def publish(self, *, routing_key: str, message: dict[str, Any]):
+    def publish_event(self, *, routing_key: str, message: dict[str, Any]):
         assert routing_key == "chat.messages"
         message = ChatMessage.from_json(message)
         self.tell_user_log.append(((message.text,), {

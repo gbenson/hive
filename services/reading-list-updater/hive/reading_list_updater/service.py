@@ -42,7 +42,7 @@ class Service(HiveService):
         if not meta:
             email_summary["meta"] = meta
         meta["reading_list_entry"] = entry.json()
-        channel.maybe_publish(
+        channel.maybe_publish_event(
             message=email_summary,
             routing_key=self.update_event_routing_key,
         )
@@ -56,7 +56,7 @@ class Service(HiveService):
         r.raise_for_status()
 
         if not r.extensions.get("from_cache"):
-            channel.maybe_publish(
+            channel.maybe_publish_event(
                 message={
                     "request_url": str(entry.url),
                     **httpx.response_as_json(r),

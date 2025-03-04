@@ -104,11 +104,14 @@ class LLMInteraction(Thread):
             response = message.json()
             d("%s: received: %s", self.name, response)
             self.on_response(channel, response)
+            if response.get("error"):
+                raise RuntimeError(response)
             if not response.get("done", True):
                 return  # keep consuming
+            channel.stop_consuming()
         except Exception:
-            logger.exception("%s: EXCEPTION", self.name)
-        channel.stop_consuming()
+            channel.stop_consuming()
+            raise
 
     def on_response(self, channel: Channel, response: dict[str, Any]):
         if (error_message := response.get("error")):

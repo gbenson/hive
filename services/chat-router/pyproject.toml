@@ -5,9 +5,9 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Chat message router for Hive"
 dependencies = [
     "hive-chat>=0.0.9",
-    "hive-common",
-    "hive-messaging>=0.12.0",
-    "hive-service>=0.0.8",
+    "hive-common>=0.1.0",
+    "hive-messaging>=0.12.1",
+    "hive-service>=0.0.9",
 ]
 
 [project.scripts]

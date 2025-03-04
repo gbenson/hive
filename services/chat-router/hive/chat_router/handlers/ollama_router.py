@@ -8,12 +8,10 @@ from uuid import uuid4
 from hive.chat import ChatMessage, tell_user
 from hive.messaging import Channel, Message, blocking_connection
 
-# from ..handler import Handler
+from ..handler import Handler
 
 logger = logging.getLogger(__name__)
 d = logger.info
-
-Handler = type("XXXDisabled", (), {})
 
 
 class LLMHandler(Handler):

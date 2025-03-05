@@ -8,6 +8,7 @@ from functools import cache, cached_property
 from typing import Callable, Optional
 
 from pika import BasicProperties, DeliveryMode
+from pika.channel import Channel as PikaChannel
 
 from .message import Message
 from .semantics import Semantics
@@ -19,8 +20,9 @@ logger = logging.getLogger(__name__)
 class Channel(WrappedPikaThing):
     """The primary entry point for interacting with Hive's message bus.
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, pika: PikaChannel, *, name: str = "", **kwargs):
+        super().__init__(pika)
+        self.name = name
         self._pre_publish_hooks = []
 
     def add_pre_publish_hook(self, hook: Callable):
@@ -89,20 +91,22 @@ class Channel(WrappedPikaThing):
             *,
             queue: str,
             on_message_callback: Callable,
+            exclusive: bool = False,
     ):
         exchange = self._fanout_exchange_for(queue)
 
         if semantics is Semantics.PUBLISH_SUBSCRIBE:
             if (prefix := self.consumer_name):
                 queue = f"{prefix}.{queue}"
-            if (prefix := self.exclusive_queue_prefix):
-                queue = f"{prefix}{queue}"
 
-        self.queue_declare(
-            queue,
-            dead_letter_routing_key=queue,
-            durable=True,
-        )
+        kwargs = {}
+        if exclusive:
+            kwargs["exclusive"] = True
+        else:
+            kwargs["durable"] = True
+            kwargs["dead_letter_routing_key"] = queue
+
+        self.queue_declare(queue, **kwargs)
 
         self.queue_bind(
             queue=queue,
@@ -116,25 +120,16 @@ class Channel(WrappedPikaThing):
     @cached_property
     def consumer_name(self) -> str:
         """Name for per-consumer fanout queues to this channel.
-        May be overwritten or overridden (you'll actually have
-        to if more than one channel per process consumes the
-        same fanout "queue").
-        """
-        return ".".join(
-            part for part in os.path.basename(sys.argv[0]).split("-")
-            if part != "hive"
-        )
 
-    @cached_property
-    def exclusive_queue_prefix(self) -> str:
-        """Prefix for named exclusive queues on this channel.
-        Should be the empty string for production environments.
+        May be overwritten or overridden.  You may need this to avoid
+        competing consumers on fanout "queue"s, though using named
+        channels to ensure unique names is preferable.
         """
-        envvar = "HIVE_EXCLUSIVE_QUEUE_PREFIX"
-        result = os.environ.get(envvar, "").rstrip(".")
-        if not result:
-            return ""
-        return f"{result}."
+        entry_point = os.path.basename(sys.argv[0])
+        parts = list(entry_point.removeprefix("hive-").split("-"))
+        if (channel_name := self.name):
+            parts.append(channel_name)
+        return ".".join(parts)
 
     # Exchanges
 
@@ -169,11 +164,6 @@ class Channel(WrappedPikaThing):
             arguments: Optional[dict[str, str]] = None,
             **kwargs
     ):
-        if kwargs.get("exclusive", False) and queue:
-            if (prefix := self.exclusive_queue_prefix):
-                if not queue.startswith(prefix):
-                    queue = f"{prefix}{queue}"
-
         if dead_letter_routing_key:
             DLX_ARG = "x-dead-letter-exchange"
             if arguments:

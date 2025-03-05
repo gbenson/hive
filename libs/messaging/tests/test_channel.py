@@ -2,6 +2,8 @@ import time
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from pika import BasicProperties, DeliveryMode
 
 from hive.messaging import Channel, Message
@@ -63,7 +65,12 @@ def test_publish_request():
     })]
 
 
-def test_consume_requests():
+@pytest.mark.parametrize(
+    "channel_kwargs",
+    ({},
+     {"name": "hello.world"},
+     ))
+def test_consume_requests(channel_kwargs):
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_qos = MockMethod()
@@ -76,7 +83,7 @@ def test_consume_requests():
     on_message_callback = MockCallback()
     mock.basic_ack = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(pika=mock, **channel_kwargs)
     channel.consume_requests(
         queue="arr.pirates",
         on_message_callback=on_message_callback,
@@ -168,9 +175,7 @@ def test_publish_event():
     })]
 
 
-def test_consume_events(monkeypatch):
-    monkeypatch.delenv("HIVE_EXCLUSIVE_QUEUE_PREFIX", raising=False)
-
+def test_consume_events():
     mock = MockPika()
     mock.exchange_declare = MockMethod()
     mock.basic_qos = MockMethod()
@@ -281,3 +286,145 @@ def test_publish_with_expiration():
         "properties": expect_properties,
         "mandatory": True,
     })]
+
+
+def test_named_channel():
+    mock = MockPika()
+    mock.exchange_declare = MockMethod()
+    mock.basic_qos = MockMethod()
+    mock.queue_declare = MockMethod(
+        returns=type("Result", (), dict(
+            method=type("Method", (), dict(
+                queue="TeStQuEu3")))))
+    mock.queue_bind = MockMethod()
+    mock.basic_consume = MockMethod()
+    on_message_callback = MockCallback()
+    mock.basic_ack = MockMethod()
+
+    channel = Channel(pika=mock, name="Eugene.Goostman")
+    channel.consume_events(
+        queue="arr.pirates",
+        on_message_callback=on_message_callback,
+    )
+
+    assert mock.exchange_declare.call_log == [((), {
+        "exchange": "hive.arr.pirates",
+        "exchange_type": "fanout",
+        "durable": True,
+    }), ((), {
+        "exchange": "hive.dead.letter",
+        "exchange_type": "direct",
+        "durable": True,
+    })]
+    assert mock.basic_qos.call_log == [((), {
+        "prefetch_count": 1,
+    })]
+    assert mock.queue_declare.call_log == [((
+        "x.pytest.Eugene.Goostman.arr.pirates",
+    ), {
+        "durable": True,
+    }), ((
+        "pytest.Eugene.Goostman.arr.pirates",
+    ), {
+        "durable": True,
+        "arguments": {
+            "x-dead-letter-exchange": "hive.dead.letter",
+        },
+    })]
+    assert mock.queue_bind.call_log == [((), {
+        "queue": "x.pytest.Eugene.Goostman.arr.pirates",
+        "exchange": "hive.dead.letter",
+        "routing_key": "pytest.Eugene.Goostman.arr.pirates",
+    }), ((), {
+        "exchange": "hive.arr.pirates",
+        "queue": "pytest.Eugene.Goostman.arr.pirates",
+    })]
+
+    assert len(mock.basic_consume.call_log) == 1
+    assert len(mock.basic_consume.call_log[0]) == 2
+    got_callback = mock.basic_consume.call_log[0][1]["on_message_callback"]
+    assert mock.basic_consume.call_log == [((), {
+        "queue": "pytest.Eugene.Goostman.arr.pirates",
+        "on_message_callback": got_callback,
+    })]
+    assert on_message_callback.call_log == []
+    assert mock.basic_ack.call_log == []
+
+    expect_method = type("method", (), {"delivery_tag": 5})
+    expect_body = b'{"hello":"W0RLD"}'
+    got_callback(channel._pika, expect_method, expect_properties, expect_body)
+
+    assert len(on_message_callback.call_log) == 1
+    assert len(on_message_callback.call_log[0]) == 2
+    assert len(on_message_callback.call_log[0][0]) == 2
+    message = on_message_callback.call_log[0][0][1]
+    assert on_message_callback.call_log == [((channel, message), {})]
+    assert message.method is expect_method
+    assert message.properties is expect_properties
+    assert message.body is expect_body
+
+    assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
+
+
+def test_consume_exclusive():
+    mock = MockPika()
+    mock.exchange_declare = MockMethod()
+    mock.basic_qos = MockMethod()
+    mock.queue_declare = MockMethod(
+        returns=type("Result", (), dict(
+            method=type("Method", (), dict(
+                queue="TeStQuEu3")))))
+    mock.queue_bind = MockMethod()
+    mock.basic_consume = MockMethod()
+    on_message_callback = MockCallback()
+    mock.basic_ack = MockMethod()
+
+    channel = Channel(pika=mock)
+    channel.consume_events(
+        queue="arr.pirates",
+        on_message_callback=on_message_callback,
+        exclusive=True,
+    )
+
+    assert mock.exchange_declare.call_log == [((), {
+        "exchange": "hive.arr.pirates",
+        "exchange_type": "fanout",
+        "durable": True,
+    })]
+    assert mock.basic_qos.call_log == [((), {
+        "prefetch_count": 1,
+    })]
+    assert mock.queue_declare.call_log == [((
+        "pytest.arr.pirates",
+    ), {
+        "exclusive": True,
+    })]
+    assert mock.queue_bind.call_log == [((), {
+        "exchange": "hive.arr.pirates",
+        "queue": "pytest.arr.pirates",
+    })]
+
+    assert len(mock.basic_consume.call_log) == 1
+    assert len(mock.basic_consume.call_log[0]) == 2
+    got_callback = mock.basic_consume.call_log[0][1]["on_message_callback"]
+    assert mock.basic_consume.call_log == [((), {
+        "queue": "pytest.arr.pirates",
+        "on_message_callback": got_callback,
+    })]
+    assert on_message_callback.call_log == []
+    assert mock.basic_ack.call_log == []
+
+    expect_method = type("method", (), {"delivery_tag": 5})
+    expect_body = b'{"hello":"W0RLD"}'
+    got_callback(channel._pika, expect_method, expect_properties, expect_body)
+
+    assert len(on_message_callback.call_log) == 1
+    assert len(on_message_callback.call_log[0]) == 2
+    assert len(on_message_callback.call_log[0][0]) == 2
+    message = on_message_callback.call_log[0][0][1]
+    assert on_message_callback.call_log == [((channel, message), {})]
+    assert message.method is expect_method
+    assert message.properties is expect_properties
+    assert message.body is expect_body
+
+    assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]

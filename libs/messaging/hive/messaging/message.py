@@ -12,6 +12,10 @@ class Message:
     body: bytes
 
     @property
+    def correlation_id(self) -> str:
+        return self.properties.correlation_id
+
+    @property
     def content_type(self) -> str:
         return self.properties.content_type
 

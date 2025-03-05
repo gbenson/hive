@@ -201,6 +201,7 @@ class Channel(WrappedPikaThing):
             message: bytes | dict,
             exchange: str = "",
             routing_key: str = "",
+            correlation_id: Optional[str] = None,
             content_type: Optional[str] = None,
             delivery_mode: DeliveryMode = DeliveryMode.Persistent,
             mandatory: bool = False,
@@ -213,6 +214,7 @@ class Channel(WrappedPikaThing):
 
         properties = {
             "content_type": content_type,
+            "correlation_id": correlation_id,
             "delivery_mode": delivery_mode,
         }
 

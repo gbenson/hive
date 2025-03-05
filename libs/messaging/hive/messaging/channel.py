@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+from datetime import datetime, timedelta, timezone
 from functools import cache, cached_property
 from typing import Callable, Optional
 
@@ -213,19 +214,28 @@ class Channel(WrappedPikaThing):
             content_type: Optional[str] = None,
             delivery_mode: DeliveryMode = DeliveryMode.Persistent,
             mandatory: bool = False,
+            consume_by: Optional[timedelta] = None,
     ):
         if mandatory and delivery_mode is not DeliveryMode.Persistent:
             raise ValueError(delivery_mode)
 
         payload, content_type = self._encapsulate(message, content_type)
+
+        properties = {
+            "content_type": content_type,
+            "delivery_mode": delivery_mode,
+        }
+
+        if consume_by:
+            ttl = consume_by - datetime.now(tz=timezone.utc)
+            ttl_ms = round(ttl / timedelta(milliseconds=1))
+            properties["expiration"] = str(ttl_ms)
+
         return self.basic_publish(
             exchange=exchange,
             routing_key=routing_key,
             body=payload,
-            properties=BasicProperties(
-                content_type=content_type,
-                delivery_mode=delivery_mode,  # Persist across broker restarts.
-            ),
+            properties=BasicProperties(**properties),
             mandatory=mandatory,  # Don't fail silently.
         )
 

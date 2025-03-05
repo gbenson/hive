@@ -1,3 +1,7 @@
+import time
+
+from datetime import datetime, timedelta, timezone
+
 from pika import BasicProperties, DeliveryMode
 
 from hive.messaging import Channel, Message
@@ -16,6 +20,7 @@ class MockMethod:
         self._returns = returns
 
     def __call__(self, *args, **kwargs):
+        time.sleep(0.01)
         self.call_log.append((args, kwargs))
         return self._returns
 
@@ -241,3 +246,38 @@ def test_consume_events(monkeypatch):
     assert message.body is expect_body
 
     assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
+
+
+def test_publish_with_expiration():
+    mock = MockPika()
+    mock.exchange_declare = MockMethod()
+    mock.basic_publish = MockMethod()
+
+    channel = Channel(pika=mock)
+    channel.publish_request(
+        message={
+            "bonjour": "madame",
+        },
+        routing_key="egg.nog",
+        consume_by=datetime.now(tz=timezone.utc) + timedelta(seconds=1),
+    )
+
+    assert len(mock.basic_publish.call_log) == 1
+    got_properties = mock.basic_publish.call_log[0][1]["properties"]
+    expiration = got_properties.expiration
+    assert isinstance(expiration, str)
+    assert 0 < int(expiration) < 1000
+
+    got_properties.expiration = None
+    assert mock.exchange_declare.call_log == [((), {
+        "exchange": "hive.egg.nog",
+        "exchange_type": "fanout",
+        "durable": True,
+    })]
+    assert mock.basic_publish.call_log == [((), {
+        "exchange": "hive.egg.nog",
+        "routing_key": "",
+        "body": b'{"bonjour": "madame"}',
+        "properties": expect_properties,
+        "mandatory": True,
+    })]

@@ -2,19 +2,9 @@ import json
 import os
 import yaml
 
-from typing import Optional
 from collections.abc import Iterable
 
-
-def user_config_dir() -> Optional[str]:
-    """https://pkg.go.dev/os#UserConfigDir"""
-    dirname = os.environ.get("XDG_CONFIG_HOME")
-    if dirname:
-        return dirname
-    homedir = os.environ.get("HOME")
-    if homedir:
-        return os.path.join(homedir, ".config")
-    return None
+from .xdg import user_config_dir
 
 
 class Reader:

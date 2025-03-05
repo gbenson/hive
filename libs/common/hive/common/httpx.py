@@ -1,5 +1,3 @@
-import os
-
 from collections.abc import Iterator
 from contextlib import suppress
 from pathlib import Path
@@ -10,24 +8,14 @@ from hishel import CacheClient, FileStorage
 from httpx import Client, Request, Response, URL  # noqa: F401
 
 from .config import read as read_config
+from .xdg import user_cache_dir
 from .__version__ import __version__
 
 __url__ = "https://github.com/gbenson/hive"
 
 
-def user_cache_path() -> Optional[Path]:
-    """https://pkg.go.dev/os#UserCacheDir
-    """
-    dirname = os.environ.get("XDG_CACHE_HOME")
-    if dirname:
-        return Path(dirname)
-    with suppress(RuntimeError):
-        return Path.home() / ".cache"
-    return None
-
-
 def _default_cache_path_options() -> Iterator[Path]:
-    if (path := user_cache_path()):
+    if (path := user_cache_dir()):
         yield path
     for dirname in ("/var/cache", "/var/tmp", "/tmp"):
         yield Path(dirname)

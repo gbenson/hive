@@ -8,8 +8,6 @@ services:
       - ollama
     secrets:
       - rabbitmq.env
-    command:
-      - --request-queue-prefix=${OLLAMA_REQUEST_QUEUE_PREFIX}
 
   ollama:
     image: ollama/ollama

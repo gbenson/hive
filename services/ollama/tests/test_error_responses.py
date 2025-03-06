@@ -12,6 +12,7 @@ from hive.ollama import Service
 @dataclass
 class MockChannel:
     call_log: list = field(default_factory=list)
+    consumer_name: str = "mock_consumer"
 
     def publish_event(self, **kwargs):
         self.call_log.append(("publish_event", kwargs))
@@ -125,9 +126,21 @@ def test_error_response_5():
     channel = MockChannel()
     with pytest.raises(RequestException):
         service.on_request(channel, MockMessage5())
-    message = channel.call_log[0][1]["message"]["error"]
+    message = channel.call_log[1][1]["message"]["error"]
     assert message.startswith("ConnectionError: ")
     assert channel.call_log == [(
+        "publish_event", {
+            "correlation_id": "MockMessage5.correlation_id",
+            "message": {
+                "hive_flow": {
+                    "consumer": "mock_consumer",
+                    "status": "generating response",
+                },
+                "done": False,
+            },
+            "routing_key": "ollama.api.responses",
+        },
+    ), (
         "publish_event", {
             "correlation_id": "MockMessage5.correlation_id",
             "message": {
@@ -149,9 +162,21 @@ def test_error_response_6(test_server):
     channel = MockChannel()
     with pytest.raises(RequestException):
         service.on_request(channel, MockMessage6())
-    message = channel.call_log[0][1]["message"]["error"]
+    message = channel.call_log[1][1]["message"]["error"]
     assert message.startswith("HTTPError: 501 Server Error: Unsupported method ('POST') ")
     assert channel.call_log == [(
+        "publish_event", {
+            "correlation_id": "MockMessage6.correlation_id",
+            "message": {
+                "hive_flow": {
+                    "consumer": "mock_consumer",
+                    "status": "generating response",
+                },
+                "done": False,
+            },
+            "routing_key": "ollama.api.responses",
+        },
+    ), (
         "publish_event", {
             "correlation_id": "MockMessage6.correlation_id",
             "message": {

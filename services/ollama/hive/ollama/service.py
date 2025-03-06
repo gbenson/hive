@@ -110,6 +110,14 @@ class Service(HiveService):
             case _:
                 raise NotImplementedError(method)
 
+        flow.publish_response({
+            "hive_flow": {
+                "consumer": flow.channel.consumer_name,
+                "status": "generating response",
+            },
+            "done": False,
+        })
+
         r = requests.request(method, url, **kwargs)
         r.raise_for_status()
 

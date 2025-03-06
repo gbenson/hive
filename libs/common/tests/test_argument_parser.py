@@ -1,9 +1,15 @@
 import logging
+import sys
 
 import pytest
 
 from hive.common import ArgumentParser
 from hive.common.testing import want_to_see
+
+
+@pytest.fixture(autouse=True)
+def clean_commandline(monkeypatch):
+    monkeypatch.setattr(sys, "argv", sys.argv[:1])
 
 
 def test_hive_default_log_level(monkeypatch):

@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 
-from collections.abc import Iterable
 from dataclasses import dataclass
-from functools import partial
-from typing import Any, Callable, ClassVar, Optional, TypeAlias
+from typing import Any, ClassVar, Optional
 from urllib.parse import urlparse, urljoin
 
 import requests
@@ -15,6 +15,39 @@ from hive.service import HiveService
 
 logger = logging.getLogger(__name__)
 d = logger.info
+
+
+@dataclass
+class Flow:
+    correlation_id: str
+    channel: Channel
+    responses_queue: str
+    _sent_done: bool = False
+
+    def __str__(self) -> str:
+        return self.correlation_id  # for d("%s: ...", flow, ...)
+
+    def __enter__(self) -> Flow:
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        if exc_type:
+            error = f"{exc_type.__name__}: {exc_val}"
+        elif not self._sent_done:
+            error = "Unterminated response"
+        else:
+            return
+        self.publish_response({"error": error, "done": True})
+
+    def publish_response(self, response: dict[str, Any]) -> None:
+        self.channel.publish_event(
+            message=response,
+            correlation_id=self.correlation_id,
+            routing_key=self.responses_queue,
+        )
+        if not response.get("done"):
+            return
+        self._sent_done = True
 
 
 @dataclass
@@ -43,26 +76,19 @@ class Service(HiveService):
     def run(self):
         with self.blocking_connection() as conn:
             channel = conn.channel()
-            channel.consume_requests(
+            channel.consume_requests(  # XXX consume_flow_requests
                 queue=self.requests_queue,
                 on_message_callback=self.on_request,
             )
             channel.start_consuming()
 
-    def on_request(self, channel: Channel, message: Message):
-        correlation_id = message.correlation_id
-        try:
-            response = self._on_request(channel, message)
-            d("%s: response: %s", correlation_id, response)
-            return response
-        except Exception:
-            logger.exception("%s: EXCEPTION", correlation_id)
-            raise
+    def on_request(self, channel: Channel, message: Message) -> None:
+        responses_queue = self.responses_queue
+        with Flow(message.correlation_id, channel, responses_queue) as flow:
+            self._on_request(flow, message.json())
 
-    def _on_request(self, channel: Channel, message: Message):
-        correlation_id = message.correlation_id
-        request = message.json()
-        d("%s: request: %s", correlation_id, request)
+    def _on_request(self, flow: Flow, request: dict[str, Any]) -> None:
+        d("%s: Request: %s", flow, request)
 
         base_url = self.ollama_api_url
         if not urlparse(base_url).path:
@@ -85,37 +111,7 @@ class Service(HiveService):
                 raise NotImplementedError(method)
 
         r = requests.request(method, url, **kwargs)
-        if r.status_code != 200:
-            try:
-                return r.json()
-            except Exception:
-                logger.exception("%s: EXCEPTION", correlation_id)
-                return r.text
+        r.raise_for_status()
 
-        return self.stream_response(
-            messages=map(json.loads, r.iter_lines()),
-            publish_message=partial(
-                channel.publish_event,
-                routing_key=self.responses_queue,
-                correlation_id=correlation_id,
-            ),
-        )
-
-    _Message: ClassVar[TypeAlias] = dict[str, Any]
-    _SENTINEL: ClassVar[_Message] = {}
-
-    @classmethod
-    def stream_response(
-            cls,
-            messages: Iterable[_Message],
-            publish_message: Callable[[_Message], None],
-            buffered_message: _Message = _SENTINEL,
-    ) -> Optional[_Message]:
-        for next_message in messages:
-            if buffered_message is not cls._SENTINEL:
-                publish_message(message=buffered_message)
-            buffered_message = next_message
-        if buffered_message is cls._SENTINEL:
-            return None
-        publish_message(message=buffered_message)
-        return buffered_message
+        for line in r.iter_lines():
+            flow.publish_response(json.loads(line))

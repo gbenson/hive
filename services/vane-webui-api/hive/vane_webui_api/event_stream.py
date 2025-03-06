@@ -4,7 +4,7 @@ import time
 from threading import Lock
 from typing import IO, Optional
 
-from hive.common.units import SECONDS
+from hive.common.units import SECOND
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class EventStream:
     def __init__(
             self,
             wfile: IO[bytes],
-            max_idle_time: float = 25 * SECONDS,
+            max_idle_time: float = 25 * SECOND,
     ):
         self._wfile = wfile
         self._lock = Lock()

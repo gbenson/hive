@@ -8,7 +8,7 @@ from typing import Optional
 
 from valkey.exceptions import ConnectionError
 
-from hive.common.units import DAYS
+from hive.common.units import DAY
 
 from .exceptions import HTTPError
 from .route import Route
@@ -81,7 +81,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_set_cookie(
             self.SESSION_ID_COOKIE,
             session_id,
-            max_age=(365 * DAYS) // 12,
+            max_age=(365 * DAY) // 12,
             secure=True,
             samesite="strict",
             httponly=True,

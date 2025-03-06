@@ -8,7 +8,7 @@ import requests
 
 from hive.common.socketserver import serving
 from hive.common.testing import test_config_dir  # noqa: F401
-from hive.common.units import SECONDS
+from hive.common.units import SECOND
 from hive.messaging import Message
 from hive.vane_webui_api.server import HTTPServer
 
@@ -162,7 +162,7 @@ def _return_ok_secure(self, cookie, request):
 class HTTPSession(requests.Session):
     def send(self, request, **kwargs):
         if not kwargs.get("timeout"):
-            kwargs["timeout"] = 30 * SECONDS
+            kwargs["timeout"] = 30 * SECOND
         return super().send(request, **kwargs)
 
 

@@ -8,7 +8,7 @@ from enum import Enum
 from shutil import which
 
 from hive.chat import ChatMessage
-from hive.common.units import SECONDS, MINUTES
+from hive.common.units import SECOND, MINUTE
 from hive.messaging import Channel, Message
 
 from .connector import ConnectorService
@@ -62,8 +62,8 @@ class Sender(ConnectorService):
             *messages,
             _format: MessageFormat = MessageFormat.TEXT,
             max_retries: int = 4,
-            initial_timeout: float = 30 * SECONDS,
-            max_timeout: float = 5 * MINUTES,
+            initial_timeout: float = 30 * SECOND,
+            max_timeout: float = 5 * MINUTE,
             message_uuid: str = "[no-uuid]",
     ):
         if not messages:
@@ -122,8 +122,8 @@ class Sender(ConnectorService):
             reaction: str,
             receiving_event_id: str,
             max_retries: int = 4,
-            initial_timeout: float = 30 * SECONDS,
-            max_timeout: float = 5 * MINUTES,
+            initial_timeout: float = 30 * SECOND,
+            max_timeout: float = 5 * MINUTE,
             message_uuid: str = "[no-uuid]",
     ):
         event = json.dumps({

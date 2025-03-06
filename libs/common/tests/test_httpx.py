@@ -42,7 +42,7 @@ def test_get(test_server):
     assert req["requestline"].startswith("GET /hello-world HTTP/1.")
     assert req["headers"]["host"] == ("%s:%d" % test_server.server_address)
     user_agent = req["headers"]["user-agent"]
-    assert user_agent.startswith("HiveBot/0.0.")
+    assert user_agent.startswith("HiveBot/0.")
     assert " (bot; +https://" in user_agent
 
 

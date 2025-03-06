@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from socketserver import BaseServer
 from threading import Thread
 
-from .units import SECONDS
+from .units import SECOND
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def serving(
         server: BaseServer,
         *,
-        shutdown_timeout: float = 30 * SECONDS,
+        shutdown_timeout: float = 30 * SECOND,
         daemon: bool = True,
 ) -> Thread:
     """Run a :class:`socketserver.BaseServer` in another thread.
@@ -28,5 +28,5 @@ def serving(
         logger.info("%s: %s: Stopping server", thread, server)
         server.shutdown()
         logger.debug("%s: Waiting for thread exit", thread)
-        thread.join(timeout=30 * SECONDS)
+        thread.join(timeout=shutdown_timeout)
         logger.info("%s: %s: Server stopped", thread, server)

@@ -13,7 +13,7 @@ from typing import Any, IO, Optional
 from valkey import Valkey
 
 from hive.chat import ChatMessage
-from hive.common.units import DAYS, MINUTE
+from hive.common.units import DAY, MINUTE
 from hive.messaging import Channel, Message
 
 from .authenticator import Authenticator
@@ -34,8 +34,8 @@ class HTTPServer(ThreadingHTTPServer):
             queue_name: str = "chat.messages",
             key_value_store_url: str = "valkey://vane-valkey",
             csrf_token_lifetime: float = 1 * MINUTE,
-            session_id_lifetime: float = 28 * DAYS,
-            message_lifetime: float = 60 * DAYS,
+            session_id_lifetime: float = 28 * DAY,
+            message_lifetime: float = 60 * DAY,
             num_initial_events_to_send: int = 20,
             authenticator: Optional[Authenticator] = None,
             **kwargs,

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 from typing import Optional
 
-from hive.common.units import MINUTES
+from hive.common.units import MINUTE
 from hive.messaging import Channel
 
 from .status import ServiceCondition, ServiceStatus
@@ -20,7 +20,7 @@ class RestartMonitor:
     basename: str = ".hive-service-restart.stamp"
     dirname: str = field(default_factory=os.getcwd)
     status: ServiceStatus = field(default_factory=ServiceStatus)
-    rapid_restart_cutoff: float = 5 * MINUTES
+    rapid_restart_cutoff: float = 5 * MINUTE
     rapid_restart_cooldown_time: Optional[float] = None
     multiple_restarts_logged: bool = False
 

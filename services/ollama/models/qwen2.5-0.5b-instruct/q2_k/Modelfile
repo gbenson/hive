@@ -1,0 +1,88 @@
+FROM hf.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF:Q2_K
+
+# Reinstate the system prompt from the ollama qwen2.5:0.5b model[1];
+# you don't get it if you pull the quantized version from HF[2], so
+# the model doesn't know who it is:
+#
+#  ollama run qwen2.5:0.5b "what's your name?"
+#  - I am Qwen, an AI language model created by Alibaba Cloud. ...
+#
+#  ollama run hf.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF:Q2_K "who are you?"
+#  - Hello, I'm [Your Name].
+#  - I am a human digital assistant created by Anthropic ...
+#  - I am a large language model created by Alibaba Cloud ...
+#
+#  ollama run gbenson/qwen2.5:0.5b-q2_k "who are you?"
+#  -  I am Qwen, an AI language model created by Alibaba Cloud. ...
+#
+#
+# It's not a 100% thing, the HF version sometimes knows its name, and
+# the other ones fuck it up sometimes, it's a nudge not a guardrail.
+# My favourites:
+#
+#  ollama run hf.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF:Q2_K "who are you?"
+#  - I am a large language model created by Alibaba Cloud, I'm called
+#    Qwen. My name is Xueyuan.
+#
+#  ollama run gbenson/qwen2.5:0.5b-q2_k "what's your name?"
+#  - I am Qwen, a model created by Alibaba Cloud. My full name is
+#    Qwen-1p07k, and I am called "Qwen".
+#
+#  ollama run gbenson/qwen2.5:0.5b-q2_k "who are you?"
+#  - I am Qwen, also known as Aardvark 185429. ...
+#
+# [1]: https://ollama.com/library/qwen2.5
+# [2]: https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct
+
+SYSTEM """You are Qwen, created by Alibaba Cloud. You are a helpful assistant."""
+
+TEMPLATE """{{- if .Messages }}
+{{- if or .System .Tools }}<|im_start|>system
+{{- if .System }}
+{{ .System }}
+{{- end }}
+{{- if .Tools }}
+
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{{- range .Tools }}
+{"type": "function", "function": {{ .Function }}}
+{{- end }}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call>
+{{- end }}<|im_end|>
+{{ end }}
+{{- range $i, $_ := .Messages }}
+{{- $last := eq (len (slice $.Messages $i)) 1 -}}
+{{- if eq .Role "user" }}<|im_start|>user
+{{ .Content }}<|im_end|>
+{{ else if eq .Role "assistant" }}<|im_start|>assistant
+{{ if .Content }}{{ .Content }}
+{{- else if .ToolCalls }}<tool_call>
+{{ range .ToolCalls }}{"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }}}
+{{ end }}</tool_call>
+{{- end }}{{ if not $last }}<|im_end|>
+{{ end }}
+{{- else if eq .Role "tool" }}<|im_start|>user
+<tool_response>
+{{ .Content }}
+</tool_response><|im_end|>
+{{ end }}
+{{- if and (ne .Role "assistant") $last }}<|im_start|>assistant
+{{ end }}
+{{- end }}
+{{- else }}
+{{- if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ if .Prompt }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+{{ end }}<|im_start|>assistant
+{{ end }}{{ .Response }}{{ if .Response }}<|im_end|>{{ end }}"""

@@ -13,7 +13,7 @@ from requests import PreparedRequest
 from requests.auth import AuthBase, HTTPBasicAuth
 
 from hive.common import read_config
-from hive.common.units import MINUTE
+from hive.common.units import MINUTE, SECOND
 
 from .__version__ import __version__
 
@@ -23,7 +23,7 @@ __url__ = "https://github.com/gbenson/hive"
 class HiveWiki(PyMediaWiki):
     DEFAULT_CONFIG_KEY = "mediawiki"
     MAX_REQUEST_TIMEOUT = 10 * MINUTE
-    MIN_REQUEST_INTERVAL = timedelta(seconds=0.1)
+    MIN_REQUEST_INTERVAL = 0.1 * SECOND
 
     def __init__(self, **kwargs):
         config_sect = self.DEFAULT_CONFIG_KEY
@@ -80,7 +80,8 @@ class HiveWiki(PyMediaWiki):
         """Raise a ValueError if the current configuration is unsafe.
         """
         timeout = self.timeout
-        if not timeout or timeout < 0 or timeout > self.MAX_REQUEST_TIMEOUT:
+        if not timeout or timeout < 0 or (
+                timeout > self.MAX_REQUEST_TIMEOUT.total_seconds()):
             raise ValueError(f"timeout: {timeout!r}")
 
         if not self.rate_limit:

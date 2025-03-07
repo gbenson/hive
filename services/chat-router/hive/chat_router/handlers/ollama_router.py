@@ -38,7 +38,7 @@ class LLMInteraction(Thread):
     def __init__(
             self,
             message: ChatMessage,
-            config_key: str = "ollama",
+            config_key: str = "ollama-router",
             config: dict[str, Any] | None = None,
             model: str | None = None,
             channel_name: str | None = None,
@@ -70,7 +70,10 @@ class LLMInteraction(Thread):
     def config(self) -> dict[str, Any]:
         if (c := self._config) is not None:
             return c
-        return read_config(self.config_key)
+        try:
+            return read_config(self.config_key)
+        except KeyError:
+            return {}
 
     @cached_property
     def model(self) -> dict[str, Any]:

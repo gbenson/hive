@@ -29,7 +29,7 @@ class LLMHandler(Handler):
 
     def handle(self, channel: Channel, message: ChatMessage) -> bool:
         interaction = LLMInteraction(message)
-        d("LLM request: %s", interaction.ollama_api_request)
+        d("LLM request: %r", interaction.user_prompt)
         interaction.start()
         return True
 
@@ -117,7 +117,11 @@ class LLMInteraction(Thread):
             ),
         )
         d("%s: got intent: %r", self.name, intent)
-        tell_user(f"{self.name}: got intent: {intent!r}", channel=channel)
+        tell_user(
+            f"{self.name}: got intent: {intent}",
+            channel=channel,
+            in_reply_to=self.chat_message,
+        )
         raise NotImplementedError
 
     def _run_flow(

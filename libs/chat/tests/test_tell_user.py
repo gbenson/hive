@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 from uuid import RFC_4122, UUID
 
-from hive.chat import ChatMessage, tell_user
+import pytest
+
+from hive.chat import ChatMessage, tell_user, tell_user_errors
 from hive.common import parse_datetime
 
 
@@ -42,3 +44,23 @@ def test_channel_creation(mock_messagebus):
         "timestamp": "2024-11-23 10:52:19.542344+00:00",
         "uuid": "0669fa00-93d8-4c35-bccc-469258b9b065",
     }
+
+
+def test_tell_user_errors(mock_messagebus):
+    class TestError(Exception):
+        pass
+
+    with pytest.raises(TestError):
+        with tell_user_errors():
+            raise TestError("oh <no>!")
+
+    assert len(mock_messagebus.published_events) == 1
+    event = mock_messagebus.published_events[0]
+    assert event.routing_key == "chat.messages"
+    assert event.message.keys() == {
+        "text", "html", "sender", "timestamp", "uuid",
+    }
+    assert event.message["text"] == "TestError: oh <no>!"
+    assert event.message["html"].endswith(
+        " <code>TestError: oh &lt;no&gt;!</code>",
+    )

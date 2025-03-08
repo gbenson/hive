@@ -1,8 +1,6 @@
 import os
 
-from datetime import datetime
-
-from hive.common import parse_uuid
+from hive.common import parse_datetime, parse_uuid
 from hive.service import RestartMonitor, ServiceCondition
 
 
@@ -34,7 +32,7 @@ def test_init():
     assert message.keys() == {"service", "condition", "meta"}
     meta = message["meta"]
     assert meta.keys() == {"timestamp", "type", "uuid"}
-    timestamp = datetime.fromisoformat(meta["timestamp"])
+    timestamp = parse_datetime(meta["timestamp"])
     uuid = parse_uuid(meta["uuid"])
     assert publish_kwargs == {
         "routing_key": "service.status",

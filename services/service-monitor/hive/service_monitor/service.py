@@ -1,7 +1,7 @@
 import re
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import timedelta
 from functools import cached_property
 from html import escape
 from typing import Optional
@@ -9,7 +9,7 @@ from typing import Optional
 from valkey import Valkey
 
 from hive.chat import tell_user
-from hive.common import parse_uuid
+from hive.common import parse_datetime, parse_uuid
 from hive.messaging import Channel, Message
 from hive.service import HiveService, RestartMonitor
 
@@ -18,7 +18,7 @@ from hive.service import HiveService, RestartMonitor
 class Service(HiveService):
     service_status_event_queue: str = "service.status"
     valkey_url: str = "valkey://service-monitor-valkey"
-    service_condition_window: float = RestartMonitor.rapid_restart_cutoff
+    service_condition_window: timedelta = RestartMonitor.rapid_restart_cutoff
 
     @cached_property
     def _valkey(self) -> Valkey:
@@ -36,7 +36,7 @@ class Service(HiveService):
 
         uuid = parse_uuid(report["meta"]["uuid"])
 
-        timestamp = datetime.fromisoformat(report["meta"]["timestamp"])
+        timestamp = parse_datetime(report["meta"]["timestamp"])
 
         service = report["service"]
         condition = report["condition"]
@@ -44,7 +44,7 @@ class Service(HiveService):
         if self._valkey.set(
                 f"service:{service}:{condition}",
                 message.body,
-                ex=self.service_condition_window,
+                ex=(self.service_condition_window).total_seconds(),
                 get=True,
         ):
             return  # old news

@@ -3,7 +3,7 @@ import os
 import time
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from typing import Optional
 
@@ -20,8 +20,8 @@ class RestartMonitor:
     basename: str = ".hive-service-restart.stamp"
     dirname: str = field(default_factory=os.getcwd)
     status: ServiceStatus = field(default_factory=ServiceStatus)
-    rapid_restart_cutoff: float = 5 * MINUTE
-    rapid_restart_cooldown_time: Optional[float] = None
+    rapid_restart_cutoff: timedelta = 5 * MINUTE
+    rapid_restart_cooldown_time: Optional[timedelta] = None
     multiple_restarts_logged: bool = False
 
     @property
@@ -46,7 +46,17 @@ class RestartMonitor:
         )
         return result
 
+    @property
+    def _rapid_restart_cutoff(self) -> float:
+        return self.rapid_restart_cooldown_time.total_seconds()
+
+    @property
+    def _rapid_restart_cooldown_time(self) -> float:
+        return self.rapid_restart_cooldown_time.total_seconds()
+
     def __post_init__(self):
+        if self.rapid_restart_cooldown_time is None:
+            self.rapid_restart_cooldown_time = self.rapid_restart_cutoff / 3
         try:
             self._run()
         except Exception:
@@ -96,7 +106,7 @@ class RestartMonitor:
             return
 
         this_interval = this_startup - last_startup
-        if this_interval > self.rapid_restart_cutoff:
+        if this_interval > self._rapid_restart_cutoff:
             self.log("restarted")
             return
 
@@ -107,7 +117,7 @@ class RestartMonitor:
             return
 
         last_interval = last_startup - startup_before_last
-        if last_interval > self.rapid_restart_cutoff:
+        if last_interval > self._rapid_restart_cutoff:
             self.warn_rapid_restart(this_interval)
             return
 
@@ -120,7 +130,7 @@ class RestartMonitor:
             return
 
         last_last_interval = startup_before_last - startup_two_before_last
-        if last_last_interval > self.rapid_restart_cutoff:
+        if last_last_interval > self._rapid_restart_cutoff:
             return
 
         # at least three rapid restarts in succession
@@ -130,9 +140,7 @@ class RestartMonitor:
     def _cool_your_engines(self):
         """https://www.youtube.com/watch?v=rsHqcUn6jBY
         """
-        cooldown_time = self.rapid_restart_cooldown_time
-        if cooldown_time is None:
-            cooldown_time = self.rapid_restart_cutoff // 3
+        cooldown_time = self._rapid_restart_cooldown_time
         logger.info(f"Sleeping for {cooldown_time} seconds")
         time.sleep(cooldown_time)
 

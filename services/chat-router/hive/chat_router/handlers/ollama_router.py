@@ -11,7 +11,7 @@ from threading import Thread
 from typing import Any, Optional
 from uuid import uuid4
 
-from hive.chat import ChatMessage, tell_user
+from hive.chat import ChatMessage, tell_user, tell_user_errors
 from hive.common import read_config
 from hive.common.units import MINUTE, SECOND
 from hive.messaging import Channel, Message, blocking_connection
@@ -28,9 +28,10 @@ class LLMHandler(Handler):
         return 99
 
     def handle(self, channel: Channel, message: ChatMessage) -> bool:
-        interaction = LLMInteraction(message)
-        d("LLM request: %r", interaction.user_prompt)
-        interaction.start()
+        with tell_user_errors(in_reply_to=message):
+            interaction = LLMInteraction(message)
+            d("LLM request: %r", interaction.user_prompt)
+            interaction.start()
         return True
 
 
@@ -89,11 +90,11 @@ class LLMInteraction(Thread):
 
     def run(self):
         d("%s: started", self.name)
-        try:
+        with tell_user_errors(in_reply_to=self.chat_message) as reporter:
             with blocking_connection() as conn:
-                self._run(conn.channel(name=self.channel_name))
-        except Exception:
-            logger.exception("%s: EXCEPTION", self.name)
+                channel = conn.channel(name=self.channel_name)
+                reporter.channel = channel
+                self._run(channel)
         d("%s: stopped", self.name)
 
     def _run(self, channel: Channel):
@@ -337,7 +338,6 @@ class IntentClassifier(OllamaRequestFlow):
         response = message.json()
         d("received: %s", response)
         if (error := response.get("error")):
-            tell_user(message.body.decode("utf-8"), channel=channel)
             raise RuntimeError(error)
         if not response.get("done", True):
             tell_user(message.body.decode("utf-8"), channel=channel)

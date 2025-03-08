@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from uuid import RFC_4122, UUID
 
 from hive.chat import ChatMessage, tell_user
+from hive.common import parse_datetime
 
 
 def test_basic_operation(mock_messagebus, mock_channel):
@@ -16,7 +17,7 @@ def test_basic_operation(mock_messagebus, mock_channel):
     assert message["text"] == "bonjour!"
     assert message["sender"] == "hive"
 
-    timestamp = datetime.fromisoformat(message["timestamp"])
+    timestamp = parse_datetime(message["timestamp"])
     delta = (datetime.now(tz=timezone.utc) - timestamp).total_seconds()
     assert 0 <= delta < 1
 

@@ -9,7 +9,7 @@ from types import NoneType
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from hive.common import parse_uuid
+from hive.common import parse_datetime, parse_uuid
 
 from .matrix import ClientEvent as MatrixEvent
 
@@ -38,7 +38,7 @@ class ChatMessage:
             raise TypeError(type(self.sender))
 
         if not isinstance(self.timestamp, datetime):
-            self.timestamp = datetime.fromisoformat(self.timestamp)
+            self.timestamp = parse_datetime(self.timestamp)
 
         self.uuid = parse_uuid(self.uuid)
 

@@ -266,33 +266,15 @@ class IntentClassifier(OllamaRequestFlow):
     SYSTEM_PROMPT = (
         """\
         You are Hive, a helpful assistant.  You will be provided with
-        customer service queries.  Classify each query into a primary
-        category and a secondary category.  Provide your output in
-        JSON format with the keys: primary and secondary.
+        customer service queries.  Classify each query by responding
+        with exactly one of the following words:
 
-        Primary categories:
-        - Credential Management
-        - Image Generation
-        - Technical Support
-        - General Assistance
-
-        Credential Management secondary categories:
-        - Email address creation or lookup
-        - Password generation or lookup
-        - Username lookup
-
-        Image Generation secondary categories:
-        - Generate colouring page
-        - Other image generation
-
-        Technical Support secondary categories:
-        - Enable wifi
-        - Disable wifi
-
-        General Inquiry secondary categories:
-        - Question answering
-        - Other enquiries
-        - Other conversation
+        1. If the query relates to networking or wifi, output "NET"
+        2. If the query is a request for a coloring page, output "COLORING"
+        3. If the query is an image generation request, output "IMAGE"
+        4. If the query relates to creating, generating or looking up
+           credentials (email addresses, usernames, passwords), output "CREDS"
+        5. If none of the above are true, output "UNKNOWN"
         """
     )
 
@@ -315,14 +297,6 @@ class IntentClassifier(OllamaRequestFlow):
             "data": {
                 "model": self.model,
                 "messages": self.llm_context,
-                "format": {
-                    "type": "object",
-                    "properties": {
-                        "primary": {"type": "string"},
-                        "secondary": {"type": "string"},
-                    },
-                    "required": ["primary", "secondary"],
-                },
                 "options": {
                     "temperature": 0,
                 },

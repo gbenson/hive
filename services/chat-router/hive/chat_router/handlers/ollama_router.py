@@ -265,16 +265,19 @@ class IntentClassifier(OllamaRequestFlow):
 
     SYSTEM_PROMPT = (
         """\
-        You are Hive, a helpful assistant.  You will be provided with
-        customer service queries.  Classify each query by responding
-        with exactly one of the following words:
+        You are a helpful assistant.  You will be provided with queries
+        and requests.  Classify each by responding with exactly one of
+        the following words:
 
-        1. If the query relates to networking or wifi, output "NET"
-        2. If the query is a request for a coloring page, output "COLORING"
-        3. If the query is an image generation request, output "IMAGE"
-        4. If the query relates to creating, generating or looking up
-           credentials (email addresses, usernames, passwords), output "CREDS"
-        5. If none of the above are true, output "UNKNOWN"
+        1. If the input is a request for a coloring page, output "COLORING".
+        2. If the input is another image generation request, output "IMAGE".
+        3. If the input is a request to create, generate or look up credentials
+           (email addresses, usernames, passwords, etc), output "CREDS".
+        4. If the input mentions networking or wifi, output "NET".
+        5. If none of the above are appropriate, output "OTHER".
+
+        Notes:
+        - Requests to "imagine" are usually image generation requests.
         """
     )
 

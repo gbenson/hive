@@ -1,4 +1,3 @@
-import json
 import logging
 import sys
 
@@ -47,11 +46,36 @@ def interaction_collector(monkeypatch) -> InteractionCollector:
     yield InteractionCollector(monkeypatch)
 
 
-def test_end_to_end(blocking_connection, interaction_collector):  # noqa: F811
-    user_input = ChatMessage("email for smol?")
-
+@pytest.mark.parametrize(
+    "user_input,expect_intent",
+    (("email for smol?", "CREDS"),
+     ("dave's email?", "CREDS"),
+     ("minecraft password", "CREDS"),
+     ("slippy passwd", "CREDS"),
+     ("molly pswd", "CREDS"),
+     ("molly's pswd?", "CREDS"),
+     ("sausages", "UNKNOWN"),
+     ("draw sausages", "IMAGE"),
+     ("imgaine sausages", "IMAGE"),
+     ("imagine sausages", "IMAGE"),
+     ("make a colouring page of sausages", "COLORING"),
+     ("make a coloring page of sausages", "COLORING"),
+     ("please draw a coloring page of sausages", "COLORING"),
+     ("please create a child's colouring page featuring a red kite",
+      "COLORING"),
+     ("turn off the wifi", "NET"),
+     ("wifi on pls", "NET"),
+     ("wifi on pls", "NET"),
+     ("cut the internet", "NET"),
+     ))
+def test_end_to_end(
+        blocking_connection,  # noqa: F811
+        interaction_collector,
+        user_input,
+        expect_intent,
+):
     handler = LLMHandler()
-    message_handled = handler.handle(MockChannel(), user_input)
+    message_handled = handler.handle(MockChannel(), ChatMessage(user_input))
     assert message_handled
     interaction = interaction_collector.interaction
     assert interaction is not None
@@ -68,11 +92,4 @@ def test_end_to_end(blocking_connection, interaction_collector):  # noqa: F811
     # )
 
     response = interaction_collector.chat_responses[-1].text
-    expect_prefix = f"{interaction.name}: got intent: "
-    assert response.startswith(expect_prefix)
-
-    intent = json.loads(response.removeprefix(expect_prefix))
-    assert intent == {
-        "primary": "Credential Management",
-        "secondary": "Email address creation or lookup",
-    }
+    assert response == f"{interaction.name}: got intent: {expect_intent}"

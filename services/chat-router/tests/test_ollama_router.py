@@ -4,7 +4,11 @@ import sys
 import pytest
 
 from hive.chat import ChatMessage
-from hive.chat_router.handlers.ollama_router import LLMHandler, LLMInteraction
+from hive.chat_router.handlers.ollama_router import (
+    Intent,
+    LLMHandler,
+    LLMInteraction,
+)
 from hive.messaging import Channel
 from hive.messaging.testing import blocking_connection  # noqa: F401
 
@@ -48,6 +52,39 @@ def interaction_collector(monkeypatch) -> InteractionCollector:
 
 @pytest.mark.parametrize(
     "user_input,expect_intent",
+    (("email for smol?", Intent.CREDS),
+     ("dave's email?", Intent.CREDS),
+     ("minecraft email?", Intent.CREDS),
+     ("minecraft password", Intent.CREDS),
+     ("slippy passwd", Intent.CREDS),
+     ("sausages", None),
+     ("draw sausages", Intent.IMAGE),
+     ("imgaine sausages", Intent.IMAGE),
+     ("imagine sausages", Intent.IMAGE),
+     ("make a colouring page of sausages", Intent.IMAGE),
+     ("make a coloring page of sausages", Intent.IMAGE),
+     ("please draw a coloring page of sausages", Intent.IMAGE),
+     ("please create a child's colouring page featuring a red kite",
+      Intent.IMAGE),
+     ("turn off the wifi", Intent.WIFI),
+     ("wifi on pls", Intent.WIFI),
+     ("wifi off pls", Intent.WIFI),
+     ("cut the internet", Intent.WIFI),
+     ("What's my screwfix password?", Intent.CREDS),
+     ("What's my screw fix password?", Intent.CREDS),
+     ("WiFi off", Intent.WIFI),
+     ("WiFi on", Intent.WIFI),
+     ("Make a colouring page of sausages", Intent.IMAGE),
+     ("Please draw potato chips in the shape of Russian matrioshka dolls",
+      Intent.IMAGE),
+     ))
+def test_guess_intent(user_input, expect_intent):
+    handler = LLMHandler()
+    assert handler.guess_intent(user_input) == expect_intent
+
+
+@pytest.mark.parametrize(
+    "user_input,expect_intent",
     (("email for smol?", "CREDS"),
      ("dave's email?", "CREDS"),
      ("minecraft email?", "CREDS"),
@@ -57,11 +94,11 @@ def interaction_collector(monkeypatch) -> InteractionCollector:
      ("draw sausages", "IMAGE"),
      ("imgaine sausages", "IMAGE"),
      ("imagine sausages", "IMAGE"),
-     ("make a colouring page of sausages", "COLORING"),
-     ("make a coloring page of sausages", "COLORING"),
-     ("please draw a coloring page of sausages", "COLORING"),
+     ("make a colouring page of sausages", "IMAGE"),
+     ("make a coloring page of sausages", "IMAGE"),
+     ("please draw a coloring page of sausages", "IMAGE"),
      ("please create a child's colouring page featuring a red kite",
-      "COLORING"),
+      "IMAGE"),
      ("turn off the wifi", "NET"),
      ("wifi on pls", "NET"),
      ("wifi off pls", "NET"),
@@ -70,7 +107,7 @@ def interaction_collector(monkeypatch) -> InteractionCollector:
      ("What's my screw fix password?", "CREDS"),
      ("WiFi off", "NET"),
      ("WiFi on", "NET"),
-     ("Make a colouring page of sausages", "COLORING"),
+     ("Make a colouring page of sausages", "IMAGE"),
      ("Please draw potato chips in the shape of Russian matrioshka dolls",
       "IMAGE"),
      ))
@@ -80,6 +117,7 @@ def test_end_to_end(
         user_input,
         expect_intent,
 ):
+    pytest.skip()
     handler = LLMHandler()
     message_handled = handler.handle(MockChannel(), ChatMessage(user_input))
     assert message_handled

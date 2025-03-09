@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from functools import cached_property, partial
+from enum import Enum, auto
+from functools import cached_property, lru_cache, partial
+from itertools import chain
 from textwrap import dedent
 from threading import Thread
 from typing import Any, Optional
 from uuid import uuid4
+
+from spellchecker import SpellChecker
 
 from hive.chat import ChatMessage, tell_user, tell_user_errors
 from hive.common import read_config
@@ -22,6 +28,12 @@ logger = logging.getLogger(__name__)
 d = logger.info
 
 
+class Intent(Enum):
+    CREDS = auto()
+    IMAGE = auto()
+    WIFI = auto()
+
+
 class LLMHandler(Handler):
     @property
     def priority(self) -> int:
@@ -29,16 +41,113 @@ class LLMHandler(Handler):
 
     def handle(self, channel: Channel, message: ChatMessage) -> bool:
         with tell_user_errors(in_reply_to=message):
-            interaction = LLMInteraction(message)
+            guessed_intent = self.guess_intent(message.text)
+            interaction = LLMInteraction(message, guessed_intent)
             d("LLM request: %r", interaction.user_prompt)
             interaction.start()
         return True
+
+    INTENT_KEYWORDS = {
+        Intent.CREDS: {
+            "addr", "address",
+            "credentials", "creds",
+            "email",
+            "id",
+            "log", "login", "logon",
+            "mail",
+            "name",
+            "pass", "passwd", "password",
+            "sign",
+            "user", "userid", "username",
+        },
+        Intent.IMAGE: {
+            "coloring", "colouring",
+            "draw", "drawing",
+            "image", "imagine",
+            "paint", "painting",
+            "photo", "photograph",
+            "picture",
+            "render",
+        },
+        Intent.WIFI: {
+            "fi",
+            "internet",
+            "net", "network",
+            "wi", "wifi", "wireless",
+        },
+    }
+
+    KEYWORD_INTENTS = dict(
+        chain.from_iterable(
+            ((keyword, intent)
+             for keyword in keywords)
+            for intent, keywords in INTENT_KEYWORDS.items())
+    )
+
+    KEYWORD_SPLIT = re.compile(r"\W+")
+
+    def guess_intent(self, query: str) -> Optional[Intent]:
+        words = self.KEYWORD_SPLIT.split(query.lower())
+        if (intent := self._guess_intent(words)):
+            return intent
+        return self._guess_intent(words, spellcheck=True)
+
+    def _guess_intent(
+            self,
+            words: set[str],
+            spellcheck: bool = False,
+    ) -> Optional[Intent]:
+        scores = defaultdict(int)
+        for word in words:
+            if (intent := self.KEYWORD_INTENTS.get(word)):
+                scores[intent] += 1
+                continue
+            if not spellcheck:
+                continue
+            if (corrected_word := self._spellchecked_keyword(word)):
+                intent = self.KEYWORD_INTENTS[corrected_word]
+                scores[intent] += 1
+
+        scores = list(sorted(
+            (score, intent)
+            for intent, score in scores.items()
+        ))
+        match len(scores):
+            case 0:
+                return None
+            case 1:
+                return scores[-1][1]
+            case _ if scores[-1][0] > scores[-2][0]:
+                return scores[-1][1]
+            case _:
+                return None
+
+    @cached_property
+    def _spellcheck(self) -> SpellChecker:
+        return SpellChecker()
+
+    @lru_cache
+    def _spellchecked_keyword(self, word: str) -> Optional[str]:
+        if len(word) < 3:
+            return None
+        candidates = self._spellcheck.candidates(word)
+        if not candidates:
+            return None
+        candidates = [
+            candidate
+            for candidate in candidates
+            if candidate in self.KEYWORD_INTENTS
+        ]
+        if len(candidates) != 1:
+            return None
+        return candidates[0]
 
 
 class LLMInteraction(Thread):
     def __init__(
             self,
             message: ChatMessage,
+            guessed_intent: Optional[Intent],
             config_key: str = "ollama-router",
             config: dict[str, Any] | None = None,
             model: str | None = None,

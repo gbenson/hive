@@ -80,7 +80,7 @@ class LLMInteraction(Thread):
     def model(self) -> dict[str, Any]:
         if (m := self._model) is not None:
             return m
-        return self.config.get("model", "gbenson/qwen2.5-0.5b-instruct:q2_k")
+        return self.config.get("model", "dolphin3")
 
     @cached_property
     def user_prompt(self) -> str:

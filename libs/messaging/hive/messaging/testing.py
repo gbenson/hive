@@ -9,6 +9,8 @@ def blocking_connection():
         kwargs["connection_attempts"] = 1
         try:
             return MessageBus().blocking_connection(**kwargs)
+        except KeyError:
+            pytest.skip("Message bus not configured")
         except ConnectionRefusedError as e:
-            pytest.skip(f"No message bus: {e}")
+            pytest.skip(f"Message bus not available: {e}")
     return connect

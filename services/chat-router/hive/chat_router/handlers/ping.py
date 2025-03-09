@@ -13,6 +13,10 @@ d = logger.info
 
 
 class PingHandler(Handler):
+    @property
+    def priority(self) -> int:
+        return 0
+
     def handle(self, channel: Channel, message: ChatMessage) -> bool:
         challenge = message.text
         if not challenge:

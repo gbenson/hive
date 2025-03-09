@@ -73,8 +73,6 @@ def interaction_collector(monkeypatch) -> InteractionCollector:
      ("Make a colouring page of sausages", "COLORING"),
      ("Please draw potato chips in the shape of Russian matrioshka dolls",
       "IMAGE"),
-     ("nosh https://medium.com/version-1/small-but-powerful-a-deep-dive",
-      "UNKNOWN"),
      ))
 def test_end_to_end(
         blocking_connection,  # noqa: F811

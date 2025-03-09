@@ -54,3 +54,22 @@ def test_reading_list_update(mock_channel, body, expect_html):
             "routing_key": "chat.messages",
         },
     )]
+
+
+@pytest.mark.parametrize(
+    "message_text,expect_result",
+    (("nosh http://www.example.com", True),
+     (" nosh https://example.com/foo?whatever=4#bar some quote", True),
+     ("nosh on that", False),
+     ("nosh", False),
+     ("nosh ftp://www.example.com", False),
+     ))
+def test_nosh(mock_channel, message_text, expect_result):
+    handler = ReadingListUpdateHandler()
+    assert handler.handle(mock_channel, ChatMessage(
+        text=message_text,
+        sender="user",
+        timestamp=datetime.fromtimestamp(1730071727.043, tz=timezone.utc),
+        uuid="1c0a44e5-48ac-4464-b9ef-0117b11c2140",
+    )) is expect_result
+    assert not mock_channel.call_log

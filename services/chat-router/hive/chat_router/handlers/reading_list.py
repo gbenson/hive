@@ -15,12 +15,24 @@ d = logger.info
 
 class ReadingListUpdateHandler(Handler):
     def handle(self, channel: Channel, message: ChatMessage) -> bool:
+        first_two = message.text.split(maxsplit=1)[:2]
+        if not first_two:
+            return False
+        raw_url = first_two.pop(0)
+        if (is_no_share := (raw_url.lower() == "nosh")):
+            if not first_two:
+                return False
+            raw_url = first_two.pop(0)
+
         try:
-            url = urlparse(message.text.split(maxsplit=1)[0])
+            url = urlparse(raw_url)
         except Exception:
             return False
         if url.scheme not in {"http", "https"}:
             return False
+        if is_no_share:
+            d("No share: %r", message.text)
+            return True
 
         d("Reading list update: %r", message.text)
         self.request_reading_list_update(channel, message)

@@ -189,12 +189,12 @@ class LLMInteraction(Thread):
     def model(self) -> dict[str, Any]:
         if (m := self._model) is not None:
             return m
-        return self.config.get("model", "gbenson/qwen2.5-0.5b-instruct:q2_k")
+        return self.config.get("model", "deepseek-r1:1.5b")
 
     @cached_property
     def user_prompt(self) -> str:
-        if (text := self.chat_message.text):
-            return text.strip()
+        if (text := self.chat_message.text.strip()):
+            return text
         raise NotImplementedError("html2text")
 
     def run(self):
@@ -217,6 +217,11 @@ class LLMInteraction(Thread):
         # (if no ollama is running then drop the now-unwanted
         # responses when it comes back up).
         consume_by = self.chat_message.timestamp + self.consume_timeout
+        handler_cls = self.FLOW_HANDLERS.get(
+            self.guessed_intent,
+            self.DEFAULT_HANDLER,
+        )
+
         intent = self._run_flow(
             channel,
             IntentClassifier(

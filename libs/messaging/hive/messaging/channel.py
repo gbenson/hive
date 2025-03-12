@@ -72,20 +72,48 @@ class Channel(WrappedPikaThing):
 
     # Lower-level handlers for PUBLISH_* and CONSUME_*
     #  - Everything should go through these
-    #  - XXX merge into _basic_{publish,consume}?
+    #  - XXX merge _consume into *basic_consume*?
 
-    def _publish(self, *, routing_key: str, topic: str = "", **kwargs):
+    def _publish(
+            self,
+            *,
+            message: bytes | dict,
+            routing_key: str,
+            topic: str = "",
+            correlation_id: Optional[str] = None,
+            content_type: Optional[str] = None,
+            mandatory: bool = False,
+            consume_by: Optional[timedelta] = None,
+    ):
+        payload, content_type = self._encapsulate(message, content_type)
+
         exchange = self._exchange_for(routing_key, topic)
-        if topic:
-            kwargs["routing_key"] = topic
+        routing_key = topic
+
+        properties = {
+            "content_type": content_type,
+            "correlation_id": correlation_id,
+            "delivery_mode": DeliveryMode.Persistent,
+        }
+
+        if consume_by:
+            ttl = consume_by - datetime.now(tz=timezone.utc)
+            ttl_ms = round(ttl / timedelta(milliseconds=1))
+            properties["expiration"] = str(ttl_ms)
 
         for hook in self._pre_publish_hooks:
             try:
-                hook(self, **kwargs)
+                hook(self, message=message)
             except Exception:
                 logger.exception("EXCEPTION")
 
-        return self._basic_publish(exchange=exchange, **kwargs)
+        return self.basic_publish(
+            exchange=exchange,
+            routing_key=routing_key,
+            body=payload,
+            properties=BasicProperties(**properties),
+            mandatory=mandatory,
+        )
 
     def _consume(
             self,
@@ -197,42 +225,6 @@ class Channel(WrappedPikaThing):
         return self._pika.queue_declare(
             queue,
             **kwargs
-        )
-
-    def _basic_publish(
-            self,
-            *,
-            message: bytes | dict,
-            exchange: str = "",
-            routing_key: str = "",
-            correlation_id: Optional[str] = None,
-            content_type: Optional[str] = None,
-            delivery_mode: DeliveryMode = DeliveryMode.Persistent,
-            mandatory: bool = False,
-            consume_by: Optional[timedelta] = None,
-    ):
-        if mandatory and delivery_mode is not DeliveryMode.Persistent:
-            raise ValueError(delivery_mode)
-
-        payload, content_type = self._encapsulate(message, content_type)
-
-        properties = {
-            "content_type": content_type,
-            "correlation_id": correlation_id,
-            "delivery_mode": delivery_mode,
-        }
-
-        if consume_by:
-            ttl = consume_by - datetime.now(tz=timezone.utc)
-            ttl_ms = round(ttl / timedelta(milliseconds=1))
-            properties["expiration"] = str(ttl_ms)
-
-        return self.basic_publish(
-            exchange=exchange,
-            routing_key=routing_key,
-            body=payload,
-            properties=BasicProperties(**properties),
-            mandatory=mandatory,  # Don't fail silently.
         )
 
     @staticmethod

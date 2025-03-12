@@ -74,8 +74,10 @@ class Channel(WrappedPikaThing):
     #  - Everything should go through these
     #  - XXX merge into _basic_{publish,consume}?
 
-    def _publish(self, *, routing_key: str, **kwargs):
-        exchange = self._fanout_exchange_for(routing_key)
+    def _publish(self, *, routing_key: str, topic: str = "", **kwargs):
+        exchange = self._exchange_for(routing_key, topic)
+        if topic:
+            kwargs["routing_key"] = topic
 
         for hook in self._pre_publish_hooks:
             try:
@@ -92,8 +94,9 @@ class Channel(WrappedPikaThing):
             queue: str,
             on_message_callback: Callable,
             exclusive: bool = False,
+            topic: str = "",
     ):
-        exchange = self._fanout_exchange_for(queue)
+        exchange = self._exchange_for(queue, topic)
 
         if semantics is Semantics.PUBLISH_SUBSCRIBE:
             if (prefix := self.consumer_name):
@@ -108,10 +111,11 @@ class Channel(WrappedPikaThing):
 
         self.queue_declare(queue, **kwargs)
 
-        self.queue_bind(
-            queue=queue,
-            exchange=exchange,
-        )
+        kwargs = {}
+        if topic:
+            kwargs["routing_key"] = topic
+
+        self.queue_bind(queue=queue, exchange=exchange, **kwargs)
 
         return self._basic_consume(queue, on_message_callback)
 
@@ -134,10 +138,10 @@ class Channel(WrappedPikaThing):
     # Exchanges
 
     @cache
-    def _fanout_exchange_for(self, routing_key: str) -> str:
+    def _exchange_for(self, routing_key: str, topic: str) -> str:
         return self._hive_exchange(
             exchange=routing_key,
-            exchange_type="fanout",
+            exchange_type="topic" if topic else "fanout",
             durable=True,
         )
 

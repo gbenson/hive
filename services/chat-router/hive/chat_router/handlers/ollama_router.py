@@ -207,6 +207,10 @@ class LLMInteraction(Thread):
         d("%s: stopped", self.name)
 
     def _run(self, channel: Channel):
+        # exclusive=True means the queue auto-deletes when this
+        # interaction closes its connection, which should cause
+        # an error in the sender and cause it to stop streaming
+        # from ollama.  **should**.
         channel.consume_events(
             queue=self.responses_queue,
             on_message_callback=self.on_response,

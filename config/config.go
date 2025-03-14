@@ -1,0 +1,54 @@
+// Package config provides configuration management for Hive.
+package config
+
+import (
+	"os"
+	"path/filepath"
+
+	"github.com/spf13/viper"
+)
+
+type Config struct {
+	v *viper.Viper
+}
+
+func New(name string) *Config {
+	v := viper.New()
+
+	if dir, err := os.UserConfigDir(); err == nil {
+		v.AddConfigPath(filepath.Join(dir, "hive"))
+	}
+	v.AddConfigPath("/etc/hive")
+	v.AddConfigPath("/run/secrets")
+
+	v.SetConfigName(name)
+	v.SetEnvPrefix(name)
+
+	return &Config{v}
+}
+
+func (c *Config) Read() error {
+	if err := c.v.ReadInConfig(); err == nil {
+		return nil
+	} else if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+		return nil
+	} else {
+		return err
+	}
+}
+
+func (c *Config) GetInt(key string) int {
+	return c.v.GetInt(key)
+}
+
+func (c *Config) GetString(key string) string {
+	return c.v.GetString(key)
+}
+
+func (c *Config) RegisterAlias(alias, key string) {
+	c.v.RegisterAlias(alias, key)
+}
+
+func (c *Config) SetDefault(key string, value any) {
+	c.v.SetDefault(key, value)
+}

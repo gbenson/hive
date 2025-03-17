@@ -13,8 +13,8 @@ import (
 	"maunium.net/go/mautrix/crypto/cryptohelper"
 	"maunium.net/go/mautrix/id"
 
-	"gbenson.net/hive/libs/config"
-	"gbenson.net/hive/libs/util"
+	"gbenson.net/hive/config"
+	"gbenson.net/hive/util"
 )
 
 type configKeys struct {

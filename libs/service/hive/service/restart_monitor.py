@@ -22,7 +22,6 @@ class RestartMonitor:
     status: ServiceStatus = field(default_factory=ServiceStatus)
     rapid_restart_cutoff: timedelta = 5 * MINUTE
     rapid_restart_cooldown_time: Optional[timedelta] = None
-    multiple_restarts_logged: bool = False
 
     @property
     def name(self):
@@ -42,7 +41,7 @@ class RestartMonitor:
         base, ext = os.path.splitext(main_filename)
         result = tuple(
             f"{base}{midfix}{ext}"
-            for midfix in (".n-2", ".n-1", "", ".n+1")
+            for midfix in (".n-1", "", ".n+1")
         )
         return result
 
@@ -125,17 +124,6 @@ class RestartMonitor:
 
         self.log_rapid_cycling(this_interval)
         self._cool_your_engines()
-
-        if startup_two_before_last is None:
-            return
-
-        last_last_interval = startup_before_last - startup_two_before_last
-        if last_last_interval > self._rapid_restart_cutoff:
-            return
-
-        # at least three rapid restarts in succession
-
-        self.multiple_restarts_logged = True
 
     def _cool_your_engines(self):
         """https://www.youtube.com/watch?v=rsHqcUn6jBY

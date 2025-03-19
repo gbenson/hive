@@ -48,7 +48,7 @@ class RestartMonitor:
 
     @property
     def _rapid_restart_cutoff(self) -> float:
-        return self.rapid_restart_cooldown_time.total_seconds()
+        return self.rapid_restart_cutoff.total_seconds()
 
     @property
     def _rapid_restart_cooldown_time(self) -> float:

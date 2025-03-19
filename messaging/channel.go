@@ -2,14 +2,16 @@ package messaging
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 	"strings"
 
-	hive "gbenson.net/hive/messaging/internal"
+	cloudevents "github.com/cloudevents/sdk-go/v2"
 	amqp "github.com/rabbitmq/amqp091-go"
+
+	hive "gbenson.net/hive/messaging/internal"
+	"gbenson.net/hive/util"
 )
 
 type Channel struct {
@@ -43,8 +45,9 @@ func (ch *Channel) ConsumeEvents(
 		return err
 	}
 
+	consumerName := strings.ReplaceAll(util.ServiceName(), "-", ".")
 	queue := hive.Queue{
-		Name:       fmt.Sprintf("%s.%s", ch.consumerName(), routingKey),
+		Name:       fmt.Sprintf("%s.%s", consumerName, routingKey),
 		Durable:    true,
 		DeadLetter: true,
 	}
@@ -71,16 +74,6 @@ func (ch *Channel) ConsumeEvents(
 	return nil
 }
 
-func (ch *Channel) consumerName() string {
-	path, err := os.Executable()
-	if err != nil {
-		log.Println("WARNING:", err)
-		return "unknown.consumer"
-	}
-	name, _ := strings.CutPrefix(filepath.Base(path), "hive-")
-	return strings.ReplaceAll(strings.ToLower(name), "-", ".")
-}
-
 func (ch *Channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -99,4 +92,28 @@ func (ch *Channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
 		d.Reject(false)
 		log.Println("ERROR:", err)
 	}
+}
+
+// PublishEvent publishes an event to an exchange.
+func (ch *Channel) PublishEvent(
+	ctx context.Context,
+	routingKey string,
+	event cloudevents.Event,
+) error {
+	messageBody, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	contentType := cloudevents.ApplicationCloudEventsJSON
+
+	exchange := hive.Exchange{
+		Name:    routingKey,
+		Kind:    "fanout",
+		Durable: true,
+	}
+	if err := exchange.Declare(ch.amqp); err != nil {
+		return err
+	}
+
+	return exchange.Publish(ctx, ch.amqp, contentType, messageBody)
 }

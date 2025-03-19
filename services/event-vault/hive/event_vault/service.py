@@ -49,6 +49,7 @@ class Service(HiveService):
             channel.start_consuming()
 
     EXTENSIONS: ClassVar[dict[str, str]] = {
+        "application/cloudevents+json": ".json",
         "application/json": ".json",
         "message/rfc822": ".eml",
     }

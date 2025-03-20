@@ -1,8 +1,11 @@
 import json
+import re
 
 from dataclasses import dataclass
 
 from pika.spec import Basic, BasicProperties
+
+APPLICATION_JSON_RE = re.compile(r"application/(:?.+\+)?json")
 
 
 @dataclass
@@ -20,6 +23,6 @@ class Message:
         return self.properties.content_type
 
     def json(self):
-        if self.content_type != "application/json":
+        if not APPLICATION_JSON_RE.fullmatch(self.content_type):
             raise ValueError(self.content_type)
         return json.loads(self.body)

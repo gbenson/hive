@@ -8,7 +8,7 @@ dependencies = [
     "hive-common[httpx,brotli,zstd]>=0.0.15",
     "hive-mediawiki",
     "hive-messaging>=0.12.0",
-    "hive-service>=0.0.8",
+    "hive-service>=0.0.10",
     "lxml",
 ]
 

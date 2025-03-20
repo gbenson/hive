@@ -8,6 +8,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
+    "contenttype",
     "hive-common>=0.0.3",
     "pika",
 ]

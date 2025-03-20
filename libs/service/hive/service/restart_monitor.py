@@ -92,7 +92,6 @@ class RestartMonitor:
 
     def _handle_situation(
             self,
-            startup_two_before_last: Optional[float],
             startup_before_last: Optional[float],
             last_startup: Optional[float],
             this_startup: float,

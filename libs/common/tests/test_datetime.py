@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from hive.common import parse_datetime
+from hive.common import parse_datetime, utc_now
 
 
 # These are the examples from
@@ -33,3 +33,18 @@ from hive.common import parse_datetime
      ))
 def test_parse_datetime(date_string, expect_result):
     assert parse_datetime(date_string) == expect_result
+
+
+def test_utc_now():
+    naive_datetime = datetime.now()
+    aware_datetime = parse_datetime("2025-03-20T01:28:41.528744-07:00")
+    aware_now = utc_now()
+
+    delta = (aware_now - aware_datetime).total_seconds()
+    assert delta > 3600
+    assert ((aware_datetime - aware_now).total_seconds() + delta) < 1e-9
+
+    with pytest.raises(TypeError):
+        _ = aware_now - naive_datetime
+    with pytest.raises(TypeError):
+        _ = naive_datetime - aware_now

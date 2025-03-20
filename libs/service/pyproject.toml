@@ -8,7 +8,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-    "hive-common>=0.1.1",
+    "hive-common>=0.1.2",
     "hive-messaging>=0.12.0",
 ]
 

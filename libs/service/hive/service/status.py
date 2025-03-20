@@ -6,6 +6,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID, uuid4
 
+from hive.common import utc_now
 from hive.messaging import Channel
 
 ServiceCondition = Enum("ServiceCondition", "HEALTHY DUBIOUS IN_ERROR")
@@ -23,7 +24,7 @@ class ServiceStatus:
     service: str = DEFAULT_SERVICE
     condition: ServiceCondition = DEFAULT_INITIAL_CONDITION
     messages: list[str] = field(default_factory=list)
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=utc_now)
     _uuid: UUID = field(default_factory=uuid4)
 
     def _as_dict(self) -> dict[str]:

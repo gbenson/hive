@@ -31,15 +31,22 @@ class Service(HiveService):
     ):
         report = message.json()
 
-        if report["meta"]["type"] != "service_status_report":
+        if report.get("meta", {}).get("type") == "service_status_report":
+            uuid = parse_uuid(report["meta"]["uuid"])
+            timestamp = parse_datetime(report["meta"]["timestamp"])
+            service = report["service"]
+            condition = report["condition"]
+            messages = report.get("messages")
+
+        elif report.get("type") == "net.gbenson.hive.service_status_report":
+            uuid = parse_uuid(report["id"])
+            timestamp = parse_datetime(report["time"])
+            service = report["source"].rsplit("/", 1)[-1]
+            condition = report["data"]["condition"].upper()
+            messages = report["data"].get("messages")
+
+        else:
             raise ValueError(message.body)
-
-        uuid = parse_uuid(report["meta"]["uuid"])
-
-        timestamp = parse_datetime(report["meta"]["timestamp"])
-
-        service = report["service"]
-        condition = report["condition"]
 
         if self._valkey.set(
                 f"service:{service}:{condition}",
@@ -49,7 +56,6 @@ class Service(HiveService):
         ):
             return  # old news
 
-        messages = report.get("messages")
         if not messages:
             messages = [f"Service became {condition}"]
 

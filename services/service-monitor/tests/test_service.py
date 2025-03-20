@@ -82,6 +82,30 @@ def test_rate_limiting(mock_service, mock_channel):
     assert str(mock_channel.tell_user_log) == want_tell_user_log
 
 
+def test_cloudevents_style(mock_service, mock_channel):
+    mock_service.send_test_event(mock_channel, {
+        "specversion": "1.0",
+        "id": "da0a6b14-9258-471c-9381-b4a13e89a1ba",
+        "source": "https://gbenson.net/hive/services/matrix-connector",
+        "type": "net.gbenson.hive.service_status_report",
+        "datacontenttype": "application/json",
+        "time": "2025-03-20T00:47:05.027918016Z",
+        "data": {
+            "condition": "healthy",
+            "messages": ["Service restarted"],
+        },
+    })
+    assert mock_channel.tell_user_log == [((
+        "matrix-connector restarted",
+    ), {
+        "timestamp": datetime(
+            2025, 3, 20, 0, 47, 5, 27918,
+            tzinfo=timezone.utc,
+        ),
+        "uuid": UUID("da0a6b14-9258-471c-9381-b4a13e89a1ba"),
+    })]
+
+
 class MockValkey:
     def __init__(self):
         self._db = {}

@@ -1,5 +1,8 @@
+from datetime import datetime, timezone
+
 import pytest
 
+from cloudevents.abstract import CloudEvent
 from pika.spec import Basic, BasicProperties
 
 from hive.messaging import Message
@@ -38,6 +41,26 @@ class TestJSONCloudEventMessage:
             }
         }
 
+    def test_is_cloudevent(self, message: Message) -> None:
+        assert message.is_cloudevent is True
+
+    def test_event(self, message: Message) -> None:
+        e = message.event()
+        assert isinstance(e, CloudEvent)
+        assert e.id == "3a4a9760-c52d-495b-93a1-adf2acc7cdb0"
+        assert e.source == "https://gbenson.net/hive/services/matrix-connector"
+        assert e.type == "net.gbenson.hive.service_condition_report"
+        assert e.time == datetime(
+            2025, 3, 20, 8, 57, 44, 512454,
+            tzinfo=timezone.utc,
+        )
+        assert e.subject is None
+        assert e.datacontenttype == "application/json"
+        assert e.data == {
+            "condition": "healthy",
+            "messages": ["Service restarted"],
+        }
+
 
 class TestNonCloudEventJSONMessage:
     """An old-style (non-CloudEvent) JSON-encoded message.
@@ -68,6 +91,14 @@ class TestNonCloudEventJSONMessage:
             "condition": "HEALTHY",
             "messages": ["Service restarted"],
         }
+
+    def test_is_cloudevent(self, message: Message) -> None:
+        assert message.is_cloudevent is False
+
+    def test_event(self, message: Message) -> None:
+        with pytest.raises(ValueError) as excinfo:
+            _ = message.event()
+        assert repr(excinfo.value) == "ValueError('application/json')"
 
 
 def _build_test_message(content_type: str, message_body: bytes) -> Message:

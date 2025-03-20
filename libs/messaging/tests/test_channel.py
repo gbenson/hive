@@ -1,9 +1,11 @@
+import json
 import time
 
 from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from cloudevents.pydantic import CloudEvent
 from pika import BasicProperties, DeliveryMode
 
 from hive.messaging import Channel, Message
@@ -536,3 +538,49 @@ def test_consume_topic():
     assert message.body is expect_body
 
     assert mock.basic_ack.call_log == [((), {"delivery_tag": 5})]
+
+
+def test_publish_cloudevents_event():
+    mock = MockPika()
+    mock.exchange_declare = MockMethod()
+    mock.basic_publish = MockMethod()
+
+    channel = Channel(pika=mock)
+    channel.publish_event(
+        message=CloudEvent(
+            id="VeRyUn1qU3Me5sAgEiD",
+            source="https://gbenson.net/hive/libs/messaging/test",
+            type="net.gbenson.hive.test_event",
+            data={"bonjour": "madame"},
+            time=datetime(2025, 3, 20, 8, 57, 44, 512454, tzinfo=timezone.utc),
+        ),
+        routing_key="egg.nog",
+    )
+
+    assert mock.exchange_declare.call_log == [((), {
+        "exchange": "hive.egg.nog",
+        "exchange_type": "fanout",
+        "durable": True,
+    })]
+
+    assert len(mock.basic_publish.call_log) == 1
+    body = mock.basic_publish.call_log[0][1]["body"]
+    assert isinstance(body, bytes)
+    assert mock.basic_publish.call_log == [((), {
+        "exchange": "hive.egg.nog",
+        "routing_key": "",
+        "body": body,
+        "properties": BasicProperties(
+            content_type="application/cloudevents+json",
+            delivery_mode=DeliveryMode.Persistent,
+        ),
+        "mandatory": False,
+    })]
+    assert json.loads(body) == {
+        "specversion": "1.0",
+        "id": "VeRyUn1qU3Me5sAgEiD",
+        "source": "https://gbenson.net/hive/libs/messaging/test",
+        "type": "net.gbenson.hive.test_event",
+        "time": "2025-03-20T08:57:44.512454+00:00",
+        "data": {"bonjour": "madame"},
+    }

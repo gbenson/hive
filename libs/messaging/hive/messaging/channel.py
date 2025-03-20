@@ -7,6 +7,9 @@ from datetime import datetime, timedelta, timezone
 from functools import cache, cached_property
 from typing import Callable, Optional
 
+from cloudevents.abstract import CloudEvent
+from cloudevents.conversion import to_json
+
 from pika import BasicProperties, DeliveryMode
 from pika.channel import Channel as PikaChannel
 
@@ -77,7 +80,7 @@ class Channel(WrappedPikaThing):
     def _publish(
             self,
             *,
-            message: bytes | dict,
+            message: bytes | dict | CloudEvent,
             routing_key: str,
             topic: str = "",
             correlation_id: Optional[str] = None,
@@ -229,11 +232,13 @@ class Channel(WrappedPikaThing):
 
     @staticmethod
     def _encapsulate(
-            msg: bytes | dict,
+            msg: bytes | dict | CloudEvent,
             content_type: Optional[str],
     ) -> tuple[bytes, str]:
         """Prepare messages for transmission.
         """
+        if isinstance(msg, CloudEvent):
+            return to_json(msg), "application/cloudevents+json"
         if not isinstance(msg, bytes):
             return json.dumps(msg).encode("utf-8"), "application/json"
         if not content_type:

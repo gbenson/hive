@@ -2,6 +2,7 @@ import json
 
 from dataclasses import dataclass
 
+from cloudevents.pydantic import CloudEvent
 from contenttype import ContentType
 from pika.spec import Basic, BasicProperties
 
@@ -33,3 +34,15 @@ class Message:
         if not self.is_json:
             raise ValueError(self.content_type)
         return json.loads(self.body)
+
+    @property
+    def is_cloudevent(self) -> bool:
+        ct = ContentType.parse(self.content_type)
+        return ct.type == "application" and ct.subtype == "cloudevents"
+
+    def event(self) -> CloudEvent:
+        if not self.is_cloudevent:
+            raise ValueError(self.content_type)
+        if not self.is_json:
+            raise NotImplementedError(self.content_type)
+        return CloudEvent.model_validate_json(self.body)

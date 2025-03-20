@@ -1,6 +1,8 @@
 import os
 
-from hive.common import parse_datetime, parse_uuid
+from cloudevents.abstract import CloudEvent
+
+from hive.common import parse_uuid, utc_now
 from hive.service import RestartMonitor, ServiceCondition
 
 
@@ -27,21 +29,15 @@ def test_init():
 
     publish_kwargs = got.report_via_channel(MockChannel())
     assert publish_kwargs.keys() == {"routing_key", "message"}
-    message = publish_kwargs["message"]
-    assert message.keys() == {"service", "condition", "meta"}
-    meta = message["meta"]
-    assert meta.keys() == {"timestamp", "type", "uuid"}
-    timestamp = parse_datetime(meta["timestamp"])
-    uuid = parse_uuid(meta["uuid"])
-    assert publish_kwargs == {
-        "routing_key": "service.status",
-        "message": {
-            "meta": {
-                "timestamp": str(timestamp),
-                "type": "service_status_report",
-                "uuid": str(uuid),
-            },
-            "service": "pytest",
-            "condition": "HEALTHY",
-        },
+    assert publish_kwargs["routing_key"] == "service.status.reports"
+    e = publish_kwargs["message"]
+    assert isinstance(e, CloudEvent)
+
+    _ = parse_uuid(e.id)
+    assert e.source == "https://gbenson.net/hive/services/pytest"
+    assert e.type == "net.gbenson.hive.service_status_report"
+    assert 0 < (utc_now() - e.time).total_seconds() < 1
+    assert e.subject == "pytest"
+    assert e.data == {
+        "condition": "healthy",
     }

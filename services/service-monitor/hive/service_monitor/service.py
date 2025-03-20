@@ -6,6 +6,7 @@ from functools import cached_property
 from html import escape
 from typing import Optional
 
+from cloudevents.pydantic import CloudEvent
 from valkey import Valkey
 
 from hive.chat import tell_user
@@ -16,6 +17,7 @@ from hive.service import HiveService, RestartMonitor
 
 @dataclass
 class Service(HiveService):
+    service_status_report_queue: str = "service.status.reports"
     service_status_event_queue: str = "service.status"
     valkey_url: str = "valkey://service-monitor-valkey"
     service_condition_window: timedelta = RestartMonitor.rapid_restart_cutoff
@@ -24,29 +26,42 @@ class Service(HiveService):
     def _valkey(self) -> Valkey:
         return Valkey.from_url(self.valkey_url)
 
-    def on_service_status_event(
+    def on_service_status_report(self, channel: Channel, message: Message):
+        """Handle a new-style CloudEvent status report.
+        """
+        self._on_service_status_report(channel, message, message.event())
+
+    def on_service_status_event(self, channel: Channel, message: Message):
+        """Handle an old-style (non-CloudEvent) report.
+        """
+        data = message.json()
+        meta = data.pop("meta")
+        service = data.pop("service")
+        data["condition"] = data["condition"].lower()
+
+        event = CloudEvent(
+            id=meta["uuid"],
+            source=f"https://gbenson.net/hive/services/{service}",
+            type="net.gbenson.hive.service_status_report",
+            time=parse_datetime(meta["timestamp"]),
+            subject=service,
+            data=data,
+        )
+
+        self._on_service_status_report(channel, message, event)
+
+    def _on_service_status_report(
             self,
             channel: Channel,
             message: Message,
+            report: CloudEvent,
     ):
-        report = message.json()
-
-        if report.get("meta", {}).get("type") == "service_status_report":
-            uuid = parse_uuid(report["meta"]["uuid"])
-            timestamp = parse_datetime(report["meta"]["timestamp"])
-            service = report["service"]
-            condition = report["condition"]
-            messages = report.get("messages")
-
-        elif report.get("type") == "net.gbenson.hive.service_status_report":
-            uuid = parse_uuid(report["id"])
-            timestamp = parse_datetime(report["time"])
-            service = report["source"].rsplit("/", 1)[-1]
-            condition = report["data"]["condition"].upper()
-            messages = report["data"].get("messages")
-
-        else:
-            raise ValueError(message.body)
+        """Handle a new-style CloudEvent status report.
+        """
+        uuid = parse_uuid(report.id)
+        timestamp = report.time
+        service = report.subject
+        condition = report.data["condition"].upper()
 
         if self._valkey.set(
                 f"service:{service}:{condition}",
@@ -56,6 +71,7 @@ class Service(HiveService):
         ):
             return  # old news
 
+        messages = report.data.get("messages")
         if not messages:
             messages = [f"Service became {condition}"]
 
@@ -92,6 +108,10 @@ class Service(HiveService):
         with self.blocking_connection(on_channel_open=None) as conn:
             channel = conn.channel()
             try:
+                channel.consume_events(
+                    queue=self.service_status_report_queue,
+                    on_message_callback=self.on_service_status_report,
+                )
                 channel.consume_events(
                     queue=self.service_status_event_queue,
                     on_message_callback=self.on_service_status_event,

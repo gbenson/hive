@@ -190,6 +190,7 @@ func (m *RestartMonitor) Report(ch *messaging.Channel) {
 	event.SetSource(util.ServiceNameURL())
 	event.SetType("net.gbenson.hive.service_status_report")
 	event.SetTime(m.Time)
+	event.SetSubject(util.ServiceName())
 	event.SetData(
 		cloudevents.ApplicationJSON,
 		map[string]any{
@@ -198,7 +199,7 @@ func (m *RestartMonitor) Report(ch *messaging.Channel) {
 		},
 	)
 
-	err := ch.PublishEvent(context.Background(), "service.status", event)
+	err := ch.PublishEvent(context.Background(), "service.status.reports", event)
 	if err != nil {
 		log.Println("WARNING:", err)
 	}

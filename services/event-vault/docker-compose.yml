@@ -17,6 +17,7 @@ services:
       - readinglist.shares
       - readinglist.updates
       - service.status
+      - service.status.reports
 
 volumes:
   event_vault:

@@ -6,6 +6,8 @@ from uuid import UUID
 
 import pytest
 
+from pika.spec import Basic
+
 from hive.chat import ChatMessage
 from hive.common.units import SECOND
 from hive.messaging import Message
@@ -84,10 +86,11 @@ def test_rate_limiting(mock_service, mock_channel):
 
 
 def test_cloudevents_style(mock_service, mock_channel):
-    mock_service.send_test_event(mock_channel, {
+    mock_service.send_test_report(mock_channel, {
         "specversion": "1.0",
         "id": "da0a6b14-9258-471c-9381-b4a13e89a1ba",
-        "source": "https://gbenson.net/hive/services/matrix-connector",
+        "source": "https://gbenson.net/hive/services/crowbar",
+        "subject": "matrix-connector",
         "type": "net.gbenson.hive.service_status_report",
         "datacontenttype": "application/json",
         "time": "2025-03-20T00:47:05.027918016Z",
@@ -143,11 +146,23 @@ class MockChannel:
 
 
 class MockService(Service):
+    def send_test_report(self, channel, message):
+        self.on_service_status_report(
+            channel,
+            Message(
+                Basic.Deliver(),
+                type("MockProperties", (), {
+                    "content_type": "application/cloudevents+json",
+                }),
+                json.dumps(message).encode("utf-8"),
+            ),
+        )
+
     def send_test_event(self, channel, message):
         self.on_service_status_event(
             channel,
             Message(
-                None,  # method: Basic.Deliver
+                Basic.Deliver(),
                 type("MockProperties", (), {
                     "content_type": "application/json",
                 }),

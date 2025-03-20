@@ -6,6 +6,8 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID, uuid4
 
+from cloudevents.pydantic import CloudEvent
+
 from hive.common import utc_now
 from hive.messaging import Channel
 
@@ -27,29 +29,29 @@ class ServiceStatus:
     timestamp: datetime = field(default_factory=utc_now)
     _uuid: UUID = field(default_factory=uuid4)
 
-    def _as_dict(self) -> dict[str]:
-        report = {
-            "meta": {
-                "timestamp": str(self.timestamp),
-                "uuid": str(self._uuid),
-                "type": "service_status_report",
-            },
-            "service": self.service,
-            "condition": self.condition.name,
-        }
+    def _as_event(self) -> CloudEvent:
+        data = {"condition": self.condition.name.lower()}
         if self.messages:
-            report["messages"] = self.messages[:]
-        return report
+            data["messages"] = self.messages[:]
+
+        return CloudEvent(
+            id=str(self._uuid),
+            source=f"https://gbenson.net/hive/services/{self.service}",
+            type="net.gbenson.hive.service_status_report",
+            time=self.timestamp,
+            subject=self.service,
+            data=data,
+        )
 
     def report_via_channel(
             self,
             channel: Channel,
             *,
-            routing_key: str = "service.status",
+            routing_key: str = "service.status.reports",
     ):
         """Publish this report via a :class:`hive.messaging.Channel`.
         """
         return channel.maybe_publish_event(
-            message=self._as_dict(),
+            message=self._as_event(),
             routing_key=routing_key,
         )

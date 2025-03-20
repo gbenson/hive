@@ -7,6 +7,7 @@ from uuid import UUID
 import pytest
 
 from hive.chat import ChatMessage
+from hive.common.units import SECOND
 from hive.messaging import Message
 from hive.service_monitor.service import Service
 
@@ -118,7 +119,7 @@ class MockValkey:
         return value
 
     def set(self, key, value, *, ex=None, get=False):
-        assert ex == 300
+        assert ex == 300 * SECOND
         assert get
         key, value = map(self._encode, (key, value))
         old_value = self._db.get(key)

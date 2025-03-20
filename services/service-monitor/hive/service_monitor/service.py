@@ -51,7 +51,7 @@ class Service(HiveService):
         if self._valkey.set(
                 f"service:{service}:{condition}",
                 message.body,
-                ex=(self.service_condition_window).total_seconds(),
+                ex=self.service_condition_window,
                 get=True,
         ):
             return  # old news

@@ -7,7 +7,7 @@ dependencies = [
     "hive-chat>=0.0.10",
     "hive-common>=0.1.1",
     "hive-messaging>=0.12.3",
-    "hive-service>=0.0.12",
+    "hive-service>=0.0.13",
 ]
 
 [project.scripts]

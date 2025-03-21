@@ -30,16 +30,18 @@ class ServiceStatus:
     _uuid: UUID = field(default_factory=uuid4)
 
     def _as_event(self) -> CloudEvent:
+        service = self.service.removeprefix("hive-")
+
         data = {"condition": self.condition.name.lower()}
         if self.messages:
             data["messages"] = self.messages[:]
 
         return CloudEvent(
             id=str(self._uuid),
-            source=f"https://gbenson.net/hive/services/{self.service}",
+            source=f"https://gbenson.net/hive/services/{service}",
             type="net.gbenson.hive.service_status_report",
             time=self.timestamp,
-            subject=self.service,
+            subject=service,
             data=data,
         )
 

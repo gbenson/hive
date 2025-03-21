@@ -7,7 +7,7 @@ requires-python = ">=3.10"  # match..case
 dependencies = [
     "hive-common>=0.0.9",
     "hive-messaging>=0.12.1",
-    "hive-service>=0.0.12",
+    "hive-service>=0.0.13",
     "requests",
 ]
 

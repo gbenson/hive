@@ -16,7 +16,7 @@ import (
 
 type Service interface {
 	// Start starts the service's goroutines.
-	Start(ctx context.Context, ch *messaging.Channel) error
+	Start(ctx context.Context, ch *Channel) error
 }
 
 // Run a Hive service.
@@ -55,13 +55,16 @@ loop:
 	}
 	defer conn.Close()
 
-	ch, err := conn.Channel()
-	if err != nil {
-		return err
-	}
+	ch := &Channel{conn: conn}
 	defer ch.Close()
+
+	reportSent := false
 	if !noMonitor {
-		defer rsm.Report(ch)
+		defer func() {
+			if !reportSent {
+				rsm.Report(ch)
+			}
+		}()
 	}
 
 	// Set up -no-monitor in case s.Start() uses flag.
@@ -85,6 +88,7 @@ loop:
 
 	// Send the restart monitor report.
 	if !noMonitor {
+		reportSent = true
 		rsm.Report(ch)
 	}
 

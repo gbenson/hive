@@ -13,7 +13,6 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/google/uuid"
 
-	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/util"
 )
 
@@ -184,7 +183,7 @@ func (m *RestartMonitor) setCondition(c ServiceCondition) {
 }
 
 // Report publishes a service status report event onto the message bus.
-func (m *RestartMonitor) Report(ch *messaging.Channel) {
+func (m *RestartMonitor) Report(ch *Channel) {
 	event := cloudevents.NewEvent()
 	event.SetID(m.EventID)
 	event.SetSource(util.ServiceNameURL())

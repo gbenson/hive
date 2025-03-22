@@ -6,14 +6,15 @@ import (
 	"errors"
 	"log"
 	"sync"
+	"time"
+
+	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/rs/zerolog"
 
 	"gbenson.net/hive/matrix"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/service"
-
-	"maunium.net/go/mautrix/event"
-
-	"github.com/rs/zerolog"
+	"gbenson.net/hive/util"
 )
 
 func main() {
@@ -21,7 +22,8 @@ func main() {
 }
 
 type Service struct {
-	Log zerolog.Logger
+	Name string
+	Log  zerolog.Logger
 
 	matrixConn   *matrix.Conn
 	cancelSync   context.CancelFunc
@@ -30,10 +32,11 @@ type Service struct {
 	cmc ChatMessageConsumer
 }
 
-func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
+func (s *Service) Start(ctx context.Context, ch *service.Channel) error {
+	s.Name = util.ServiceNameURL()
 	s.Log = zerolog.New(zerolog.NewConsoleWriter())
 
-	if err := s.startMatrix(ctx); err != nil {
+	if err := s.startMatrix(ctx, ch); err != nil {
 		return err
 	}
 
@@ -44,7 +47,7 @@ func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
 	return nil
 }
 
-func (s *Service) startMatrix(ctx context.Context) error {
+func (s *Service) startMatrix(ctx context.Context, ch *service.Channel) error {
 	conn, err := matrix.Dial(&matrix.DialOptions{ConfigKey: "hive", Log: s.Log})
 	if err != nil {
 		return err
@@ -52,15 +55,11 @@ func (s *Service) startMatrix(ctx context.Context) error {
 	s.matrixConn = conn
 
 	if err := conn.OnEventType(
-		event.EventMessage,
-		func(ctx context.Context, e *event.Event) {
-			log.Println(
-				"INFO: EventMessage: sender=%q type=%q id=%q body=%v",
-				e.Sender.String(),
-				e.Type.String(),
-				e.ID.String(),
-				e.Content.AsMessage().Body,
-			)
+		matrix.EventMessage,
+		func(ctx context.Context, e *matrix.Event) {
+			if err := s.onEventMessage(ctx, e, ch); err != nil {
+				s.Log.Err(err).Msg("")
+			}
 		},
 	); err != nil {
 		return err
@@ -70,7 +69,7 @@ func (s *Service) startMatrix(ctx context.Context) error {
 	s.syncStopWait.Add(1)
 
 	go func() {
-		err = conn.SyncWithContext(ctx)
+		err := conn.SyncWithContext(ctx)
 		defer s.syncStopWait.Done()
 		if err != nil && !errors.Is(err, context.Canceled) {
 			conn.Log.Err(err).Msg("Sync error")
@@ -97,6 +96,27 @@ func (s *Service) Close() error {
 	return nil
 }
 
+func (s *Service) onEventMessage(
+	ctx context.Context,
+	e *matrix.Event,
+	ch *service.Channel,
+) error {
+	data, err := matrix.MarshalEvent(e)
+	if err != nil {
+		return err
+	}
+
+	event := cloudevents.NewEvent()
+	event.SetID(e.ID.String())
+	event.SetSource(s.Name)
+	event.SetType("net.gbenson.hive.matrix_event")
+	event.SetTime(time.UnixMilli(e.Timestamp))
+	event.SetSubject(e.Type.String())
+	event.SetData(cloudevents.ApplicationJSON, data)
+
+	return ch.PublishEvent(ctx, "matrix.events", event)
+}
+
 type ChatMessageConsumer struct {
 }
 
@@ -106,7 +126,7 @@ func (c *ChatMessageConsumer) Consume(
 ) error {
 	msg, err := m.Text()
 	if err == nil {
-		log.Println("INFO:", msg)
+		log.Printf("\x1B[34mINFO: hive.chat.message: %v\x1B[0m", msg)
 	}
 	return err
 }

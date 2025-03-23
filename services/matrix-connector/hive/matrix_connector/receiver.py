@@ -10,25 +10,20 @@ from typing import Literal, Sequence
 
 from cloudevents.pydantic import CloudEvent
 
-from hive.chat import ChatMessage, tell_user
-from hive.common.units import HOUR
-from hive.messaging import Channel, Message
-
-from .connector import ConnectorService
+from hive.service import HiveService
 
 logger = logging.getLogger(__name__)
 d = logger.debug
 
 
 @dataclass
-class Receiver(ConnectorService):
+class Receiver(HiveService):
     matrix_commander_args: Sequence[str] = (
         "--listen", "forever",
         "--download-media", "media",
         "--download-media-name", "eventid",
         "--output", "json-max",
     )
-    id_correlation_lifetime: float = 1 * HOUR
 
     def __post_init__(self):
         super().__post_init__()
@@ -51,10 +46,6 @@ class Receiver(ConnectorService):
         argv = [sys.argv[0]] + list(self.matrix_commander_args)
         with self.publisher_connection() as conn:
             with self.patched_print_output(conn.channel()):
-                self._channel.consume_events(
-                    queue="matrix.events",
-                    on_message_callback=self.on_matrix_event,
-                )
                 d("Entering matrix_commander.main")
                 return self.matrix_commander.main(argv)
 
@@ -118,28 +109,6 @@ class Receiver(ConnectorService):
 
         except Exception:
             logger.exception("EXCEPTION")
-
-    def on_matrix_event(self, channel: Channel, message: Message):
-        try:
-            message = ChatMessage.from_matrix_event(message.event().data)
-        except Exception:
-            logger.exception("EXCEPTION")
-            return
-
-        tell_user(message, channel=channel)
-
-        message_id = str(message.uuid)
-        event_id = message.matrix.event_id
-        self._valkey.set(
-            f"message:{message_id}:event_id",
-            event_id,
-            ex=self.id_correlation_lifetime,
-        )
-        self._valkey.set(
-            f"event:{event_id}:message_id",
-            message_id,
-            ex=self.id_correlation_lifetime,
-        )
 
 
 main = Receiver.main

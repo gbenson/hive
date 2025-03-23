@@ -44,7 +44,8 @@ RUN set -eux \
   \
   && ln -s ../../venv/bin/matrix-commander /usr/bin \
   && ln -s ../../venv/bin/hive-matrix-sender /usr/bin \
-  && ln -s ../../venv/bin/hive-matrix-receiver /usr/bin
+  && ln -s ../../venv/bin/hive-matrix-receiver /usr/bin \
+  && ln -s ../../venv/bin/hive-matrix-transitioner /usr/bin
 
 RUN set -eux \
   \

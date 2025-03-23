@@ -30,6 +30,18 @@ services:
     secrets:
       - rabbitmq.env
 
+  matrix-transitioner:
+    image: gbenson/hive-matrix-connector
+    init: true
+    restart: unless-stopped
+    networks:
+      - matrix-connector-valkey
+      - message-bus
+    command:
+      - hive-matrix-transitioner
+    secrets:
+      - rabbitmq.env
+
   matrix-connector-valkey:
     image: valkey/valkey:8
     restart: unless-stopped

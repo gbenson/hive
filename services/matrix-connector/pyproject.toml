@@ -17,6 +17,7 @@ dependencies = [
 [project.scripts]
 hive-matrix-sender = "hive.matrix_connector.sender:main"
 hive-matrix-receiver = "hive.matrix_connector.receiver:main"
+hive-matrix-transitioner = "hive.matrix_connector.transitioner:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

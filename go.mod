@@ -44,4 +44,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-retract [v0.0.1, v0.4.0] // Broken module structure
+retract [v0.0.0, v0.4.1] // Broken module structure

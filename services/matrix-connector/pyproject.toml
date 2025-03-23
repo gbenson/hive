@@ -5,6 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Matrix connector service for Hive"
 readme = "README.md"
 dependencies = [
+    "cloudevents[pydantic]",
     "hive-chat>=0.0.9",
     "hive-common>=0.1.0",
     "hive-messaging>=0.12.6",

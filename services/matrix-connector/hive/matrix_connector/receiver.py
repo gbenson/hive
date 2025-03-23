@@ -4,8 +4,11 @@ import sys
 
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from functools import cached_property
 from typing import Literal, Sequence
+
+from cloudevents.pydantic import CloudEvent
 
 from hive.chat import ChatMessage, tell_user
 from hive.common.units import HOUR
@@ -94,9 +97,22 @@ class Receiver(ConnectorService):
                 default=self.obj_to_dict
             ).encode("utf-8")
 
+            matrix_event = json.loads(serialized_event)["source"]
+
+            event = CloudEvent(
+                id=matrix_event["event_id"],
+                source="https://gbenson.net/hive/services/matrix-receiver",
+                type="net.gbenson.hive.matrix_event",
+                time=datetime.fromtimestamp(
+                    matrix_event["origin_server_ts"] / 1000,
+                    tz=timezone.utc,
+                ),
+                subject=matrix_event["type"],
+                data=matrix_event,
+            )
+
             self._channel.publish_event(
-                message=serialized_event,
-                content_type="application/json",
+                message=event,
                 routing_key="matrix.events",
             )
 
@@ -104,9 +120,8 @@ class Receiver(ConnectorService):
             logger.exception("EXCEPTION")
 
     def on_matrix_event(self, channel: Channel, message: Message):
-        matrix_event = message.json()["source"]
         try:
-            message = ChatMessage.from_matrix_event(matrix_event)
+            message = ChatMessage.from_matrix_event(message.event().data)
         except Exception:
             logger.exception("EXCEPTION")
             return

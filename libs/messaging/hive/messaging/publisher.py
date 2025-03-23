@@ -14,6 +14,8 @@ d = logger.debug
 class PublisherConnection(Connection, Thread):
     def __init__(self, *args, **kwargs):
         thread_name = kwargs.pop("thread_name", "Publisher")
+        poll_interval = kwargs.pop("poll_interval", 1 * SECOND)
+        self._poll_interval = poll_interval.total_seconds()
         Thread.__init__(self, name=thread_name, daemon=True)
         Connection.__init__(self, *args, **kwargs)
         self.is_running = True
@@ -26,9 +28,9 @@ class PublisherConnection(Connection, Thread):
     def run(self):
         logger.info("%s: thread started", self.name)
         while self.is_running:
-            self.process_data_events(time_limit=1 * SECOND)
+            self.process_data_events(time_limit=self._poll_interval)
         logger.info("%s: thread stopping", self.name)
-        self.process_data_events(time_limit=1 * SECOND)
+        self.process_data_events(time_limit=self._poll_interval)
         logger.info("%s: thread stopped", self.name)
 
     def __exit__(self, *exc_info):

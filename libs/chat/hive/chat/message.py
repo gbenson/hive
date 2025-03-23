@@ -92,6 +92,8 @@ class ChatMessage:
             event: MatrixEvent | dict[str, Any],
     ) -> ChatMessage:
         if not isinstance(event, MatrixEvent):
+            if event["type"] == "net.gbenson.hive.matrix_event":
+                event = event["data"]  # CloudEvent
             event = MatrixEvent(event)
 
         if event.event_type != "m.room.message":

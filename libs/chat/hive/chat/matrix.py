@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 
 class ClientEvent:
-    """An undecorated `ClientEvent`, as reported by Matrix Commander.
+    """An undecorated `ClientEvent`.
 
     **7.2 Room event format**
 

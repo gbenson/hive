@@ -1,0 +1,30 @@
+[project]
+name = "hive-transitioner"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Transition manager for Hive 🏳️‍⚧️"
+dependencies = [
+    "hive-chat",
+    "hive-common",
+    "hive-messaging>=0.12.5",
+    "hive-service",
+]
+
+[project.scripts]
+hive-transitioner = "hive.transitioner:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.transitioner.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.transitioner"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]

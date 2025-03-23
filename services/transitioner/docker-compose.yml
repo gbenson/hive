@@ -1,0 +1,9 @@
+services:
+  transitioner:
+    image: gbenson/hive-transitioner
+    init: true
+    restart: unless-stopped
+    networks:
+      - message-bus
+    secrets:
+      - rabbitmq.env

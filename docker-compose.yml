@@ -16,6 +16,7 @@ include:
 
   - path: services/ollama/docker-compose.yml
   - path: services/service-monitor/docker-compose.yml
+  - path: services/transitioner/docker-compose.yml
   - path: services/vane-webui-api/docker-compose.yml
 
 services:

@@ -50,6 +50,7 @@ class Service(HiveService):
             self._main_loop(channel, imap)
 
     def _main_loop(self, channel: Channel, imap: imap.ClientConnection):
+        cycle_time = self.cycle_time.total_seconds()
         logger.info("Polling")
         while True:
             start_time = datetime.now()
@@ -57,7 +58,7 @@ class Service(HiveService):
             elapsed = (datetime.now() - start_time).total_seconds()
             log = logger.info if count else logger.debug
             log("Processed %s messages in %.4f seconds", count, elapsed)
-            sleep_time = self.cycle_time - elapsed
+            sleep_time = cycle_time- elapsed
             if sleep_time <= 0:
                 continue
             logger.debug("Sleeping for %.4f seconds", sleep_time)

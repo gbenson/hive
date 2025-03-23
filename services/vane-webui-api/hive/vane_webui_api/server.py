@@ -46,9 +46,9 @@ class HTTPServer(ThreadingHTTPServer):
         self._channel = channel
         self._queue_name = queue_name
         self._valkey_url = key_value_store_url
-        self._csrf_token_lifetime = csrf_token_lifetime
-        self._session_id_lifetime = session_id_lifetime
-        self._message_lifetime = message_lifetime
+        self._csrf_token_lifetime = round(csrf_token_lifetime.total_seconds())
+        self._session_id_lifetime = round(session_id_lifetime.total_seconds())
+        self._message_lifetime = round(message_lifetime.total_seconds())
         self._num_initial_events_to_send = num_initial_events_to_send
 
         if authenticator is None:
@@ -141,7 +141,7 @@ class HTTPServer(ThreadingHTTPServer):
             raise HTTPError(HTTPStatus.BAD_REQUEST) from e
 
         self._channel.connection.add_callback_threadsafe(partial(
-            self._channel.publish,
+            self._channel.publish_event,
             message=message,
             routing_key=self._queue_name,
         ))

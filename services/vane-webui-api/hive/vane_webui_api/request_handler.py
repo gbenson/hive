@@ -81,7 +81,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_set_cookie(
             self.SESSION_ID_COOKIE,
             session_id,
-            max_age=(365 * DAY) // 12,
+            max_age=round((365 * DAY).total_seconds()) // 12,
             secure=True,
             samesite="strict",
             httponly=True,

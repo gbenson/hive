@@ -162,7 +162,7 @@ def _return_ok_secure(self, cookie, request):
 class HTTPSession(requests.Session):
     def send(self, request, **kwargs):
         if not kwargs.get("timeout"):
-            kwargs["timeout"] = 30 * SECOND
+            kwargs["timeout"] = round((30 * SECOND).total_seconds())
         return super().send(request, **kwargs)
 
 

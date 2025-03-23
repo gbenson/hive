@@ -17,7 +17,7 @@ class EventStream:
     ):
         self._wfile = wfile
         self._lock = Lock()
-        self.max_idle_time = max_idle_time
+        self.max_idle_time = round(max_idle_time.total_seconds())
         self.is_open = True
         self._send_queue = []
 

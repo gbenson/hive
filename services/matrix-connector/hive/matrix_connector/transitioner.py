@@ -33,6 +33,9 @@ class Transitioner(ConnectorService):
             logger.exception("EXCEPTION")
             return
 
+        if message.sender == "hive":
+            return
+
         tell_user(message, channel=channel)
 
         message_id = str(message.uuid)

@@ -3,19 +3,19 @@ package service
 type ServiceCondition int
 
 const (
-	ConditionUnset ServiceCondition = iota
-	ConditionHealthy
+	ConditionHealthy ServiceCondition = iota
 	ConditionDubious
 	ConditionInError
+	ConditionUnmonitored
 )
 
 func (c ServiceCondition) String() string {
 	switch c {
 	case ConditionHealthy:
-		return "HEALTHY"
+		return "healthy"
 	case ConditionDubious:
-		return "DUBIOUS"
+		return "dubious"
 	default:
-		return "IN_ERROR"
+		return "in_error"
 	}
 }

@@ -3,7 +3,7 @@ package service
 
 import (
 	"context"
-	"flag"
+	"fmt"
 	"io"
 	stdlog "log"
 	"os"
@@ -19,48 +19,36 @@ type Service interface {
 	Start(ctx context.Context, ch *messaging.Channel) error
 }
 
-// Run a Hive service.
+// Run runs a Hive service.
 func Run(s Service) {
 	log := logger.New(&logger.Options{})
 	RunContext(log.WithContext(context.Background()), s)
 }
 
-// Run a Hive service with the given context.
+// RunContext runs a Hive service with the given context.
 func RunContext(ctx context.Context, s Service) {
 	if ctx == nil {
 		panic("nil context")
 	}
 
 	if err := runContext(ctx, s); err != nil {
-		logger.Ctx(ctx).Err(err).Msg("")
+		if !IsLoggedError(err) {
+			logger.Ctx(ctx).Err(err).Msg("")
+		}
 		os.Exit(1)
 	}
 }
 
+// Run a Hive service with the given context.  Note that errors and
+// panics in startService are reported via the RestartMonitor: any
+// code that *could* be in startService *should* be in startService.
 func runContext(ctx context.Context, s Service) error {
-	if s == nil {
-		panic("nil service")
+	if stdlog.Flags() == stdlog.LstdFlags {
+		stdlog.SetFlags(stdlog.Lshortfile)
 	}
 
-	stdlog.SetFlags(stdlog.Lshortfile)
-
-	var noMonitor bool
-loop:
-	for _, arg := range os.Args[1:] {
-		switch arg {
-		case "--no-monitor":
-			fallthrough
-		case "-no-monitor":
-			noMonitor = true
-			break loop
-		}
-	}
-
-	// Run the restart monitor.
-	rsm := RestartMonitor{}
-	if !noMonitor {
-		rsm.Run()
-	}
+	// Create the restart monitor.
+	rsm := NewRestartMonitor(ctx)
 
 	// Connect to the message bus.
 	conn, err := messaging.Dial()
@@ -75,22 +63,6 @@ loop:
 	}
 	defer ch.Close()
 
-	reportSent := false
-	if !noMonitor {
-		defer func() {
-			if !reportSent {
-				rsm.Report(ch)
-			}
-		}()
-	}
-
-	// Set up -no-monitor in case s.Start() uses flag.
-	flag.Bool(
-		"no-monitor",
-		false,
-		"run without restart monitoring",
-	)
-
 	// Start the service's goroutines.
 	if c, ok := s.(io.Closer); ok {
 		defer c.Close()
@@ -99,14 +71,8 @@ loop:
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	if err := s.Start(ctx, ch); err != nil {
+	if err := startService(ctx, s, rsm, ch); err != nil {
 		return err
-	}
-
-	// Send the restart monitor report.
-	if !noMonitor {
-		reportSent = true
-		rsm.Report(ch)
 	}
 
 	// Block until cancelled or interrupted.
@@ -131,4 +97,45 @@ loop:
 			cancel()
 		}
 	}
+}
+
+// Start a Hive service.  Handles publishing the RestartMonitor report.
+func startService(
+	ctx context.Context,
+	s Service,
+	rsm *RestartMonitor,
+	ch *messaging.Channel,
+) (err error) {
+	defer rsm.Report(ctx, ch)
+
+	defer func() {
+		p := recover()
+		if p == nil {
+			return
+		}
+
+		switch pp := p.(type) {
+		case error:
+			err = fmt.Errorf("panic: %w", pp)
+		default:
+			err = fmt.Errorf("panic: %v", pp)
+		}
+
+		rsm.LogError(err)
+		err = &loggedError{err}
+	}()
+
+	if s == nil {
+		panic("nil service")
+	}
+
+	defer func() {
+		if err != nil {
+			rsm.LogError(err)
+			err = &loggedError{err}
+		}
+	}()
+
+	err = s.Start(ctx, ch)
+	return
 }

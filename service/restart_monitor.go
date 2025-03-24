@@ -3,16 +3,17 @@ package service
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 
+	"gbenson.net/hive/logger"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/util"
 )
@@ -28,31 +29,64 @@ type RestartMonitor struct {
 	EventID   string
 	Time      time.Time
 	Messages  []string
+
+	log *logger.Logger
 }
 
-// Run runs the restart monitor.
-func (m *RestartMonitor) Run() {
-	if err := m.run(); err != nil {
-		m.LogError(err)
+// NewRestartMonitor creates a new restart monitor.
+func NewRestartMonitor(ctx context.Context) (rsm *RestartMonitor) {
+	rsm = &RestartMonitor{
+		log: logger.Ctx(ctx),
 	}
+	if !rsm.IsEnabled() {
+		return
+	}
+	if err := rsm.run(); err != nil {
+		rsm.LogError(err)
+	}
+	return
 }
 
-func (m *RestartMonitor) run() error {
-	if m.Condition != ConditionUnset {
-		return fmt.Errorf("unexpected initial condition %v", m.Condition)
+var installedNoMonitorFlag *bool
+
+// IsEnabled reports whether a restart monitor is enabled.
+func (rsm *RestartMonitor) IsEnabled() bool {
+	if rsm.Condition == ConditionUnmonitored {
+		return false
 	}
 
-	if m.EventID == "" {
-		eventID, err := uuid.NewRandom()
-		if err != nil {
-			return err
+	// Set up -no-monitor, in case Service.Start() uses flag.
+	if installedNoMonitorFlag == nil {
+		installedNoMonitorFlag = flag.Bool(
+			"no-monitor",
+			false,
+			"run without restart monitoring",
+		)
+	}
+
+	for _, arg := range os.Args[1:] {
+		switch arg {
+		case "--no-monitor":
+			fallthrough
+		case "-no-monitor":
+			rsm.Condition = ConditionUnmonitored
+			return false
 		}
-		m.EventID = eventID.String()
 	}
+
+	return true
+}
+
+func (rsm *RestartMonitor) run() error {
+	eventID, err := uuid.NewRandom()
+	if err != nil {
+		return err
+	}
+	rsm.EventID = eventID.String()
 
 	statedir, err := util.UserStateDir()
 	if err != nil {
-		log.Println("WARNING:", err)
+		rsm.LogWarning(err)
 		statedir = "/var/lib"
 	}
 	statedir = filepath.Join(statedir, "hive", util.ServiceName())
@@ -64,7 +98,7 @@ func (m *RestartMonitor) run() error {
 	filenames := []string{
 		filenameStem + "-",
 		filenameStem,
-		filenameStem + m.EventID,
+		filenameStem + rsm.EventID,
 	}
 	N := len(filenames)
 
@@ -86,7 +120,7 @@ func (m *RestartMonitor) run() error {
 		}
 	}
 
-	m.handleSituation(mtimes[0], mtimes[1], mtimes[2])
+	rsm.handleSituation(mtimes[0], mtimes[1], mtimes[2])
 
 	// Rotate the files.
 	for i := 1; i < N; i++ {
@@ -96,30 +130,27 @@ func (m *RestartMonitor) run() error {
 		if err == nil || errors.Is(err, os.ErrNotExist) {
 			continue
 		}
-		m.LogWarning(err)
+		rsm.LogWarning(err)
 	}
-
-	m.setCondition(ConditionHealthy)
-	log.Println("INFO: Service condition:", m.Condition)
 
 	return nil
 }
 
-func (m *RestartMonitor) handleSituation(
+func (rsm *RestartMonitor) handleSituation(
 	startupBeforeLast,
 	lastStartup,
 	thisStartup time.Time) {
 
-	m.Time = thisStartup
+	rsm.Time = thisStartup
 
 	if lastStartup.IsZero() {
-		m.Log("Service started for the first time")
+		rsm.LogInfo("Service started for the first time")
 		return
 	}
 
 	thisInterval := thisStartup.Sub(lastStartup)
 	if thisInterval > RapidRestartCutoff {
-		m.Log("Service restarted")
+		rsm.LogInfo("Service restarted")
 		return
 	}
 
@@ -130,77 +161,91 @@ func (m *RestartMonitor) handleSituation(
 	)
 
 	if startupBeforeLast.IsZero() {
-		m.LogWarning(rapidRestartMessage)
+		rsm.LogWarning(rapidRestartMessage)
 		return
 	}
 
 	lastInterval := lastStartup.Sub(startupBeforeLast)
 	if lastInterval > RapidRestartCutoff {
-		m.LogWarning(rapidRestartMessage)
+		rsm.LogWarning(rapidRestartMessage)
 		return
 	}
 
 	// At least two rapid restarts in succession.
-	m.LogError(rapidRestartMessage)
-	m.LogError("Service is restarting rapidly")
-	m.coolYourEngines()
+	rsm.LogError(rapidRestartMessage)
+	rsm.LogError("Service is restarting rapidly")
+	rsm.coolYourEngines()
 }
 
-func (m *RestartMonitor) coolYourEngines() {
+func (rsm *RestartMonitor) coolYourEngines() {
 	// https://www.youtube.com/watch?v=rsHqcUn6jBY
-	log.Println("INFO: Sleeping for", RapidRestartCooldownTime)
+	rsm.log.Info().
+		Str("action", "sleeping").
+		Dur("duration", RapidRestartCooldownTime).
+		Str("reason", "cooling engines").
+		Msg("Restart monitor")
 	time.Sleep(RapidRestartCooldownTime)
 }
 
 // Log logs a informational message.
-func (m *RestartMonitor) Log(msg any) {
-	m.log("INFO", msg)
+func (rsm *RestartMonitor) LogInfo(msg any) {
+	rsm.logEvent(rsm.log.Info, msg)
 }
 
 // LogWarning logs a warning message and marks the service to be in
 // dubious condition.
-func (m *RestartMonitor) LogWarning(msg any) {
-	m.log("WARNING", msg)
-	m.setCondition(ConditionDubious)
+func (rsm *RestartMonitor) LogWarning(msg any) {
+	rsm.logEvent(rsm.log.Warn, msg)
+	rsm.setCondition(ConditionDubious)
 }
 
 // LogError logs an error message and marks the service to be in an
 // error condition.
-func (m *RestartMonitor) LogError(msg any) {
-	m.log("ERROR", msg)
-	m.setCondition(ConditionInError)
+func (rsm *RestartMonitor) LogError(msg any) {
+	rsm.logEvent(rsm.log.Error, msg)
+	rsm.setCondition(ConditionInError)
 }
 
-func (m *RestartMonitor) log(prefix string, msg any) {
-	message := fmt.Sprintf("%v", msg)
-	log.Println(prefix+":", message)
-	m.Messages = append(m.Messages, message)
+func (rsm *RestartMonitor) logEvent(ll func() *zerolog.Event, v any) {
+	var msg string
+
+	switch vv := v.(type) {
+	case error:
+		ll().Err(vv).Msg("Restart monitor")
+		msg = vv.Error()
+	default:
+		msg = fmt.Sprintf("%v", vv)
+		ll().Msg(msg)
+	}
+
+	rsm.Messages = append(rsm.Messages, msg)
 }
 
-func (m *RestartMonitor) setCondition(c ServiceCondition) {
-	if m.Condition < c {
-		m.Condition = c
+func (rsm *RestartMonitor) setCondition(c ServiceCondition) {
+	if rsm.Condition < c {
+		rsm.Condition = c
 	}
 }
 
-// Report publishes a service status report event onto the message bus.
-func (m *RestartMonitor) Report(ch *messaging.Channel) {
+// Report publishes a service condition report onto the message bus.
+func (rsm *RestartMonitor) Report(ctx context.Context, ch *messaging.Channel) {
 	event := cloudevents.NewEvent()
-	event.SetID(m.EventID)
+	event.SetID(rsm.EventID)
 	event.SetSource(util.ServiceNameURL())
 	event.SetType("net.gbenson.hive.service_status_report")
-	event.SetTime(m.Time)
+	event.SetTime(rsm.Time)
 	event.SetSubject(util.ServiceName())
 	event.SetData(
 		cloudevents.ApplicationJSON,
 		map[string]any{
-			"condition": strings.ToLower(m.Condition.String()),
-			"messages":  m.Messages,
+			"condition": rsm.Condition.String(),
+			"messages":  rsm.Messages,
 		},
 	)
 
 	err := ch.PublishEvent(context.Background(), "service.status.reports", event)
 	if err != nil {
-		log.Println("WARNING:", err)
+		logger.Ctx(ctx).Warn().Err(err).Msg("Restart monitor")
+		return
 	}
 }

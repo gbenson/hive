@@ -4,13 +4,13 @@ package service
 import (
 	"context"
 	"flag"
-	"fmt"
 	"io"
-	"log"
+	stdlog "log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"gbenson.net/hive/logger"
 	"gbenson.net/hive/messaging"
 )
 
@@ -21,14 +21,28 @@ type Service interface {
 
 // Run a Hive service.
 func Run(s Service) {
-	if err := run(s); err != nil {
-		fmt.Println("error:", err)
+	log := logger.New(&logger.Options{})
+	RunContext(log.WithContext(context.Background()), s)
+}
+
+// Run a Hive service with the given context.
+func RunContext(ctx context.Context, s Service) {
+	if ctx == nil {
+		panic("nil context")
+	}
+
+	if err := runContext(ctx, s); err != nil {
+		logger.Ctx(ctx).Err(err).Msg("")
 		os.Exit(1)
 	}
 }
 
-func run(s Service) error {
-	log.SetFlags(log.Lshortfile)
+func runContext(ctx context.Context, s Service) error {
+	if s == nil {
+		panic("nil service")
+	}
+
+	stdlog.SetFlags(stdlog.Lshortfile)
 
 	var noMonitor bool
 loop:
@@ -82,7 +96,7 @@ loop:
 		defer c.Close()
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	if err := s.Start(ctx, ch); err != nil {
@@ -110,7 +124,10 @@ loop:
 			return ctx.Err()
 		case sig := <-sigC:
 			signal.Reset() // Restore default handlers.
-			log.Printf("INFO: %s: shutting down", sig)
+			logger.Ctx(ctx).Info().
+				Str("reason", "signal").
+				Str("signal", sig.String()).
+				Msg("Shutting down")
 			cancel()
 		}
 	}

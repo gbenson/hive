@@ -9,7 +9,6 @@ import (
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/rs/zerolog"
 
 	"gbenson.net/hive/matrix"
 	"gbenson.net/hive/messaging"
@@ -23,7 +22,6 @@ func main() {
 
 type Service struct {
 	Name string
-	Log  zerolog.Logger
 
 	matrixConn   *matrix.Conn
 	cancelSync   context.CancelFunc
@@ -34,7 +32,6 @@ type Service struct {
 
 func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
 	s.Name = util.ServiceNameURL()
-	s.Log = zerolog.New(zerolog.NewConsoleWriter())
 
 	if err := s.startMatrix(ctx, ch); err != nil {
 		return err
@@ -48,7 +45,7 @@ func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
 }
 
 func (s *Service) startMatrix(ctx context.Context, ch *messaging.Channel) error {
-	conn, err := matrix.Dial(&matrix.DialOptions{ConfigKey: "hive", Log: s.Log})
+	conn, err := matrix.DialContext(ctx, &matrix.DialOptions{ConfigKey: "hive"})
 	if err != nil {
 		return err
 	}
@@ -58,7 +55,7 @@ func (s *Service) startMatrix(ctx context.Context, ch *messaging.Channel) error 
 		matrix.EventMessage,
 		func(ctx context.Context, e *matrix.Event) {
 			if err := s.onEventMessage(ctx, e, ch); err != nil {
-				s.Log.Err(err).Msg("")
+				conn.Log.Err(err).Msg("")
 			}
 		},
 	); err != nil {
@@ -80,17 +77,18 @@ func (s *Service) startMatrix(ctx context.Context, ch *messaging.Channel) error 
 }
 
 func (s *Service) Close() error {
-	if s.matrixConn == nil {
+	conn := s.matrixConn
+	if conn == nil {
 		return nil
 	}
-	defer s.matrixConn.Close()
+	defer conn.Close()
 
 	if s.cancelSync != nil {
-		s.Log.Trace().Msg("Stopping syncer")
+		conn.Log.Trace().Msg("Stopping syncer")
 		s.cancelSync()
-		s.Log.Trace().Msg("Waiting for syncer to stop")
+		conn.Log.Trace().Msg("Waiting for syncer to stop")
 		s.syncStopWait.Wait()
-		s.Log.Trace().Msg("Syncer stopped")
+		conn.Log.Trace().Msg("Syncer stopped")
 	}
 
 	return nil

@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"gbenson.net/hive/logger"
+
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto"
 	"maunium.net/go/mautrix/crypto/cryptohelper"
@@ -27,7 +29,18 @@ func Dial(options *DialOptions) (*Conn, error) {
 
 // DialContext returns a new connection to the Matrix.
 func DialContext(ctx context.Context, options *DialOptions) (*Conn, error) {
-	o, err := options.populateForDial()
+	if ctx == nil {
+		panic("nil context")
+	}
+	if options == nil {
+		panic("nil options")
+	}
+
+	o := *options // work on a copy
+	if o.Log == nil {
+		o.Log = logger.Ctx(ctx)
+	}
+	err := o.populateForDial()
 	if err != nil {
 		return nil, err
 	}
@@ -40,10 +53,10 @@ func DialContext(ctx context.Context, options *DialOptions) (*Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	client.Log = o.Log
+	client.Log = *o.Log
 
 	conn := &Conn{Client: *client}
-	if err := conn.init(ctx, o); err != nil {
+	if err := conn.init(ctx, &o); err != nil {
 		defer conn.Close()
 		return nil, err
 	}

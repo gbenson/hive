@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 
 	"gbenson.net/hive/config"
+	"gbenson.net/hive/logger"
 	"gbenson.net/hive/util"
 
-	"github.com/rs/zerolog"
 	"maunium.net/go/mautrix/id"
 )
 
@@ -24,8 +24,9 @@ type DialOptions struct {
 	// Defaults to DefaultConfigKey.
 	ConfigKey string
 
-	// Log specifies an optional Zerolog logger to use for logging.
-	Log zerolog.Logger
+	// Log specifies an optional logger to use for logging.
+	// TODO(gbenson): Remove this field.
+	Log *logger.Logger
 
 	// Homeserver is the homeserver to connect to.  Defaults to the value from
 	// UserID, if specified, DefaultHomeserver otherwise.
@@ -53,35 +54,33 @@ type DialOptions struct {
 	RecoveryKey string
 }
 
-func (src *DialOptions) populateForDial() (*DialOptions, error) {
-	o := *src // make a copy
-
+func (o *DialOptions) populateForDial() error {
 	if err := o.ensureConfigKey(); err != nil {
-		return nil, err
+		return err
 	}
 
 	c, ck, err := o.getConfig()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := o.ensureHomeserver(c, ck); err != nil {
-		return nil, err
+		return err
 	}
 	if err := o.ensureUserID(c, ck); err != nil {
-		return nil, err
+		return err
 	}
 	if err := o.ensureCredentials(c, ck); err != nil {
-		return nil, err
+		return err
 	}
 	if err := o.ensureRecoveryKey(c, ck); err != nil {
-		return nil, err
+		return err
 	}
 	if err := o.ensureDatabasePath(c, ck); err != nil {
-		return nil, err
+		return err
 	}
 
-	return &o, nil
+	return nil
 }
 
 func (o *DialOptions) ensureConfigKey() error {

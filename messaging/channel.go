@@ -7,9 +7,9 @@ import (
 	"log"
 	"strings"
 
-	cloudevents "github.com/cloudevents/sdk-go/v2"
 	amqp "github.com/rabbitmq/amqp091-go"
 
+	"gbenson.net/hive/logger"
 	hive "gbenson.net/hive/messaging/internal"
 	"gbenson.net/hive/util"
 )
@@ -22,15 +22,15 @@ type Channel struct {
 // Close closes the channel.
 func (c *Channel) Close() error {
 	if c.pubc != nil {
-		defer c.pubc.Close()
+		defer c.conn.closeChannel(c.pubc, "publisher")
 	}
 	if c.conc != nil {
-		defer c.conc.Close()
+		defer c.conn.closeChannel(c.conc, "consumer")
 	}
 	return nil
 }
 
-// publishChannel returns a amqp.Channel to use for publishing.
+// publishChannel returns an amqp.Channel to use for publishing.
 func (c *Channel) publishChannel() (ch *amqp.Channel, err error) {
 	if ch = c.pubc; ch != nil {
 		return
@@ -48,7 +48,7 @@ func (c *Channel) publishChannel() (ch *amqp.Channel, err error) {
 	return ch, nil
 }
 
-// consumeChannel returns a amqp.Channel to use for consuming.
+// consumeChannel returns an amqp.Channel to use for consuming.
 func (c *Channel) consumeChannel() (ch *amqp.Channel, err error) {
 	if ch = c.conc; ch != nil {
 		return
@@ -112,7 +112,11 @@ func (c *Channel) ConsumeEvents(
 	}
 
 	go func() {
-		log.Println("INFO: Consuming", queue.Name)
+		logger.Ctx(ctx).Info().
+			Str("route", routingKey). // where you publish
+			Str("queue", queue.Name). // where we're consuming
+			Msg("Consuming events")
+
 		for d := range deliveries {
 			c.consume(ctx, d, consumer)
 		}
@@ -132,7 +136,7 @@ func (ch *Channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
 	ctx, cancel := context.WithCancel(ctx) // XXX WithTimeout?
 	defer cancel()
 
-	switch err := c.Consume(ctx, &Message{&d}); err {
+	switch err := c.Consume(ctx, &Message{&d, ch}); err {
 	case nil:
 		d.Ack(false)
 	default:
@@ -145,13 +149,13 @@ func (ch *Channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
 func (c *Channel) PublishEvent(
 	ctx context.Context,
 	routingKey string,
-	event cloudevents.Event,
+	event Event,
 ) error {
 	messageBody, err := json.Marshal(event)
 	if err != nil {
 		return err
 	}
-	contentType := cloudevents.ApplicationCloudEventsJSON
+	contentType := ApplicationCloudEventsJSON
 
 	ch, err := c.publishChannel()
 	if err != nil {

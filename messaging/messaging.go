@@ -2,19 +2,23 @@
 package messaging
 
 import (
+	"context"
 	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	"gbenson.net/hive/config"
+	"gbenson.net/hive/logger"
+	"gbenson.net/hive/util"
 )
 
 type Conn struct {
 	amqp *amqp.Connection
+	log  *logger.Logger
 }
 
 // Dial returns a new connection to the Hive message bus.
-func Dial() (*Conn, error) {
+func Dial(ctx context.Context) (*Conn, error) {
 	c := config.New("rabbitmq")
 
 	uri, err := amqp.ParseURI("amqp:")
@@ -37,21 +41,44 @@ func Dial() (*Conn, error) {
 	uri.Username = c.GetString("default_user")
 	uri.Password = c.GetString("default_pass")
 
-	conn := &Conn{}
-	conn.amqp, err = amqp.Dial(fmt.Sprintf("%s?heartbeat=600", uri))
+	return dial(ctx, fmt.Sprintf("%s?heartbeat=600", uri))
+}
+
+func dial(ctx context.Context, uri string) (*Conn, error) {
+	log := logger.Ctx(ctx).
+		With().
+		Str("uri", util.RedactURL(uri)).
+		Logger()
+
+	log.Debug().Msg("Dialling")
+
+	conn, err := amqp.Dial(uri)
 	if err != nil {
 		return nil, err
 	}
 
-	return conn, nil
+	return &Conn{conn, &log}, nil
 }
 
 // Close closes the connection.
 func (c *Conn) Close() error {
-	return c.amqp.Close()
+	defer c.amqp.Close()
+
+	c.log.Debug().Msg("Closing message bus connection")
+
+	return nil
 }
 
 // Channel opens a unique, concurrent channel to process messages.
 func (c *Conn) Channel() (*Channel, error) {
 	return &Channel{conn: c}, nil
+}
+
+// closeChannel closes an AMQP channel.
+func (c *Conn) closeChannel(ch *amqp.Channel, name string) error {
+	defer ch.Close()
+
+	c.log.Debug().Str("channel", name).Msg("Closing messaging channel")
+
+	return nil
 }

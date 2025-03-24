@@ -1,6 +1,8 @@
 [![version badge]](https://hub.docker.com/r/gbenson/hive-service-monitor)
+[![documentation badge]](https://pkg.go.dev/gbenson.net/hive/services/service-monitor)
 
 [version badge]: https://img.shields.io/docker/v/gbenson/hive-service-monitor?color=limegreen
+[documentation badge]: https://pkg.go.dev/badge/gbenson.net/hive/services/service-monitor.svg
 
 # hive-service-monitor
 
@@ -12,11 +14,6 @@ Service status monitor for Hive
 
 ```sh
 git clone https://github.com/gbenson/hive.git
-cd hive/services/service-monitor
-python3 -m venv .venv
-. .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .
-flake8 && pytest
+cd hive
+gofmt -w . && LL=debug go run ./services/service-monitor/cmd/hive-service-monitor.go
 ```

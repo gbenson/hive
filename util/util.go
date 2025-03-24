@@ -26,12 +26,6 @@ func ServiceName() string {
 	return name
 }
 
-// ServiceNameURL returns an absolute URL which can be used as an
-// identifier for the Hive service this executable provides.
-func ServiceNameURL() string {
-	return "https://gbenson.net/hive/services/" + ServiceName()
-}
-
 // UserStateDir returns the default root directory to use for
 // user-specific state files. Users should create their own
 // application-specific subdirectory within this one and use that.

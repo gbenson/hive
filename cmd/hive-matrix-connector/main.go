@@ -4,16 +4,12 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
 	"sync"
 	"time"
-
-	cloudevents "github.com/cloudevents/sdk-go/v2"
 
 	"gbenson.net/hive/matrix"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/service"
-	"gbenson.net/hive/util"
 )
 
 func main() {
@@ -21,23 +17,13 @@ func main() {
 }
 
 type Service struct {
-	Name string
-
 	matrixConn   *matrix.Conn
 	cancelSync   context.CancelFunc
 	syncStopWait sync.WaitGroup
-
-	cmc ChatMessageConsumer
 }
 
 func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
-	s.Name = util.ServiceNameURL()
-
 	if err := s.startMatrix(ctx, ch); err != nil {
-		return err
-	}
-
-	if err := ch.ConsumeEvents(ctx, "chat.messages", &s.cmc); err != nil {
 		return err
 	}
 
@@ -104,27 +90,12 @@ func (s *Service) onEventMessage(
 		return err
 	}
 
-	event := cloudevents.NewEvent()
+	event := messaging.NewEvent()
 	event.SetID(e.ID.String())
-	event.SetSource(s.Name)
 	event.SetType("net.gbenson.hive.matrix_event")
 	event.SetTime(time.UnixMilli(e.Timestamp))
 	event.SetSubject(e.Type.String())
-	event.SetData(cloudevents.ApplicationJSON, data)
+	event.SetData(messaging.ApplicationJSON, data)
 
 	return ch.PublishEvent(ctx, "matrix.events", event)
-}
-
-type ChatMessageConsumer struct {
-}
-
-func (c *ChatMessageConsumer) Consume(
-	ctx context.Context,
-	m *messaging.Message,
-) error {
-	msg, err := m.Text()
-	if err == nil {
-		log.Printf("\x1B[34mINFO: hive.chat.message: %v\x1B[0m", msg)
-	}
-	return err
 }

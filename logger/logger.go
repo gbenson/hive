@@ -57,5 +57,9 @@ func (o *Options) level() string {
 // Ctx returns the Logger associated with the given context. Returns
 // an appropriate (non-nil) default if ctx has no associated logger.
 func Ctx(ctx context.Context) *Logger {
+	if ctx == nil {
+		panic("nil context")
+	}
+
 	return zerolog.Ctx(ctx)
 }

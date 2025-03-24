@@ -185,7 +185,7 @@ func (o *DialOptions) ensureCredentials(c *config.Config, ck *configKeys) error 
 	if o.AccessToken == "" {
 		if s := c.GetString(ck.AccessToken); s != "" {
 			o.AccessToken = s
-			o.logUpdate("AccessToken", mask(o.AccessToken))
+			o.logUpdate("AccessToken", util.Redacted)
 		}
 	}
 
@@ -208,7 +208,7 @@ func (o *DialOptions) ensureCredentials(c *config.Config, ck *configKeys) error 
 	if o.Password == "" {
 		if s := c.GetString(ck.Password); s != "" {
 			o.Password = s
-			o.logUpdate("Password", mask(o.Password))
+			o.logUpdate("Password", util.Redacted)
 		} else {
 			return ErrNoCredentials
 		}
@@ -224,7 +224,7 @@ func (o *DialOptions) ensureRecoveryKey(c *config.Config, ck *configKeys) error 
 
 	if s := c.GetString(ck.RecoveryKey); s != "" {
 		o.RecoveryKey = s
-		o.logUpdate("RecoveryKey", mask(s))
+		o.logUpdate("RecoveryKey", util.Redacted)
 	}
 
 	return nil

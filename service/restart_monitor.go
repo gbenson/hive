@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"time"
 
-	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 
@@ -19,18 +18,18 @@ import (
 )
 
 const (
+	ConditionReportsQueue = "service.status.reports"
+
 	RapidRestartCutoff       = 5 * time.Minute
 	RapidRestartCooldownTime = RapidRestartCutoff / 3
 )
 
 // A RestartMonitor manages rapid restart mitigation.
 type RestartMonitor struct {
-	Condition ServiceCondition
-	EventID   string
-	Time      time.Time
-	Messages  []string
-
-	log *logger.Logger
+	ConditionReport
+	EventID string
+	Time    time.Time
+	log     *logger.Logger
 }
 
 // NewRestartMonitor creates a new restart monitor.
@@ -39,6 +38,7 @@ func NewRestartMonitor(ctx context.Context) (rsm *RestartMonitor) {
 		log: logger.Ctx(ctx),
 	}
 	if !rsm.IsEnabled() {
+		rsm.log.Debug().Msg("Restart monitor disabled")
 		return
 	}
 	if err := rsm.run(); err != nil {
@@ -84,13 +84,8 @@ func (rsm *RestartMonitor) run() error {
 	}
 	rsm.EventID = eventID.String()
 
-	statedir, err := util.UserStateDir()
+	statedir, err := stateDir(rsm)
 	if err != nil {
-		rsm.LogWarning(err)
-		statedir = "/var/lib"
-	}
-	statedir = filepath.Join(statedir, "hive", util.ServiceName())
-	if err := os.MkdirAll(statedir, 0700); err != nil {
 		return err
 	}
 	filenameStem := filepath.Join(statedir, "service-restart.stamp")
@@ -221,7 +216,7 @@ func (rsm *RestartMonitor) logEvent(ll func() *zerolog.Event, v any) {
 	rsm.Messages = append(rsm.Messages, msg)
 }
 
-func (rsm *RestartMonitor) setCondition(c ServiceCondition) {
+func (rsm *RestartMonitor) setCondition(c Condition) {
 	if rsm.Condition < c {
 		rsm.Condition = c
 	}
@@ -229,23 +224,27 @@ func (rsm *RestartMonitor) setCondition(c ServiceCondition) {
 
 // Report publishes a service condition report onto the message bus.
 func (rsm *RestartMonitor) Report(ctx context.Context, ch *messaging.Channel) {
-	event := cloudevents.NewEvent()
-	event.SetID(rsm.EventID)
-	event.SetSource(util.ServiceNameURL())
-	event.SetType("net.gbenson.hive.service_status_report")
-	event.SetTime(rsm.Time)
-	event.SetSubject(util.ServiceName())
-	event.SetData(
-		cloudevents.ApplicationJSON,
-		map[string]any{
-			"condition": rsm.Condition.String(),
-			"messages":  rsm.Messages,
-		},
-	)
-
-	err := ch.PublishEvent(context.Background(), "service.status.reports", event)
-	if err != nil {
-		logger.Ctx(ctx).Warn().Err(err).Msg("Restart monitor")
+	if !rsm.IsEnabled() {
 		return
 	}
+
+	e := messaging.NewEvent()
+	e.SetID(rsm.EventID)
+	e.SetType("net.gbenson.hive.service_status_report")
+	e.SetTime(rsm.Time)
+	e.SetSubject(util.ServiceName())
+	e.SetData(messaging.ApplicationJSON, rsm.ConditionReport)
+
+	log := logger.Ctx(ctx)
+
+	err := ch.PublishEvent(context.Background(), ConditionReportsQueue, e)
+	if err != nil {
+		log.Warn().Err(err).Msg("Restart monitor")
+		return
+	}
+
+	log.Info().
+		Interface("event", e).
+		Msg("Service condition reported")
+
 }

@@ -104,7 +104,7 @@ func (conn *Conn) init(ctx context.Context, o *DialOptions) error {
 		Str("user_id", conn.UserID.String()).
 		Str("device_id", conn.DeviceID.String())
 	if isLoginFlow {
-		// Log unmasked access token for copying into config.
+		// Log unredacted access token for copying into config.
 		log = log.Str("access_token", conn.AccessToken)
 	}
 	log.Msg("Authenticated")

@@ -16,7 +16,7 @@ import (
 
 type Service interface {
 	// Start starts the service's goroutines.
-	Start(ctx context.Context, ch *Channel) error
+	Start(ctx context.Context, ch *messaging.Channel) error
 }
 
 // Run a Hive service.
@@ -55,7 +55,10 @@ loop:
 	}
 	defer conn.Close()
 
-	ch := &Channel{conn: conn}
+	ch, err := conn.Channel()
+	if err != nil {
+		return err
+	}
 	defer ch.Close()
 
 	reportSent := false

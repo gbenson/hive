@@ -53,22 +53,5 @@ func (c *Conn) Close() error {
 
 // Channel opens a unique, concurrent channel to process messages.
 func (c *Conn) Channel() (*Channel, error) {
-	ch, err := c.amqp.Channel()
-	if err != nil {
-		return nil, err
-	}
-
-	// Don't let Publish fail silently.
-	if err := ch.Confirm(false); err != nil {
-		ch.Close()
-		return nil, err
-	}
-
-	// Receive messages one at a time.
-	if err := ch.Qos(1, 0, false); err != nil {
-		ch.Close()
-		return nil, err
-	}
-
-	return &Channel{c, ch}, nil
+	return &Channel{conn: c}, nil
 }

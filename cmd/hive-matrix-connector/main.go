@@ -32,7 +32,7 @@ type Service struct {
 	cmc ChatMessageConsumer
 }
 
-func (s *Service) Start(ctx context.Context, ch *service.Channel) error {
+func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
 	s.Name = util.ServiceNameURL()
 	s.Log = zerolog.New(zerolog.NewConsoleWriter())
 
@@ -47,7 +47,7 @@ func (s *Service) Start(ctx context.Context, ch *service.Channel) error {
 	return nil
 }
 
-func (s *Service) startMatrix(ctx context.Context, ch *service.Channel) error {
+func (s *Service) startMatrix(ctx context.Context, ch *messaging.Channel) error {
 	conn, err := matrix.Dial(&matrix.DialOptions{ConfigKey: "hive", Log: s.Log})
 	if err != nil {
 		return err
@@ -99,7 +99,7 @@ func (s *Service) Close() error {
 func (s *Service) onEventMessage(
 	ctx context.Context,
 	e *matrix.Event,
-	ch *service.Channel,
+	ch *messaging.Channel,
 ) error {
 	data, err := matrix.MarshalEvent(e)
 	if err != nil {

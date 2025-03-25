@@ -42,10 +42,10 @@ func (c *Channel) pc() (*amqp.Channel, error) {
 // cc returns a amqp.Channel to use for consuming.
 func (c *Channel) cc() (*amqp.Channel, error) {
 	var err error
-	if c.pubc == nil {
-		c.pubc, err = c.newChannel()
+	if c.conc == nil {
+		c.conc, err = c.newChannel()
 	}
-	return c.pubc, err
+	return c.conc, err
 }
 
 func (c *Channel) newChannel() (*amqp.Channel, error) {

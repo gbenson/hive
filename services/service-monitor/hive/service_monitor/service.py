@@ -18,7 +18,6 @@ from hive.service import HiveService, RestartMonitor
 @dataclass
 class Service(HiveService):
     service_status_report_queue: str = "service.status.reports"
-    service_status_event_queue: str = "service.status"
     valkey_url: str = "valkey://service-monitor-valkey"
     service_condition_window: timedelta = RestartMonitor.rapid_restart_cutoff
 
@@ -111,10 +110,6 @@ class Service(HiveService):
                 channel.consume_events(
                     queue=self.service_status_report_queue,
                     on_message_callback=self.on_service_status_report,
-                )
-                channel.consume_events(
-                    queue=self.service_status_event_queue,
-                    on_message_callback=self.on_service_status_event,
                 )
             finally:
                 if self.on_channel_open:

@@ -30,42 +30,39 @@ func (c *Channel) Close() error {
 	return nil
 }
 
-// pc returns a amqp.Channel to use for publishing.
-func (c *Channel) pc() (*amqp.Channel, error) {
-	var err error
-	if c.pubc == nil {
-		c.pubc, err = c.newChannel()
-	}
-	return c.pubc, err
-}
-
-// cc returns a amqp.Channel to use for consuming.
-func (c *Channel) cc() (*amqp.Channel, error) {
-	var err error
-	if c.conc == nil {
-		c.conc, err = c.newChannel()
-	}
-	return c.conc, err
-}
-
-func (c *Channel) newChannel() (*amqp.Channel, error) {
-	ch, err := c.conn.amqp.Channel()
-	if err != nil {
+// publishChannel returns a amqp.Channel to use for publishing.
+func (c *Channel) publishChannel() (ch *amqp.Channel, err error) {
+	if ch = c.pubc; ch != nil {
+		return
+	} else if ch, err = c.conn.amqp.Channel(); err != nil {
 		return nil, err
 	}
 
 	// Don't let Publish fail silently.
-	if err := ch.Confirm(false); err != nil {
-		ch.Close()
+	if err = ch.Confirm(false); err != nil {
+		defer ch.Close()
+		return nil, err
+	}
+
+	c.pubc = ch
+	return ch, nil
+}
+
+// consumeChannel returns a amqp.Channel to use for consuming.
+func (c *Channel) consumeChannel() (ch *amqp.Channel, err error) {
+	if ch = c.conc; ch != nil {
+		return
+	} else if ch, err = c.conn.amqp.Channel(); err != nil {
 		return nil, err
 	}
 
 	// Receive messages one at a time.
-	if err := ch.Qos(1, 0, false); err != nil {
-		ch.Close()
+	if err = ch.Qos(1, 0, false); err != nil {
+		defer ch.Close()
 		return nil, err
 	}
 
+	c.conc = ch
 	return ch, nil
 }
 
@@ -81,7 +78,7 @@ func (c *Channel) ConsumeEvents(
 	routingKey string,
 	consumer Consumer,
 ) error {
-	ch, err := c.cc()
+	ch, err := c.consumeChannel()
 	if err != nil {
 		return err
 	}
@@ -156,7 +153,7 @@ func (c *Channel) PublishEvent(
 	}
 	contentType := cloudevents.ApplicationCloudEventsJSON
 
-	ch, err := c.pc()
+	ch, err := c.publishChannel()
 	if err != nil {
 		return err
 	}

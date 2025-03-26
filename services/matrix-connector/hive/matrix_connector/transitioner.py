@@ -22,6 +22,10 @@ class Transitioner(ConnectorService):
                 queue="matrix.events",
                 on_message_callback=self.on_matrix_event,
             )
+            channel.consume_events(
+                queue="tell.user.requests",
+                on_message_callback=self.on_tell_user_request,
+            )
             channel.start_consuming()
 
     def on_matrix_event(self, channel: Channel, message: Message):
@@ -50,6 +54,22 @@ class Transitioner(ConnectorService):
             message_id,
             ex=self.id_correlation_lifetime,
         )
+
+    def on_tell_user_request(self, channel: Channel, message: Message):
+        """Re-publish incoming tell_user requests as chat messages.
+        """
+        request = message.event()
+        request_kwargs = request.data
+        if isinstance(request_kwargs, str):
+            request_kwargs = {"text": request_kwargs}
+
+        message = ChatMessage(
+            uuid=request.id,
+            timestamp=request.time,
+            **request_kwargs,
+        )
+
+        tell_user(message, channel=channel)
 
 
 main = Transitioner.main

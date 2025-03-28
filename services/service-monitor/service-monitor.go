@@ -1,5 +1,5 @@
-// servicemonitor collates service condition reports into user messages.
-package servicemonitor
+// monitor collates service condition reports into user messages.
+package monitor
 
 import (
 	"context"

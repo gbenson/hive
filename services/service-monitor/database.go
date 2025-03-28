@@ -1,4 +1,4 @@
-package servicemonitor
+package monitor
 
 import (
 	"errors"

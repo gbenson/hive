@@ -14,7 +14,7 @@ import (
 	"gbenson.net/hive/service"
 )
 
-// XXX document me
+// Window is the time period over which reports are aggregated.
 const Window = service.RapidRestartCutoff
 
 // Service implements the [service.Service] interface.

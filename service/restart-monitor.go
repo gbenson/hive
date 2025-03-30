@@ -184,33 +184,40 @@ func (rsm *RestartMonitor) coolYourEngines() {
 
 // Log logs a informational message.
 func (rsm *RestartMonitor) LogInfo(msg any) {
-	rsm.logEvent(rsm.log.Info, msg)
+	rsm.logEvent(zerolog.InfoLevel, msg)
 }
 
 // LogWarning logs a warning message and marks the service to be in
 // dubious condition.
 func (rsm *RestartMonitor) LogWarning(msg any) {
-	rsm.logEvent(rsm.log.Warn, msg)
+	rsm.logEvent(zerolog.WarnLevel, msg)
 	rsm.setCondition(ConditionDubious)
 }
 
 // LogError logs an error message and marks the service to be in an
 // error condition.
 func (rsm *RestartMonitor) LogError(msg any) {
-	rsm.logEvent(rsm.log.Error, msg)
+	rsm.logEvent(zerolog.ErrorLevel, msg)
 	rsm.setCondition(ConditionInError)
 }
 
-func (rsm *RestartMonitor) logEvent(ll func() *zerolog.Event, v any) {
+// LogError logs a panic and marks the service to be in an error
+// condition.
+func (rsm *RestartMonitor) LogPanic(msg any) {
+	rsm.logEvent(zerolog.PanicLevel, msg)
+	rsm.setCondition(ConditionInError)
+}
+
+func (rsm *RestartMonitor) logEvent(level zerolog.Level, v any) {
 	var msg string
 
 	switch vv := v.(type) {
 	case error:
-		ll().Err(vv).Msg("Restart monitor")
+		rsm.log.WithLevel(level).Err(vv).Msg("Restart monitor")
 		msg = vv.Error()
 	default:
 		msg = fmt.Sprintf("%v", vv)
-		ll().Msg(msg)
+		rsm.log.WithLevel(level).Msg(msg)
 	}
 
 	rsm.Messages = append(rsm.Messages, msg)

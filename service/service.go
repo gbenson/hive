@@ -3,7 +3,7 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"io"
 	stdlog "log"
 	"os"
@@ -12,6 +12,7 @@ import (
 
 	"gbenson.net/hive/logger"
 	"gbenson.net/hive/messaging"
+	"gbenson.net/hive/util"
 )
 
 type Service interface {
@@ -116,19 +117,16 @@ func startService(
 	defer rsm.Report(ctx, ch)
 
 	defer func() {
-		p := recover()
-		if p == nil {
+		pv := recover()
+		if pv == nil {
 			return
 		}
-
-		switch pp := p.(type) {
-		case error:
-			err = fmt.Errorf("panic: %w", pp)
-		default:
-			err = fmt.Errorf("panic: %v", pp)
+		if err != nil && !IsLoggedError(err) {
+			rsm.LogError(err)
 		}
+		err = util.NewRecoveredPanicError(pv)
 
-		rsm.LogError(err)
+		rsm.LogPanic(errors.Unwrap(err))
 		err = &loggedError{err}
 	}()
 
@@ -137,10 +135,12 @@ func startService(
 	}
 
 	defer func() {
-		if err != nil {
-			rsm.LogError(err)
-			err = &loggedError{err}
+		if err == nil {
+			return
 		}
+
+		rsm.LogError(err)
+		err = &loggedError{err}
 	}()
 
 	err = s.Start(ctx, ch)

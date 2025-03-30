@@ -1,5 +1,5 @@
-// hive-matrix-connector is the Matrix connector service for Hive.
-package main
+// connector sends and receives Matrix events for Hive.
+package connector
 
 import (
 	"context"
@@ -9,12 +9,7 @@ import (
 
 	"gbenson.net/hive/matrix"
 	"gbenson.net/hive/messaging"
-	"gbenson.net/hive/service"
 )
-
-func main() {
-	service.Run(&Service{})
-}
 
 type Service struct {
 	matrixConn   *matrix.Conn
@@ -80,6 +75,8 @@ func (s *Service) Close() error {
 	return nil
 }
 
+// onEventMessage translates a received [matrix.EventMessage] into a
+// [messaging.Event] and publishes it to the "matrix.events" exchange.
 func (s *Service) onEventMessage(
 	ctx context.Context,
 	e *matrix.Event,

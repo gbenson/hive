@@ -16,7 +16,6 @@ def test_hive_default_log_level(monkeypatch):
     logging_basicconfig_calls = []
 
     def mock_bc(*args, **kwargs):
-        nonlocal logging_basicconfig_calls
         logging_basicconfig_calls.append((args, kwargs))
 
     with monkeypatch.context() as mp:

@@ -4,6 +4,7 @@ package messaging
 import (
 	"context"
 	"fmt"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
@@ -62,13 +63,13 @@ func dial(ctx context.Context, uri string) (Conn, error) {
 	return &conn{c, &log}, nil
 }
 
+// ConnCloseTimeout is the maximum time [Conn.Close()] will wait
+// for server acknowledgement.
+const ConnCloseTimeout = 30 * time.Second
+
 // Close closes the connection.
-func (c *conn) Close() error {
-	defer c.amqp.Close()
-
-	c.log.Debug().Msg("Closing message bus connection")
-
-	return nil
+func (c *conn) Close() (err error) {
+	return c.amqp.CloseDeadline(time.Now().Add(ConnCloseTimeout))
 }
 
 // Channel opens a channel for publishing and consuming messages.
@@ -78,9 +79,6 @@ func (c *conn) Channel() (Channel, error) {
 
 // closeChannel closes an AMQP channel.
 func (c *conn) closeChannel(ch *amqp.Channel, name string) error {
-	defer ch.Close()
-
-	c.log.Debug().Str("channel", name).Msg("Closing messaging channel")
-
+	logger.LoggedClose(c.log, ch, name+" subchannel")
 	return nil
 }

@@ -7,11 +7,16 @@ import (
 	"os"
 
 	"github.com/rs/zerolog"
+
+	"gbenson.net/hive/util"
 )
 
 var DefaultLevel = zerolog.LevelInfoValue
 
-type Logger = zerolog.Logger
+type (
+	Level  = zerolog.Level
+	Logger = zerolog.Logger
+)
 
 type Options struct {
 	Writer io.Writer
@@ -62,4 +67,12 @@ func Ctx(ctx context.Context) *Logger {
 	}
 
 	return zerolog.Ctx(ctx)
+}
+
+// Return the appropriate level for the given error.
+func LevelFor(err error) Level {
+	if util.IsRecoveredPanicError(err) {
+		return zerolog.PanicLevel
+	}
+	return zerolog.ErrorLevel
 }

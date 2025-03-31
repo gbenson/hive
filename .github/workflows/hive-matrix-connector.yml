@@ -10,10 +10,6 @@ jobs:
     name: Build and push hive-matrix-connector
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: services/matrix-connector
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,7 +28,7 @@ jobs:
 
       - name: Write __version__.py
         if: startsWith(github.ref, 'refs/tags/hive-matrix-connector-')
-        run: ../../ci/write-version-py hive/matrix_connector
+        run: ./ci/write-version-py services/matrix-connector/hive/matrix_connector
 
       - name: Collect Docker metadata
         id: meta
@@ -43,14 +39,10 @@ jobs:
             type=match,pattern=hive-matrix-connector-(\d+\.\d+\.\d+),group=1
 
       - name: Build and push Docker images
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
-          context: services/matrix-connector
+          file: services/matrix-connector/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: ${{ startsWith(github.ref, 'refs/tags/hive-matrix-connector-') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            GITHUB_SERVER_URL=${{ github.server_url }}
-            GITHUB_REPOSITORY=${{ github.repository }}
-            GITHUB_SHA=${{ github.sha }}

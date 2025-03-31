@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -109,35 +108,15 @@ func (c *channel) ConsumeEvents(
 	go func() {
 		logger.Ctx(ctx).Info().
 			Str("route", routingKey). // where you publish
-			Str("queue", queue.Name). // where we're consuming
+			Str("queue", queue.Name). // what we're consuming
 			Msg("Consuming events")
 
 		for d := range deliveries {
-			c.consume(ctx, d, consumer)
+			consume(ctx, c, &d, consumer)
 		}
 	}()
 
 	return nil
-}
-
-func (ch *channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
-	defer func() {
-		if err := recover(); err != nil {
-			d.Reject(false)
-			log.Println("ERROR: panic:", err)
-		}
-	}()
-
-	ctx, cancel := context.WithCancel(ctx) // XXX WithTimeout?
-	defer cancel()
-
-	switch err := c.Consume(ctx, &Message{&d, ch}); err {
-	case nil:
-		d.Ack(false)
-	default:
-		d.Reject(false)
-		log.Println("ERROR:", err)
-	}
 }
 
 // PublishEvent publishes an event.
@@ -146,16 +125,10 @@ func (c *channel) PublishEvent(
 	routingKey string,
 	event any,
 ) error {
-	e, err := MarshalEvent(event)
+	contentType, messageBody, err := marshalForPublish(event, routingKey)
 	if err != nil {
 		return err
 	}
-
-	messageBody, err := json.Marshal(e)
-	if err != nil {
-		return err
-	}
-	contentType := ApplicationCloudEventsJSON
 
 	ch, err := c.publishChannel()
 	if err != nil {
@@ -172,4 +145,44 @@ func (c *channel) PublishEvent(
 	}
 
 	return exchange.Publish(ctx, ch, contentType, messageBody)
+}
+
+func marshalForPublish(event any, routingKey string) (string, []byte, error) {
+	e, err := MarshalEvent(event)
+	if err != nil {
+		return "", nil, err
+	}
+
+	if err := completeEvent(e, routingKey); err != nil {
+		return "", nil, err
+	}
+
+	if err := e.Validate(); err != nil {
+		return "", nil, err
+	}
+
+	messageBody, err := json.Marshal(e)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return ApplicationCloudEventsJSON, messageBody, nil
+}
+
+// MockPublish marshals the given event like PublishEvent, then
+// unmarshals it back to an event.
+func MockPublish(ctx context.Context, routingKey string, e any) (*Event, error) {
+	ct, body, err := marshalForPublish(e, routingKey)
+	if err != nil {
+		return nil, err
+	}
+	d := amqp.Delivery{
+		ContentType: ct,
+		Body:        body,
+	}
+	var result Event
+	if err := unmarshalForConsume(&result, &d); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }

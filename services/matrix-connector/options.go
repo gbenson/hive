@@ -12,14 +12,14 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
-// DialOptions defaults
+// Options defaults
 const (
-	DefaultConfigKey  = "user"
+	DefaultConfigKey  = "hive"
 	DefaultHomeserver = "matrix.org"
 )
 
-// DialOptions holds the options for Dial and DialContext.
-type DialOptions struct {
+// Options holds the options for Dial and DialContext.
+type Options struct {
 	// ConfigKey is a ~/.config/hive/matrix.yml entry to source default values from.
 	// Defaults to DefaultConfigKey.
 	ConfigKey string
@@ -52,9 +52,12 @@ type DialOptions struct {
 
 	// RecoveryKey is used during session verification.
 	RecoveryKey string
+
+	// RoomID is the room we will interact in.
+	RoomID string
 }
 
-func (o *DialOptions) populateForDial() error {
+func (o *Options) Populate() error {
 	if err := o.ensureConfigKey(); err != nil {
 		return err
 	}
@@ -79,11 +82,14 @@ func (o *DialOptions) populateForDial() error {
 	if err := o.ensureDatabasePath(c, ck); err != nil {
 		return err
 	}
+	if err := o.ensureRoomID(c, ck); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (o *DialOptions) ensureConfigKey() error {
+func (o *Options) ensureConfigKey() error {
 	if o.ConfigKey != "" {
 		return nil
 	}
@@ -104,15 +110,15 @@ func (o *DialOptions) ensureConfigKey() error {
 	return nil
 }
 
-func (o *DialOptions) logUpdate(key, value string) {
+func (o *Options) logUpdate(key, value string) {
 	o.Log.Debug().
-		Str("component", "DialOptions").
+		Str("component", "Options").
 		Str("option", key).
 		Str("value", value).
 		Msg("Set default")
 }
 
-func (o *DialOptions) getConfig() (*config.Config, *configKeys, error) {
+func (o *Options) getConfig() (*config.Config, *configKeys, error) {
 	c := config.New("matrix")
 	if err := c.Read(); err != nil {
 		return nil, nil, err
@@ -127,6 +133,7 @@ type configKeys struct {
 	Homeserver   string
 	Password     string
 	RecoveryKey  string
+	RoomID       string
 	UserID       string
 }
 
@@ -138,11 +145,12 @@ func configKeysFor(s string) *configKeys {
 		Homeserver:   s + ".homeserver",
 		Password:     s + ".password",
 		RecoveryKey:  s + ".recovery_key",
+		RoomID:       s + ".room_id",
 		UserID:       s + ".user_id",
 	}
 }
 
-func (o *DialOptions) ensureHomeserver(c *config.Config, ck *configKeys) error {
+func (o *Options) ensureHomeserver(c *config.Config, ck *configKeys) error {
 	if o.Homeserver != "" {
 		return nil
 	}
@@ -164,7 +172,7 @@ func (o *DialOptions) ensureHomeserver(c *config.Config, ck *configKeys) error {
 	return nil
 }
 
-func (o *DialOptions) ensureUserID(c *config.Config, ck *configKeys) error {
+func (o *Options) ensureUserID(c *config.Config, ck *configKeys) error {
 	if o.UserID != "" {
 		return nil
 	}
@@ -181,7 +189,7 @@ func (o *DialOptions) ensureUserID(c *config.Config, ck *configKeys) error {
 	return nil
 }
 
-func (o *DialOptions) ensureCredentials(c *config.Config, ck *configKeys) error {
+func (o *Options) ensureCredentials(c *config.Config, ck *configKeys) error {
 	if o.AccessToken == "" {
 		if s := c.GetString(ck.AccessToken); s != "" {
 			o.AccessToken = s
@@ -217,7 +225,7 @@ func (o *DialOptions) ensureCredentials(c *config.Config, ck *configKeys) error 
 	return nil
 }
 
-func (o *DialOptions) ensureRecoveryKey(c *config.Config, ck *configKeys) error {
+func (o *Options) ensureRecoveryKey(c *config.Config, ck *configKeys) error {
 	if o.RecoveryKey != "" {
 		return nil
 	}
@@ -230,7 +238,7 @@ func (o *DialOptions) ensureRecoveryKey(c *config.Config, ck *configKeys) error 
 	return nil
 }
 
-func (o *DialOptions) ensureDatabasePath(c *config.Config, ck *configKeys) error {
+func (o *Options) ensureDatabasePath(c *config.Config, ck *configKeys) error {
 	if o.DatabasePath != "" {
 		return nil
 	}
@@ -240,11 +248,10 @@ func (o *DialOptions) ensureDatabasePath(c *config.Config, ck *configKeys) error
 		return nil
 	}
 
-	stateDir, err := util.UserStateDir()
+	stateDir, err := util.ServiceStateDir()
 	if err != nil {
 		return err
 	}
-	stateDir = filepath.Join(stateDir, "hive", "matrix")
 
 	// Construct a fallback path to use if we don't have a DeviceID.
 	localpart, homeserver, err := id.UserID(o.UserID).ParseAndValidate()
@@ -279,7 +286,7 @@ func (o *DialOptions) ensureDatabasePath(c *config.Config, ck *configKeys) error
 	return nil
 }
 
-func (o *DialOptions) setDatabasePath(path, betterPath string) {
+func (o *Options) setDatabasePath(path, betterPath string) {
 	o.DatabasePath = path
 	o.logUpdate("DatabasePath", path)
 	if betterPath == "" {
@@ -289,4 +296,19 @@ func (o *DialOptions) setDatabasePath(path, betterPath string) {
 		Str("current_path", path).
 		Str("preferred_path", betterPath).
 		Msg("Consider moving the database")
+}
+
+func (o *Options) ensureRoomID(c *config.Config, ck *configKeys) error {
+	if o.RoomID != "" {
+		return nil
+	}
+
+	if s := c.GetString(ck.RoomID); s != "" {
+		o.RoomID = s
+		o.logUpdate("RoomID", s)
+	} else {
+		return ErrNoRoomID
+	}
+
+	return nil
 }

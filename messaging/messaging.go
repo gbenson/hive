@@ -27,6 +27,6 @@ type Channel interface {
 
 // Consumer is the interface that wraps the Consume method.
 type Consumer interface {
-	// Consume consumes one message from the queue.
-	Consume(ctx context.Context, m *Message) error
+	// Consume consumes one event.
+	Consume(ctx context.Context, c Channel, e *Event) error
 }

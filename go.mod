@@ -4,6 +4,7 @@ go 1.23.6
 
 require (
 	github.com/cloudevents/sdk-go/v2 v2.15.2
+	github.com/gertd/go-pluralize v0.2.1
 	github.com/google/uuid v1.6.0
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/rs/zerolog v1.33.0

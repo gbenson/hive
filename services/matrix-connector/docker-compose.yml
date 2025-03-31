@@ -8,7 +8,7 @@ services:
       - matrix-connector-valkey
       - message-bus
     volumes:
-      - matrix_sender:/var/lib/matrix
+      - matrix_sender:/var/lib/hive/matrix-connector
     command:
       - hive-matrix-sender
     secrets:
@@ -23,8 +23,8 @@ services:
       - matrix-connector-valkey
       - message-bus
     volumes:
-      - matrix_receiver:/var/lib/matrix
-      - matrix_received_media:/var/lib/matrix/media
+      - matrix_receiver:/var/lib/hive/matrix-connector
+      - matrix_received_media:/var/lib/hive/matrix-connector/media
     command:
       - hive-matrix-receiver
     secrets:
@@ -55,6 +55,22 @@ services:
       - 60 1
     hostname: vane-valkey
 
+  matrix-connector:
+    image: gbenson/hive-matrix-connector
+    restart: unless-stopped
+    networks:
+      - matrix-connector
+      - message-bus
+    volumes:
+      - matrix_connector:/var/lib/hive
+    environment:
+      - XDG_STATE_HOME=/var/lib
+    command:
+      - hive-matrix-connector
+    secrets:
+      - rabbitmq.env
+      - matrix.yml
+
 networks:
   matrix-connector:
   matrix-connector-valkey:
@@ -65,3 +81,4 @@ volumes:
   matrix_receiver:
   matrix_received_media:
   matrix_connector_valkey:
+  matrix_connector:

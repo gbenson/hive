@@ -50,6 +50,8 @@ secrets:
     file: $HOME/.config/hive/rabbitmq.env
   email.yml:
     file: $HOME/.config/hive/email.yml
+  matrix.yml:
+    file: $HOME/.config/hive/matrix.yml
   mediawiki.yml:
     file: $HOME/.config/hive/mediawiki.yml
   openai.env:

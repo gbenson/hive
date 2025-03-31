@@ -48,28 +48,24 @@ func runContext(ctx context.Context, s Service) error {
 		stdlog.SetFlags(stdlog.Lshortfile)
 	}
 
+	log := logger.Ctx(ctx)
+
 	// Connect to the message bus.
 	conn, err := messaging.Dial(ctx)
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer logger.LoggedClose(log, conn, "message bus connection")
 
 	ch, err := conn.Channel()
 	if err != nil {
 		return err
 	}
-	defer ch.Close()
-
-	log := logger.Ctx(ctx)
+	defer logger.LoggedClose(log, ch, "messaging channel")
 
 	// Start the service's goroutines.
 	if c, ok := s.(io.Closer); ok {
-		defer log.Debug().Msg("Service stopped")
-		defer func() {
-			defer c.Close()
-			log.Debug().Msg("Stopping service")
-		}()
+		defer logger.LoggedClose(log, c, "service", "stop")
 	}
 
 	ctx, cancel := context.WithCancel(ctx)

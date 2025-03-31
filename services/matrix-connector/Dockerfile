@@ -14,6 +14,7 @@ RUN --mount=type=tmpfs,target=/var/cache \
        python3 \
        python3-venv \
        libmagic1 \
+       libolm3 \
   && rm -f /var/lib/dpkg/*-old
 
 RUN --mount=type=tmpfs,target=/root/.cache \
@@ -26,9 +27,24 @@ RUN --mount=type=tmpfs,target=/root/.cache \
 
 FROM base AS wheel
 RUN mkdir -p /src
-COPY hive /src/hive
-COPY pyproject.toml README.md /src
+COPY services/matrix-connector/hive /src/hive
+COPY services/matrix-connector/pyproject.toml /src
+COPY services/matrix-connector/README.md /src
 RUN /venv/bin/pip wheel --no-deps /src
+
+FROM golang:bookworm AS builder
+ARG SERVICE=matrix-connector
+RUN apt-get -y update
+RUN apt-get -y install --no-install-recommends libolm-dev
+
+WORKDIR /go/src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . ./
+RUN gofmt -w .
+RUN ci/go-vet
+RUN ci/go-test
+RUN go build -trimpath -ldflags="-s -w" ./services/$SERVICE/cmd/hive-$SERVICE.go
 
 FROM base AS install
 RUN --mount=type=bind,from=wheel,target=/wheel \
@@ -51,7 +67,7 @@ RUN set -eux \
   \
   && addgroup --system --gid 6617 hivetrix \
   && adduser --system --uid 6617 --gid 6617 \
-       --home /var/lib/matrix --disabled-password hivetrix \
+       --home /var/lib/hive/matrix-connector --disabled-password hivetrix \
   && rm -f /run/adduser \
   && install -d -oroot -ghivetrix -m710 /run/secrets
 
@@ -62,7 +78,7 @@ RUN set -eux \
   && /venv/bin/pip install \
        pep440-version-utils \
        pytest-cov
-COPY tests /src/tests
+COPY services/matrix-connector/tests /src/tests
 
 USER hivetrix:hivetrix
 WORKDIR /src
@@ -74,8 +90,10 @@ RUN set -eux \
   && coverage report > coverage.report
 
 FROM install AS dist
+ARG SERVICE=matrix-connector
 RUN --mount=type=bind,from=test,target=/test \
   grep -q '[^ ][^0]%$' /test/src/coverage.report
+COPY --from=builder --chown=0:0 --chmod=755 /go/src/hive-$SERVICE /usr/bin
 
 USER hivetrix:hivetrix
-WORKDIR /var/lib/matrix
+WORKDIR /var/lib/hive/matrix-connector

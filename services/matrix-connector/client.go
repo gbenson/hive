@@ -1,4 +1,3 @@
-// Package matrix provides Matrix connectivity for Hive.
 package matrix
 
 import (
@@ -17,35 +16,21 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
-type Conn struct {
+type Client struct {
 	mautrix.Client
 	mach *crypto.OlmMachine
 }
 
 // Dial returns a new connection to the Matrix.
-func Dial(options *DialOptions) (*Conn, error) {
-	return DialContext(context.Background(), options)
-}
-
-// DialContext returns a new connection to the Matrix.
-func DialContext(ctx context.Context, options *DialOptions) (*Conn, error) {
+func Dial(ctx context.Context, o *Options) (*Client, error) {
 	if ctx == nil {
 		panic("nil context")
 	}
-	if options == nil {
+	if o == nil {
 		panic("nil options")
 	}
 
-	o := *options // work on a copy
-	if o.Log == nil {
-		o.Log = logger.Ctx(ctx)
-	}
-	err := o.populateForDial()
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := mautrix.NewClient(
+	mc, err := mautrix.NewClient(
 		o.Homeserver,
 		id.UserID(o.UserID),
 		o.AccessToken,
@@ -53,10 +38,10 @@ func DialContext(ctx context.Context, options *DialOptions) (*Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	client.Log = *o.Log
+	mc.Log = *o.Log
 
-	conn := &Conn{Client: *client}
-	if err := conn.init(ctx, &o); err != nil {
+	conn := &Client{Client: *mc}
+	if err := conn.init(ctx, o); err != nil {
 		defer conn.Close()
 		return nil, err
 	}
@@ -64,7 +49,7 @@ func DialContext(ctx context.Context, options *DialOptions) (*Conn, error) {
 	return conn, nil
 }
 
-func (conn *Conn) init(ctx context.Context, o *DialOptions) error {
+func (conn *Client) init(ctx context.Context, o *Options) error {
 	conn.DeviceID = id.DeviceID(o.DeviceID)
 
 	store := o.DatabasePath
@@ -150,7 +135,7 @@ func (conn *Conn) init(ctx context.Context, o *DialOptions) error {
 	return nil
 }
 
-func (c *Conn) verify(ctx context.Context, recoveryKey string) {
+func (c *Client) verify(ctx context.Context, recoveryKey string) {
 	for {
 		if err := c.Verify(ctx, recoveryKey); err != nil {
 			c.Log.Err(err).Msg("Verify failed")
@@ -167,7 +152,7 @@ func (c *Conn) verify(ctx context.Context, recoveryKey string) {
 }
 
 // Verify verifies the device using a recovery key.
-func (c *Conn) Verify(ctx context.Context, recoveryKey string) error {
+func (c *Client) Verify(ctx context.Context, recoveryKey string) error {
 	keyID, keyData, err := c.mach.SSSS.GetDefaultKeyData(ctx)
 	if err != nil {
 		return err
@@ -190,20 +175,18 @@ func (c *Conn) Verify(ctx context.Context, recoveryKey string) error {
 }
 
 // Close closes the connection.
-func (c *Conn) Close() error {
+func (c *Client) Close() error {
 	helper, _ := c.Crypto.(io.Closer)
 	if helper == nil {
 		return nil
 	}
-	if err := helper.Close(); err != nil {
-		c.Log.Err(err).Msg("Error closing database")
-	}
+	logger.LoggedClose(&c.Log, helper, "database")
 	return nil
 }
 
 // OnEventType allows callers to be notified when there are new events
 // for the given event type. There are no duplicate checks.
-func (c *Conn) OnEventType(
+func (c *Client) OnEventType(
 	eventType event.Type,
 	callback mautrix.EventHandler,
 ) error {

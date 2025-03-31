@@ -230,7 +230,7 @@ func (rsm *RestartMonitor) setCondition(c Condition) {
 }
 
 // Report publishes a service condition report onto the message bus.
-func (rsm *RestartMonitor) Report(ctx context.Context, ch *messaging.Channel) {
+func (rsm *RestartMonitor) Report(ctx context.Context, ch messaging.Channel) {
 	if !rsm.IsEnabled() {
 		return
 	}
@@ -253,5 +253,4 @@ func (rsm *RestartMonitor) Report(ctx context.Context, ch *messaging.Channel) {
 	log.Info().
 		Interface("event", e).
 		Msg("Service condition reported")
-
 }

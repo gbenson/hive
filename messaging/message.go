@@ -10,11 +10,11 @@ import (
 
 type Message struct {
 	d  *amqp.Delivery
-	ch *Channel
+	ch *channel
 }
 
 // Channel returns the channel this message was consumed from.
-func (m *Message) Channel() *Channel {
+func (m *Message) Channel() Channel {
 	return m.ch
 }
 

@@ -23,7 +23,7 @@ type Service struct {
 }
 
 // Start starts the service's goroutines.
-func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
+func (s *Service) Start(ctx context.Context, ch messaging.Channel) error {
 	statedir, err := service.StateDir()
 	if err != nil {
 		return err

@@ -17,7 +17,7 @@ import (
 
 type Service interface {
 	// Start starts the service's goroutines.
-	Start(ctx context.Context, ch *messaging.Channel) error
+	Start(ctx context.Context, ch messaging.Channel) error
 }
 
 // Run runs a Hive service.
@@ -112,7 +112,7 @@ func startService(
 	ctx context.Context,
 	s Service,
 	rsm *RestartMonitor,
-	ch *messaging.Channel,
+	ch messaging.Channel,
 ) (err error) {
 	defer rsm.Report(ctx, ch)
 

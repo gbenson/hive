@@ -17,7 +17,7 @@ type Service struct {
 	syncStopWait sync.WaitGroup
 }
 
-func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
+func (s *Service) Start(ctx context.Context, ch messaging.Channel) error {
 	if err := s.startMatrix(ctx, ch); err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func (s *Service) Start(ctx context.Context, ch *messaging.Channel) error {
 	return nil
 }
 
-func (s *Service) startMatrix(ctx context.Context, ch *messaging.Channel) error {
+func (s *Service) startMatrix(ctx context.Context, ch messaging.Channel) error {
 	conn, err := matrix.DialContext(ctx, &matrix.DialOptions{ConfigKey: "hive"})
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func (s *Service) Close() error {
 func (s *Service) onEventMessage(
 	ctx context.Context,
 	e *matrix.Event,
-	ch *messaging.Channel,
+	ch messaging.Channel,
 ) error {
 	data, err := matrix.MarshalEvent(e)
 	if err != nil {

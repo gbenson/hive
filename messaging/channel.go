@@ -14,13 +14,13 @@ import (
 	"gbenson.net/hive/util"
 )
 
-type Channel struct {
-	conn       *Conn
+type channel struct {
+	conn       *conn
 	pubc, conc *amqp.Channel
 }
 
 // Close closes the channel.
-func (c *Channel) Close() error {
+func (c *channel) Close() error {
 	if c.pubc != nil {
 		defer c.conn.closeChannel(c.pubc, "publisher")
 	}
@@ -31,7 +31,7 @@ func (c *Channel) Close() error {
 }
 
 // publishChannel returns an amqp.Channel to use for publishing.
-func (c *Channel) publishChannel() (ch *amqp.Channel, err error) {
+func (c *channel) publishChannel() (ch *amqp.Channel, err error) {
 	if ch = c.pubc; ch != nil {
 		return
 	} else if ch, err = c.conn.amqp.Channel(); err != nil {
@@ -49,7 +49,7 @@ func (c *Channel) publishChannel() (ch *amqp.Channel, err error) {
 }
 
 // consumeChannel returns an amqp.Channel to use for consuming.
-func (c *Channel) consumeChannel() (ch *amqp.Channel, err error) {
+func (c *channel) consumeChannel() (ch *amqp.Channel, err error) {
 	if ch = c.conc; ch != nil {
 		return
 	} else if ch, err = c.conn.amqp.Channel(); err != nil {
@@ -66,14 +66,9 @@ func (c *Channel) consumeChannel() (ch *amqp.Channel, err error) {
 	return ch, nil
 }
 
-type Consumer interface {
-	// Consume consumes one message from the queue.
-	Consume(ctx context.Context, m *Message) error
-}
-
 // ConsumeEvents starts an event consumer that runs until its context
 // is cancelled.
-func (c *Channel) ConsumeEvents(
+func (c *channel) ConsumeEvents(
 	ctx context.Context,
 	routingKey string,
 	consumer Consumer,
@@ -125,7 +120,7 @@ func (c *Channel) ConsumeEvents(
 	return nil
 }
 
-func (ch *Channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
+func (ch *channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
 	defer func() {
 		if err := recover(); err != nil {
 			d.Reject(false)
@@ -145,8 +140,8 @@ func (ch *Channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
 	}
 }
 
-// PublishEvent publishes an event to an exchange.
-func (c *Channel) PublishEvent(
+// PublishEvent publishes an event.
+func (c *channel) PublishEvent(
 	ctx context.Context,
 	routingKey string,
 	event Event,

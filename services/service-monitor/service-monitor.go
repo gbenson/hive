@@ -3,7 +3,6 @@ package monitor
 
 import (
 	"context"
-	"encoding/json"
 	"path/filepath"
 	"time"
 
@@ -116,23 +115,5 @@ func (s *Service) Consume(ctx context.Context, m *messaging.Message) error {
 		Strs("messages", r.Messages).
 		Msg("Service reported")
 
-	req := r.AsTellUserRequest()
-
-	if err := m.Channel().PublishEvent(ctx, "tell.user.requests", req); err != nil {
-		return err
-	}
-
-	body, err := json.Marshal(req)
-	if err != nil {
-		log.Warn().
-			Err(err).
-			Msg("PublishEvent succeeded but json.Marshal(event) failed?")
-		return nil
-	}
-
-	log.Debug().
-		RawJSON("event", body).
-		Msg("Published")
-
-	return nil
+	return m.Channel().PublishEvent(ctx, "tell.user.requests", &r)
 }

@@ -33,7 +33,8 @@ func ParseConditionReportEvent(e *messaging.Event) (*ConditionReport, error) {
 
 var messageRewriter = regexp.MustCompile(`^Service\b`)
 
-func (r *ConditionReport) AsTellUserRequest() messaging.Event {
+// MarshalEvent marshals a tell_user_request event.
+func (r *ConditionReport) MarshalEvent() (*messaging.Event, error) {
 	msgs := r.Messages
 
 	if len(msgs) == 0 {
@@ -47,7 +48,7 @@ func (r *ConditionReport) AsTellUserRequest() messaging.Event {
 	e.SetID(r.EventID)
 	e.SetType("net.gbenson.hive.tell_user_request")
 	e.SetTime(r.Time)
-	e.SetData(messaging.ApplicationJSON, strings.Join(msgs, "\n"))
+	e.SetData("application/json", strings.Join(msgs, "\n"))
 
-	return e
+	return e, nil
 }

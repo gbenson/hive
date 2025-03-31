@@ -144,9 +144,14 @@ func (ch *channel) consume(ctx context.Context, d amqp.Delivery, c Consumer) {
 func (c *channel) PublishEvent(
 	ctx context.Context,
 	routingKey string,
-	event Event,
+	event any,
 ) error {
-	messageBody, err := json.Marshal(event)
+	e, err := MarshalEvent(event)
+	if err != nil {
+		return err
+	}
+
+	messageBody, err := json.Marshal(e)
 	if err != nil {
 		return err
 	}

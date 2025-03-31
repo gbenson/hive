@@ -16,10 +16,10 @@ type Conn interface {
 type Channel interface {
 	// ConsumeEvents starts an event consumer that runs until its
 	// context is cancelled.
-	ConsumeEvents(ctx context.Context, routingKey string, consumer Consumer) error
+	ConsumeEvents(ctx context.Context, routingKey string, c Consumer) error
 
 	// PublishEvent publishes an event.
-	PublishEvent(ctx context.Context, routingKey string, event Event) error
+	PublishEvent(ctx context.Context, routingKey string, event any) error
 
 	// Close closes the channel.
 	Close() error

@@ -235,22 +235,26 @@ func (rsm *RestartMonitor) Report(ctx context.Context, ch messaging.Channel) {
 		return
 	}
 
-	e := messaging.NewEvent()
-	e.SetID(rsm.EventID)
-	e.SetType("net.gbenson.hive.service_status_report")
-	e.SetTime(rsm.Time)
-	e.SetSubject(util.ServiceName())
-	e.SetData(messaging.ApplicationJSON, rsm.ConditionReport)
-
 	log := logger.Ctx(ctx)
 
-	err := ch.PublishEvent(context.Background(), ConditionReportsQueue, e)
-	if err != nil {
+	if err := ch.PublishEvent(ctx, ConditionReportsQueue, rsm); err != nil {
 		log.Warn().Err(err).Msg("Restart monitor")
 		return
 	}
 
 	log.Info().
-		Interface("event", e).
+		Interface("event", rsm.ConditionReport).
 		Msg("Service condition reported")
+}
+
+// MarshalEvent implements the [messaging.EventMarshaler] interface.
+func (rsm *RestartMonitor) MarshalEvent() (*messaging.Event, error) {
+	e := messaging.NewEvent()
+	e.SetID(rsm.EventID)
+	e.SetType("net.gbenson.hive.service_status_report")
+	e.SetTime(rsm.Time)
+	e.SetSubject(util.ServiceName())
+	e.SetData("application/json", rsm.ConditionReport)
+
+	return e, nil
 }

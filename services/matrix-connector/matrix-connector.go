@@ -92,7 +92,7 @@ func (s *Service) onEventMessage(
 	event.SetType("net.gbenson.hive.matrix_event")
 	event.SetTime(time.UnixMilli(e.Timestamp))
 	event.SetSubject(e.Type.String())
-	event.SetData(messaging.ApplicationJSON, data)
+	event.SetData("application/json", data)
 
 	return ch.PublishEvent(ctx, "matrix.events", event)
 }

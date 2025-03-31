@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for i in $(find -name '*_test.go'); do
+    dirname $i
+done | sort | uniq | xargs go test -cover

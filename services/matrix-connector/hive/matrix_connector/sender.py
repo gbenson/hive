@@ -148,7 +148,7 @@ class Sender(ConnectorService):
                     shell=False,
                     input=event,
                     #capture_output=True,
-                    timeout=timeout,
+                    timeout=timeout.total_seconds(),
                     check=True,  # XXX for now... should:
                     #                              1. capture output
                     #                              2. fwd errors to rabbit

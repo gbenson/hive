@@ -2,10 +2,10 @@
 package main
 
 import (
-	"gbenson.net/hive/service"
-	impl "gbenson.net/hive/services/matrix-connector"
+	"gbenson.net/hive"
+	"gbenson.net/hive/services/matrix-connector"
 )
 
 func main() {
-	service.Run(&impl.Service{})
+	hive.Run(&matrix.Service{})
 }

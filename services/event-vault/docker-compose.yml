@@ -16,7 +16,6 @@ services:
       - matrix.events
       - readinglist.shares
       - readinglist.updates
-      - service.status.reports
 
 volumes:
   event_vault:

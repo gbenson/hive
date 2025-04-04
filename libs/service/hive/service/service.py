@@ -5,15 +5,12 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 from hive.common import ArgumentParser
-from hive.common.functools import chained, once
 from hive.messaging import (
     Channel,
     Connection,
     blocking_connection,
     publisher_connection,
 )
-
-from .restart_monitor import RestartMonitor
 
 
 @dataclass
@@ -24,12 +21,6 @@ class Service(ABC):
 
     def make_argument_parser(self) -> ArgumentParser:
         parser = ArgumentParser()
-        parser.add_argument(
-            "--no-monitor",
-            dest="with_restart_monitor",
-            action="store_false",
-            help="run without restart monitoring",
-        )
         return parser
 
     def __post_init__(self):
@@ -43,13 +34,6 @@ class Service(ABC):
             else:
                 self.unparsed_arguments = sys.argv[1:]
         self.args = self.argument_parser.parse_args(self.unparsed_arguments)
-
-        if getattr(self.args, "with_restart_monitor", True) and not in_pytest:
-            rsm = RestartMonitor()
-            self.on_channel_open = chained(
-                once(rsm.report_via_channel),
-                self.on_channel_open,
-            )
 
     @classmethod
     def main(cls, **kwargs):

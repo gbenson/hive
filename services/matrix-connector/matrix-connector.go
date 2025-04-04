@@ -1,5 +1,5 @@
-// connector sends and receives Matrix events for Hive.
-package connector
+// matrix sends and receives Matrix events for Hive.
+package matrix
 
 import (
 	"context"

@@ -1,9 +1,8 @@
-// Package service provides common code for Hive services.
-package service
+// Package hive provides common code for Hive services.
+package hive
 
 import (
 	"context"
-	"errors"
 	"io"
 	stdlog "log"
 	"os"
@@ -12,7 +11,6 @@ import (
 
 	"gbenson.net/hive/logger"
 	"gbenson.net/hive/messaging"
-	"gbenson.net/hive/util"
 )
 
 type Service interface {
@@ -24,7 +22,6 @@ type Service interface {
 func Run(s Service) {
 	log := logger.New(&logger.Options{})
 	RunContext(log.WithContext(context.Background()), s)
-	log.Debug().Msg("Normal exit")
 }
 
 // RunContext runs a Hive service with the given context.
@@ -32,25 +29,24 @@ func RunContext(ctx context.Context, s Service) {
 	if ctx == nil {
 		panic("nil context")
 	}
+	if s == nil {
+		panic("nil service")
+	}
+
+	log := logger.Ctx(ctx)
 
 	if err := runContext(ctx, s); err != nil && err != context.Canceled {
-		if !IsLoggedError(err) {
-			logger.Ctx(ctx).Err(err).Msg("")
-		}
+		log.Err(err).Msg("")
 		os.Exit(1)
 	}
+
+	log.Debug().Msg("Normal exit")
 }
 
-// Run a Hive service with the given context.  Note that errors and
-// panics in startService are reported via the RestartMonitor: any
-// code that *could* be in startService *should* be in startService.
 func runContext(ctx context.Context, s Service) error {
 	if stdlog.Flags() == stdlog.LstdFlags {
 		stdlog.SetFlags(stdlog.Lshortfile)
 	}
-
-	// Create the restart monitor.
-	rsm := NewRestartMonitor(ctx)
 
 	// Connect to the message bus.
 	conn, err := messaging.Dial(ctx)
@@ -79,7 +75,7 @@ func runContext(ctx context.Context, s Service) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	if err := startService(ctx, s, rsm, ch); err != nil {
+	if err = s.Start(ctx, ch); err != nil {
 		return err
 	}
 
@@ -105,44 +101,4 @@ func runContext(ctx context.Context, s Service) error {
 			cancel()
 		}
 	}
-}
-
-// Start a Hive service.  Handles publishing the RestartMonitor report.
-func startService(
-	ctx context.Context,
-	s Service,
-	rsm *RestartMonitor,
-	ch messaging.Channel,
-) (err error) {
-	defer rsm.Report(ctx, ch)
-
-	defer func() {
-		pv := recover()
-		if pv == nil {
-			return
-		}
-		if err != nil && !IsLoggedError(err) {
-			rsm.LogError(err)
-		}
-		err = util.NewRecoveredPanicError(pv)
-
-		rsm.LogPanic(errors.Unwrap(err))
-		err = &loggedError{err}
-	}()
-
-	if s == nil {
-		panic("nil service")
-	}
-
-	defer func() {
-		if err == nil {
-			return
-		}
-
-		rsm.LogError(err)
-		err = &loggedError{err}
-	}()
-
-	err = s.Start(ctx, ch)
-	return
 }

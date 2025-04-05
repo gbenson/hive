@@ -26,7 +26,7 @@ def mock_messagebus(monkeypatch):
     with monkeypatch.context() as m:
         msgbus = MockMessageBus()
         m.setattr(
-            sys.modules["hive.chat.tell_user"],
+            sys.modules["hive.chat.util"],
             "blocking_connection",
             msgbus.blocking_connection,
         )

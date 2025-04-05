@@ -8,9 +8,11 @@ from threading import current_thread, main_thread
 from typing import Optional
 from uuid import UUID
 
-from hive.messaging import Channel, blocking_connection
+from hive.messaging import Channel
 
 from .message import ChatMessage
+from .util import publish
+from .v2 import send_text
 
 logger = logging.getLogger(__name__)
 d = logger.info
@@ -21,29 +23,28 @@ def tell_user(
         *,
         channel: Optional[Channel] = None,
         **kwargs
-) -> ChatMessage:
+) -> None:
     """Send a ChatMessage.
     """
     if isinstance(text, ChatMessage):
+        # Support using tell_user to emit chat.messages from the USER
+        # - reading list updater does this to decorate links with HTML
+        # - matrix-transitioner does this with received matrix.events
         if kwargs:
-            raise ValueError
+            raise ValueError(kwargs)
         message = text
-    else:
-        message = ChatMessage(text=text, **kwargs)
+        # Also support using tell_user to emit chat.messages from HIVE
+        # (temporarily?)
+        # if message.sender == "hive":
+        #     raise ValueError("Use v2 interface")
+        publish(message, channel=channel, routing_key="chat.messages")
+        return
 
-    if channel:
-        return _tell_user(channel, message)
-
-    with blocking_connection(connection_attempts=1) as conn:
-        return _tell_user(conn.channel(), message)
-
-
-def _tell_user(channel: Channel, message: ChatMessage) -> ChatMessage:
-    channel.publish_event(
-        message=message.json(),
-        routing_key="chat.messages",
-    )
-    return message
+    _ = kwargs.pop("html", None)  # XXX implement
+    _ = kwargs.pop("in_reply_to", None)  # XXX implement?
+    if kwargs:
+        raise ValueError(kwargs)
+    send_text(text, channel=channel)
 
 
 @dataclass

@@ -3,8 +3,9 @@ from uuid import RFC_4122, UUID
 
 import pytest
 
+from cloudevents.abstract import CloudEvent
+
 from hive.chat import ChatMessage, tell_user, tell_user_errors
-from hive.common import parse_datetime
 
 
 def test_basic_operation(mock_messagebus, mock_channel):
@@ -12,18 +13,16 @@ def test_basic_operation(mock_messagebus, mock_channel):
 
     assert len(mock_messagebus.published_events) == 1
     event = mock_messagebus.published_events[0]
-    assert event.routing_key == "chat.messages"
+    assert event.routing_key == "matrix.send.text.requests"
     message = event.message
 
-    assert message.keys() == {"text", "sender", "timestamp", "uuid"}
-    assert message["text"] == "bonjour!"
-    assert message["sender"] == "hive"
+    assert isinstance(message, CloudEvent)
+    assert message.data == {"text": "bonjour!"}
 
-    timestamp = parse_datetime(message["timestamp"])
-    delta = (datetime.now(tz=timezone.utc) - timestamp).total_seconds()
+    delta = (datetime.now(tz=timezone.utc) - message.time).total_seconds()
     assert 0 <= delta < 1
 
-    uuid = UUID(message["uuid"])
+    uuid = UUID(message.id)
     assert uuid.variant == RFC_4122
     assert uuid.version == 4
 
@@ -56,11 +55,6 @@ def test_tell_user_errors(mock_messagebus):
 
     assert len(mock_messagebus.published_events) == 1
     event = mock_messagebus.published_events[0]
-    assert event.routing_key == "chat.messages"
-    assert event.message.keys() == {
-        "text", "html", "sender", "timestamp", "uuid",
-    }
-    assert event.message["text"] == "TestError: oh <no>!"
-    assert event.message["html"].endswith(
-        " <code>TestError: oh &lt;no&gt;!</code>",
-    )
+    assert event.routing_key == "matrix.send.text.requests"
+    assert isinstance(event.message, CloudEvent)
+    assert event.message.data == {"text": "TestError: oh <no>!"}

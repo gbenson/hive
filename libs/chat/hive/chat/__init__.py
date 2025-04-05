@@ -1,2 +1,3 @@
 from .message import ChatMessage
-from .tell_user import tell_user, tell_user_errors
+from .v1 import tell_user, tell_user_errors
+from .v2 import send_text, send_reaction, user_typing

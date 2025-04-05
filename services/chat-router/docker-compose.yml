@@ -1,16 +1,15 @@
 services:
   chat-router:
-    image: gbenson/hive-chat-router
+    image: gbenson/hive-service-py
     init: true
     restart: unless-stopped
     networks:
       - message-bus
-      - chat-router
     volumes:
       - ./hive/chat_router:/venv/lib/python3.11/site-packages/hive/chat_router:ro
     secrets:
       - rabbitmq.env
-      - openai.env
-
-networks:
-  chat-router:
+    command:
+      - /venv/bin/python3
+      - -m
+      - hive.chat_router

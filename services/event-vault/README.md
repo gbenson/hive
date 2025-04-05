@@ -12,7 +12,7 @@ Event vault for Hive
 
 ```sh
 git clone https://github.com/gbenson/hive.git
-cd hive/events/event-vault
+cd hive/services/event-vault
 python3 -m venv .venv
 . .venv/bin/activate
 pip install --upgrade pip

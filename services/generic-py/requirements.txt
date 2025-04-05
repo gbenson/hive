@@ -1,0 +1,14 @@
+hive-chat>=0.1.0
+hive-common[brotli,httpx,openai,zstd]>=0.1.2
+hive-email>=0.0.2
+hive-mediawiki>=0.0.5
+hive-messaging>=0.12.6
+hive-service>=0.1.0
+
+beautifulsoup4
+html2text
+imapclient
+lxml
+pyspellchecker
+requests
+valkey

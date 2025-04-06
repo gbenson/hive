@@ -6,7 +6,7 @@ description = "Chat message router for Hive"
 dependencies = [
     "hive-chat>=0.1.1",
     "hive-common>=0.1.1",
-    "hive-messaging>=0.12.3",
+    "hive-messaging>=0.12.7",
     "hive-service>=0.0.13",
     "pyspellchecker",
 ]

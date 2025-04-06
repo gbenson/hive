@@ -1,6 +1,4 @@
 import logging
-import os
-import sys
 
 from datetime import timedelta
 from typing import Any, Literal, Optional
@@ -8,7 +6,7 @@ from uuid import uuid4
 
 from cloudevents.pydantic import CloudEvent
 
-from hive.common import utc_now
+from hive.common import SERVICE_NAME, utc_now
 from hive.messaging import Channel
 
 from .util import publish
@@ -55,12 +53,6 @@ def set_user_typing(
         _publish(channel, "user_typing", {"timeout": timeout})
     except Exception:
         logger.warning("EXCEPTION", exc_info=True)
-
-
-try:
-    SERVICE_NAME = os.path.basename(sys.argv[0])
-except Exception:
-    SERVICE_NAME = "unknown-service"
 
 
 def _publish(

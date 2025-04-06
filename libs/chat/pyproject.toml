@@ -9,7 +9,7 @@ classifiers = [
 ]
 dependencies = [
     "cloudevents[pydantic]",
-    "hive-common>=0.1.1",
+    "hive-common>=0.1.3",
     "hive-messaging>=0.12.5",
 ]
 

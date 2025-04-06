@@ -1,7 +1,5 @@
 import json
 import logging
-import os
-import sys
 
 from datetime import datetime, timedelta, timezone
 from functools import cache, cached_property
@@ -12,6 +10,8 @@ from cloudevents.conversion import to_json
 
 from pika import BasicProperties, DeliveryMode
 from pika.channel import Channel as PikaChannel
+
+from hive.common import SERVICE_NAME
 
 from .message import Message
 from .semantics import Semantics
@@ -160,8 +160,7 @@ class Channel(WrappedPikaThing):
         competing consumers on fanout "queue"s, though using named
         channels to ensure unique names is preferable.
         """
-        entry_point = os.path.basename(sys.argv[0])
-        parts = list(entry_point.removeprefix("hive-").split("-"))
+        parts = list(SERVICE_NAME.split("-"))
         if (channel_name := self.name):
             parts.append(channel_name)
         return ".".join(parts)

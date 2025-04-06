@@ -1,15 +1,11 @@
-import logging
-
 from cloudevents.abstract import CloudEvent
 
-from hive.chat import tell_user
 from hive.messaging import Channel, Message
 from hive.service import HiveService
 
 from .ping import handle_ping
-from .reading_list import handle_link
-
-logger = logging.getLogger(__name__)
+from .reading_list import startswith_link, request_reading_list_update
+from .request import Request
 
 
 class Service(HiveService):
@@ -33,21 +29,25 @@ class Service(HiveService):
                 raise NotImplementedError(event.subject)
 
     def on_room_message(self, channel: Channel, event: CloudEvent) -> None:
-        if event.data["sender"].startswith("@hive"):
-            return
-        content = event.data["content"]
-        msgtype = content["msgtype"]
-        if msgtype != "m.text":
-            tell_user(f"icr {msgtype} messages", channel=channel)
-            return
-        body = content["body"]
-        if not body:
-            raise ValueError(content)
-        self.on_text(channel, event, body)
+        try:
+            self._on_room_message(channel, event)
+        except NotImplementedError:
+            channel.send_reaction("😕", in_reply_to=event)
+            raise
+        except Exception:
+            channel.send_reaction("❌", in_reply_to=event)
+            raise
 
-    def on_text(self, channel: Channel, event: CloudEvent, text: str) -> None:
-        if handle_ping(channel, text):
+    def _on_room_message(self, channel: Channel, event: CloudEvent) -> None:
+        request = Request(event)
+        if request.sender.startswith("@hive"):
             return
-        if handle_link(channel, text, event):
+
+        user_input = request.text
+        if startswith_link(user_input):
+            request_reading_list_update(channel, event, user_input)
             return
-        tell_user("idk what that is", channel=channel)
+
+        if handle_ping(channel, user_input):
+            return
+        channel.tell_user("idk what that is")

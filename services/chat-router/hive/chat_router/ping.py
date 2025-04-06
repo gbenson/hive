@@ -3,7 +3,6 @@ import re
 
 from typing import Optional
 
-from hive.chat import tell_user
 from hive.messaging import Channel
 
 logger = logging.getLogger(__name__)
@@ -15,7 +14,7 @@ def handle_ping(channel: Channel, challenge: str) -> bool:
     if not response:
         return False
     d("Challenge: %r: Response: %r", challenge, response)
-    tell_user(response, channel=channel)
+    channel.tell_user(response)
     return True
 
 

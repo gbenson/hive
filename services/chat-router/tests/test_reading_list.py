@@ -4,7 +4,7 @@ import pytest
 
 from cloudevents.pydantic import CloudEvent
 
-from hive.chat_router.reading_list import handle_link
+from hive.chat_router import Service
 
 
 @pytest.mark.parametrize(
@@ -16,12 +16,12 @@ from hive.chat_router.reading_list import handle_link
       "https://example.com/foo?whatever=4#bar</a> some quote"),
      ))
 def test_reading_list_update(mock_channel, body, expect_html):
-    assert handle_link(mock_channel, body, CloudEvent({
+    Service().on_user_input(mock_channel, CloudEvent({
         "id": "1c0a44e5-48ac-4464-b9ef-0117b11c2140",
         "source": "reading_list_update_test_source",
         "type": "reading_list_update_test_type",
         "time": datetime.fromtimestamp(1730071727.043, tz=timezone.utc),
-    }))
+    }), body)
 
     assert len(mock_channel.call_log) == 1
     _, _, kwargs = mock_channel.call_log[0]

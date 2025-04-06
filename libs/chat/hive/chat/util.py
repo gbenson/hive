@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from cloudevents.abstract import CloudEvent
 
@@ -24,7 +24,11 @@ def publish(
         _publish(conn.channel(), routing_key, message)
 
 
-def _publish(channel: Channel, routing_key: str, message: ChatMessage) -> None:
+def _publish(
+        channel: Channel,
+        routing_key: str,
+        message: CloudEvent | dict[str, Any],
+) -> None:
     channel.publish_event(
         message=message,
         routing_key=routing_key,

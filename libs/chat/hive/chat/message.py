@@ -11,7 +11,7 @@ from uuid import UUID, uuid4
 
 from hive.common import parse_datetime, parse_uuid
 
-from .matrix import ClientEvent as MatrixEvent
+from .v1_matrix import ClientEvent as MatrixEvent
 
 
 @dataclass

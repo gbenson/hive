@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 
@@ -11,6 +12,9 @@ from hive.common import utc_now
 from hive.messaging import Channel
 
 from .util import publish
+
+logger = logging.getLogger(__name__)
+d = logger.info
 
 
 def send_text(
@@ -39,7 +43,7 @@ def send_reaction(
     })
 
 
-def user_typing(
+def set_user_typing(
         timeout: timedelta | Literal[False],
         *,
         channel: Optional[Channel] = None,
@@ -47,7 +51,10 @@ def user_typing(
     """https://pkg.go.dev/maunium.net/go/mautrix#Client.UserTyping
     """
     timeout = round(timeout.total_seconds() * 1e9) if timeout else 0
-    _publish(channel, "user_typing", {"timeout": timeout})
+    try:
+        _publish(channel, "user_typing", {"timeout": timeout})
+    except Exception:
+        logger.warning("EXCEPTION", exc_info=True)
 
 
 try:

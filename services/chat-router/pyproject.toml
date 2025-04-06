@@ -4,7 +4,7 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Chat message router for Hive"
 dependencies = [
-    "hive-chat>=0.0.10",
+    "hive-chat>=0.1.1",
     "hive-common>=0.1.1",
     "hive-messaging>=0.12.3",
     "hive-service>=0.0.13",

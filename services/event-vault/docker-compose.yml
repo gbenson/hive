@@ -17,7 +17,6 @@ services:
       - ollama.api.responses
       - matrix.events
       - readinglist.shares
-      - readinglist.updates
 
 volumes:
   event_vault:

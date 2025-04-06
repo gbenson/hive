@@ -1,5 +1,6 @@
 -r ../../requirements.txt
 -e ../../libs/common[httpx,brotli,zstd]
+-e ../../libs/chat
 -e ../../libs/email
 -e ../../libs/mediawiki
 -e ../../libs/messaging

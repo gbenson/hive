@@ -5,6 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Reading list updater for Hive"
 dependencies = [
     "beautifulsoup4",
+    "hive-chat>=0.1.1",
     "hive-common[httpx,brotli,zstd]>=0.0.15",
     "hive-mediawiki",
     "hive-messaging>=0.12.0",

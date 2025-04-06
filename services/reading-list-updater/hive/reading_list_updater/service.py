@@ -1,8 +1,9 @@
 import logging
 
-from dataclasses import dataclass
 from functools import cached_property
+from typing import Any
 
+from hive.chat import send_reaction, set_user_typing
 from hive.common import httpx
 from hive.mediawiki import HiveWiki
 from hive.messaging import Channel, Message
@@ -16,10 +17,8 @@ logger = logging.getLogger(__name__)
 d = logger.info  # logger.debug
 
 
-@dataclass
 class Service(HiveService):
     update_request_queue: str = "readinglist.update.requests"  # input
-    update_event_routing_key: str = "readinglist.updates"      # output
     fetched_sources_routing_key: str = "readinglist.shares"
 
     @cached_property
@@ -38,14 +37,10 @@ class Service(HiveService):
         wikitext = entry.as_wikitext()
         self.wiki.page("Reading list").append(f"* {wikitext}")
 
-        meta = email_summary.get("meta", {})
-        if not meta:
-            email_summary["meta"] = meta
-        meta["reading_list_entry"] = entry.json()
-        channel.maybe_publish_event(
-            message=email_summary,
-            routing_key=self.update_event_routing_key,
-        )
+        try:
+            self.maybe_acknowledge(channel, email_summary)
+        except Exception:
+            logger.warning("EXCEPTION", exc_info=True)
 
     def maybe_decorate_entry(
             self,
@@ -65,6 +60,20 @@ class Service(HiveService):
             )
 
         maybe_decorate_entry(entry, opengraph_properties(r.text))
+
+    def maybe_acknowledge(self, channel: Channel, summary: dict[str, Any]):
+        if not (meta := summary.get("meta", {})):
+            return
+        if not (origin := meta.get("origin", {})):
+            return
+        if origin.get("channel") != "matrix":
+            return
+        if not (event := origin.get("message")):
+            return
+        if not (event_id := event.get("id")):
+            return
+        send_reaction("👍", in_reply_to=event_id, channel=channel)
+        set_user_typing(False)
 
     def run(self):
         with self.blocking_connection() as conn:

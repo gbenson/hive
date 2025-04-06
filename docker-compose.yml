@@ -15,6 +15,7 @@ include:
       - $HOME/.config/hive/vane-webui.env
 
   - path: services/ollama/docker-compose.yml
+  - path: services/reading-list-updater/docker-compose.yml
   - path: services/vane-webui-api/docker-compose.yml
 
 services:
@@ -36,14 +37,6 @@ services:
     #env_file: ./.config/rabbitmq.env
     # Also, after its initial setup might want to disable some plugins we're not using:
     # - docker compose exec rabbitmq rabbitmq-plugins disable rabbitmq_{federation,prometheus}
-
-  reading-list-updater:
-    image: gbenson/hive-reading-list-updater
-    init: true
-    restart: unless-stopped
-    secrets:
-      - rabbitmq.env
-      - mediawiki.yml
 
 secrets:
   rabbitmq.env:

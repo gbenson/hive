@@ -1,0 +1,20 @@
+services:
+  reading-list-updater:
+    image: gbenson/hive-service-py
+    init: true
+    restart: unless-stopped
+    networks:
+      - reading-list-updater
+      - message-bus
+    volumes:
+      - ./hive/reading_list_updater:/venv/lib/python3.11/site-packages/hive/reading_list_updater:ro
+    secrets:
+      - rabbitmq.env
+      - mediawiki.yml
+    command:
+      - /venv/bin/python3
+      - -m
+      - hive.reading_list_updater
+
+networks:
+  reading-list-updater:

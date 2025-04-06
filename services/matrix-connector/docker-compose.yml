@@ -1,60 +1,4 @@
 services:
-  matrix-sender:
-    image: gbenson/hive-matrix-connector
-    init: true
-    restart: unless-stopped
-    networks:
-      - matrix-connector
-      - matrix-connector-valkey
-      - message-bus
-    volumes:
-      - matrix_sender:/var/lib/hive/matrix-connector
-    command:
-      - hive-matrix-sender
-    secrets:
-      - rabbitmq.env
-
-  matrix-receiver:
-    image: gbenson/hive-matrix-connector
-    init: true
-    restart: unless-stopped
-    networks:
-      - matrix-connector
-      - matrix-connector-valkey
-      - message-bus
-    volumes:
-      - matrix_receiver:/var/lib/hive/matrix-connector
-      - matrix_received_media:/var/lib/hive/matrix-connector/media
-    command:
-      - hive-matrix-receiver
-    secrets:
-      - rabbitmq.env
-
-  matrix-transitioner:
-    image: gbenson/hive-matrix-connector
-    init: true
-    restart: unless-stopped
-    networks:
-      - matrix-connector-valkey
-      - message-bus
-    command:
-      - hive-matrix-transitioner
-    secrets:
-      - rabbitmq.env
-
-  matrix-connector-valkey:
-    image: valkey/valkey:8
-    restart: unless-stopped
-    networks:
-      - matrix-connector-valkey
-    volumes:
-      - matrix_connector_valkey:/data
-    command:
-      - valkey-server
-      - --save
-      - 60 1
-    hostname: vane-valkey
-
   matrix-connector:
     image: gbenson/hive-matrix-connector
     restart: unless-stopped
@@ -73,12 +17,6 @@ services:
 
 networks:
   matrix-connector:
-  matrix-connector-valkey:
-    internal: true
 
 volumes:
-  matrix_sender:
-  matrix_receiver:
-  matrix_received_media:
-  matrix_connector_valkey:
   matrix_connector:

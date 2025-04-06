@@ -11,7 +11,6 @@ services:
       - rabbitmq.env
     command:
       - chat.messages
-      - chat.message.send.requests
       - inbox.emails
       - ollama.api.requests
       - ollama.api.responses

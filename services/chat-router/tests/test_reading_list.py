@@ -2,9 +2,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from hive.chat import ChatMessage
+from cloudevents.pydantic import CloudEvent
 
-from hive.chat_router.handlers.reading_list import ReadingListUpdateHandler
+from hive.chat_router.reading_list import handle_link
 
 
 @pytest.mark.parametrize(
@@ -16,25 +16,27 @@ from hive.chat_router.handlers.reading_list import ReadingListUpdateHandler
       "https://example.com/foo?whatever=4#bar</a> some quote"),
      ))
 def test_reading_list_update(mock_channel, body, expect_html):
-    handler = ReadingListUpdateHandler()
-    assert handler.handle(mock_channel, ChatMessage(
-        text=body,
-        sender="user",
-        timestamp=datetime.fromtimestamp(1730071727.043, tz=timezone.utc),
-        uuid="1c0a44e5-48ac-4464-b9ef-0117b11c2140",
-    ))
+    assert handle_link(mock_channel, body, CloudEvent({
+        "id": "1c0a44e5-48ac-4464-b9ef-0117b11c2140",
+        "source": "reading_list_update_test_source",
+        "type": "reading_list_update_test_type",
+        "time": datetime.fromtimestamp(1730071727.043, tz=timezone.utc),
+    }))
+
+    assert len(mock_channel.call_log) == 1
+    _, _, kwargs = mock_channel.call_log[0]
+    origin = kwargs["message"]["meta"]["origin"]["message"]
+    assert origin["id"] == "1c0a44e5-48ac-4464-b9ef-0117b11c2140"
+    assert origin["source"] == "reading_list_update_test_source"
+    assert origin["type"] == "reading_list_update_test_type"
+    assert origin["time"] == "2024-10-27T23:28:47.043000+00:00"
     assert mock_channel.call_log == [(
         "publish_request", (), {
             "message": {
                 "meta": {
                     "origin": {
-                        "channel": "chat",
-                        "message": {
-                            "text": body,
-                            "sender": "user",
-                            "timestamp": "2024-10-27 23:28:47.043000+00:00",
-                            "uuid": "1c0a44e5-48ac-4464-b9ef-0117b11c2140",
-                        },
+                        "channel": "matrix",
+                        "message": origin,
                     },
                 },
                 "date": "Sun, 27 Oct 2024 23:28:47 +0000",
@@ -42,34 +44,4 @@ def test_reading_list_update(mock_channel, body, expect_html):
             },
             "routing_key": "readinglist.update.requests",
         },
-    ), (
-        "publish_event", (), {
-            "message": {
-                "text": body,
-                "html": expect_html,
-                "sender": "user",
-                "timestamp": "2024-10-27 23:28:47.043000+00:00",
-                "uuid": "1c0a44e5-48ac-4464-b9ef-0117b11c2140",
-            },
-            "routing_key": "chat.messages",
-        },
     )]
-
-
-@pytest.mark.parametrize(
-    "message_text,expect_result",
-    (("nosh http://www.example.com", True),
-     (" nosh https://example.com/foo?whatever=4#bar some quote", True),
-     ("nosh on that", False),
-     ("nosh", False),
-     ("nosh ftp://www.example.com", False),
-     ))
-def test_nosh(mock_channel, message_text, expect_result):
-    handler = ReadingListUpdateHandler()
-    assert handler.handle(mock_channel, ChatMessage(
-        text=message_text,
-        sender="user",
-        timestamp=datetime.fromtimestamp(1730071727.043, tz=timezone.utc),
-        uuid="1c0a44e5-48ac-4464-b9ef-0117b11c2140",
-    )) is expect_result
-    assert not mock_channel.call_log

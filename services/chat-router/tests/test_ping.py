@@ -1,6 +1,6 @@
 import pytest
 
-from hive.chat_router.handlers.ping import PingHandler
+from hive.chat_router.ping import response_for_challenge
 
 
 @pytest.mark.parametrize(
@@ -25,4 +25,4 @@ from hive.chat_router.handlers.ping import PingHandler
      (" ponG ", "pinG!"),
      ))
 def test_responses(challenge, want_out):
-    assert PingHandler.response_for_challenge(challenge) == want_out
+    assert response_for_challenge(challenge) == want_out

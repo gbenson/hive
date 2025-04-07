@@ -11,7 +11,7 @@ from uuid import UUID
 from hive.messaging import Channel
 
 from .message import ChatMessage
-from .util import publish
+from .util import publish_event
 from .v2 import send_text
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,11 @@ def tell_user(
         # (temporarily?)
         # if message.sender == "hive":
         #     raise ValueError("Use v2 interface")
-        publish(message, channel=channel, routing_key="chat.messages")
+        publish_event(
+            message=message.json(),
+            routing_key="chat.messages",
+            channel=channel,
+        )
         return
 
     _ = kwargs.pop("html", None)  # XXX implement

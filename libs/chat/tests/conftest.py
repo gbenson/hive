@@ -9,7 +9,9 @@ from typing import Any
 
 import pytest
 
-MockEvent = namedtuple("MockEvent", ("routing_key", "message"))
+from hive.messaging import Channel
+
+MockEvent = namedtuple("MockEvent", ("type", "routing_key", "message"))
 
 
 @dataclass
@@ -42,11 +44,15 @@ class MockConnection:
 
 
 @dataclass
-class MockChannel:
+class MockChannel(Channel):
     mock_messagebus: MockMessageBus
 
     def publish_event(self, *, routing_key: str, message: dict[str, Any]):
-        event = MockEvent(routing_key, message)
+        event = MockEvent("event", routing_key, message)
+        self.mock_messagebus.published_events.append(event)
+
+    def publish_request(self, *, routing_key: str, message: dict[str, Any]):
+        event = MockEvent("request", routing_key, message)
         self.mock_messagebus.published_events.append(event)
 
 

@@ -1,35 +1,20 @@
-from typing import Any, Optional
-
-from cloudevents.abstract import CloudEvent
+from dataclasses import dataclass
 
 from hive.messaging import Channel, blocking_connection
 
-from .message import ChatMessage
+
+@dataclass
+class channelfunc:
+    name: str
+
+    def __call__(self, *args, **kwargs):
+        if (channel := kwargs.pop("channel")):
+            return self._call(channel, *args, **kwargs)
+        with blocking_connection(connection_attempts=1) as conn:
+            return self._call(conn.channel(), *args, **kwargs)
+
+    def _call(self, channel: Channel, *args, **kwargs):
+        return getattr(channel, self.name)(*args, **kwargs)
 
 
-def publish(
-        message: ChatMessage | CloudEvent,
-        *,
-        routing_key: str,
-        channel: Optional[Channel] = None,
-) -> None:
-    if isinstance(message, ChatMessage):
-        message = message.json()
-
-    if channel:
-        _publish(channel, routing_key, message)
-        return
-
-    with blocking_connection(connection_attempts=1) as conn:
-        _publish(conn.channel(), routing_key, message)
-
-
-def _publish(
-        channel: Channel,
-        routing_key: str,
-        message: CloudEvent | dict[str, Any],
-) -> None:
-    channel.publish_event(
-        message=message,
-        routing_key=routing_key,
-    )
+publish_event = channelfunc("publish_event")

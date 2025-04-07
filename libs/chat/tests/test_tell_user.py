@@ -13,6 +13,7 @@ def test_basic_operation(mock_messagebus, mock_channel):
 
     assert len(mock_messagebus.published_events) == 1
     event = mock_messagebus.published_events[0]
+    assert event.type == "request"
     assert event.routing_key == "matrix.send.text.requests"
     message = event.message
 
@@ -36,6 +37,7 @@ def test_channel_creation(mock_messagebus):
 
     assert len(mock_messagebus.published_events) == 1
     event = mock_messagebus.published_events[0]
+    assert event.type == "event"
     assert event.routing_key == "chat.messages"
     assert event.message == {
         "text": "salop!",
@@ -55,6 +57,7 @@ def test_tell_user_errors(mock_messagebus):
 
     assert len(mock_messagebus.published_events) == 1
     event = mock_messagebus.published_events[0]
+    assert event.type == "request"
     assert event.routing_key == "matrix.send.text.requests"
     assert isinstance(event.message, CloudEvent)
     assert event.message.data == {"text": "TestError: oh <no>!"}

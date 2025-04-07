@@ -4,18 +4,15 @@ services:
     restart: unless-stopped
     networks:
       - nginx-ingress
-      - vane-webui-api
     ports:
       - ${INBOUND_HTTPS_PORT:-443}:443/tcp
     volumes:
       - hive_letsencrypt:/etc/letsencrypt:ro
       - ./templates:/etc/nginx/templates:ro
       - ./default_server:/usr/share/nginx/html:ro
-      - ./vane_webui:/usr/share/nginx/vane/$VANE_WEBUI_PATH:ro
     environment:
       - DEFAULT_HOSTNAME
       - SERVICE_HOSTNAME
-      - VANE_WEBUI_PATH
 
 networks:
   nginx-ingress:

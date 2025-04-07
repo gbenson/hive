@@ -12,11 +12,9 @@ include:
     env_file:
       - $HOME/.config/hive/hostnames.env
       - $HOME/.config/hive/mapped-ports.env
-      - $HOME/.config/hive/vane-webui.env
 
   - path: services/ollama/docker-compose.yml
   - path: services/reading-list-updater/docker-compose.yml
-  - path: services/vane-webui-api/docker-compose.yml
 
 services:
   rabbitmq:

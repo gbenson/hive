@@ -2,7 +2,7 @@ hive-chat>=0.1.2
 hive-common[brotli,httpx,openai,zstd]>=0.1.3
 hive-email>=0.0.2
 hive-mediawiki>=0.0.5
-hive-messaging>=0.12.7
+hive-messaging>=0.12.8
 hive-service>=0.1.0
 
 beautifulsoup4

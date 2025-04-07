@@ -3,15 +3,15 @@ import logging
 
 from datetime import datetime, timedelta, timezone
 from functools import cache, cached_property
-from typing import Callable, Optional
+from typing import Any, Callable, Literal, Optional
 
-from cloudevents.abstract import CloudEvent
+from cloudevents.pydantic import CloudEvent
 from cloudevents.conversion import to_json
 
 from pika import BasicProperties, DeliveryMode
 from pika.channel import Channel as PikaChannel
 
-from hive.common import SERVICE_NAME
+from hive.common import SERVICE_NAME, utc_now
 
 from .message import Message
 from .semantics import Semantics
@@ -313,3 +313,65 @@ class Channel(WrappedPikaThing):
             *args,
             **kwargs
         )
+
+    # High-level publish_request wrappers for Matrix chat.
+
+    def send_text(self, text: str) -> None:
+        """https://pkg.go.dev/maunium.net/go/mautrix#Client.SendText
+        """
+        self.publish_matrix_event("send_text", {"text": text})
+
+    tell_user = send_text
+
+    def send_reaction(
+            self,
+            reaction: str,
+            *,
+            in_reply_to: str | CloudEvent,
+    ) -> None:
+        """https://pkg.go.dev/maunium.net/go/mautrix#Client.SendReaction
+        """
+        if isinstance(in_reply_to, CloudEvent):
+            in_reply_to = in_reply_to.id
+        self.publish_matrix_event("send_reaction", {
+            "event_id": in_reply_to,
+            "reaction": reaction,
+        })
+
+    def set_user_typing(
+            self,
+            timeout: timedelta | Literal[False],
+    ) -> None:
+        """https://pkg.go.dev/maunium.net/go/mautrix#Client.UserTyping
+        """
+        timeout = round(timeout.total_seconds() * 1e9) if timeout else 0
+        self.maybe_publish_matrix_event("user_typing", {"timeout": timeout})
+
+    # Low(er)-level publish_request wrappers for Matrix chat.
+    #
+    # Event? Request?  The end goal is a published Matrix EVENT,
+    # but what we publish is a Hive messaging REQUEST, to the
+    # matrix-connector service.  TL;dr either name could make
+    # sense here!
+
+    def publish_matrix_event(
+            self,
+            event_type: str,
+            event_data: dict[str, Any],
+    ) -> None:
+        event_type = f"matrix_{event_type}_request"
+        routing_key = f"{event_type.replace('_', '.')}s"
+        event_type = f"net.gbenson.hive.{event_type}"
+        message = CloudEvent(
+            source=f"https://gbenson.net/hive/services/{SERVICE_NAME}",
+            type=event_type,
+            time=utc_now(),
+            data=event_data,
+        )
+        self.publish_request(message=message, routing_key=routing_key)
+
+    def maybe_publish_matrix_event(self, *args, **kwargs):
+        try:
+            return self.publish_matrix_event(*args, **kwargs)
+        except Exception:
+            logger.warning("EXCEPTION", exc_info=True)

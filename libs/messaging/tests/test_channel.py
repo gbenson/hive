@@ -8,6 +8,7 @@ import pytest
 from cloudevents.pydantic import CloudEvent
 from pika import BasicProperties, DeliveryMode
 
+from hive.common import parse_datetime, parse_uuid
 from hive.messaging import Channel, Message
 
 
@@ -583,4 +584,46 @@ def test_publish_cloudevents_event():
         "type": "net.gbenson.hive.test_event",
         "time": "2025-03-20T08:57:44.512454+00:00",
         "data": {"bonjour": "madame"},
+    }
+
+
+def test_tell_user():
+    mock = MockPika()
+    mock.exchange_declare = MockMethod()
+    mock.basic_publish = MockMethod()
+
+    channel = Channel(pika=mock)
+    channel.tell_user("hello world")
+
+    assert mock.exchange_declare.call_log == [((), {
+        "exchange": "hive.matrix.send.text.requests",
+        "exchange_type": "fanout",
+        "durable": True,
+    })]
+
+    assert len(mock.basic_publish.call_log) == 1
+    body = mock.basic_publish.call_log[0][1]["body"]
+    assert isinstance(body, bytes)
+    assert mock.basic_publish.call_log == [((), {
+        "exchange": "hive.matrix.send.text.requests",
+        "routing_key": "",
+        "body": body,
+        "properties": BasicProperties(
+            content_type="application/cloudevents+json",
+            delivery_mode=DeliveryMode.Persistent,
+        ),
+        "mandatory": True,
+    })]
+
+    event = json.loads(body)
+    _ = parse_uuid(event.pop("id"))
+    event_time = parse_datetime(event.pop("time"))
+    delta = (datetime.now().astimezone() - event_time).total_seconds()
+    assert 0 < delta < 0.1
+
+    assert event == {
+        "specversion": "1.0",
+        "source": "https://gbenson.net/hive/services/pytest",
+        "type": "net.gbenson.hive.matrix_send_text_request",
+        "data": {"text": "hello world"},
     }

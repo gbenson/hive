@@ -26,10 +26,6 @@ class Channel(WrappedPikaThing):
     def __init__(self, pika: PikaChannel, *, name: str = "", **kwargs):
         super().__init__(pika)
         self.name = name
-        self._pre_publish_hooks = []
-
-    def add_pre_publish_hook(self, hook: Callable):
-        self._pre_publish_hooks.append(hook)
 
     # Messages are:
     #  - PUBLISHED to EXCHANGES
@@ -103,12 +99,6 @@ class Channel(WrappedPikaThing):
             ttl = consume_by - datetime.now(tz=timezone.utc)
             ttl_ms = round(ttl / timedelta(milliseconds=1))
             properties["expiration"] = str(ttl_ms)
-
-        for hook in self._pre_publish_hooks:
-            try:
-                hook(self, message=message)
-            except Exception:
-                logger.exception("EXCEPTION")
 
         return self.basic_publish(
             exchange=exchange,

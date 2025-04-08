@@ -3,7 +3,6 @@ import logging
 from functools import cached_property
 from typing import Any
 
-from hive.chat import send_reaction, set_user_typing
 from hive.common import httpx
 from hive.mediawiki import HiveWiki
 from hive.messaging import Channel, Message
@@ -72,8 +71,8 @@ class Service(HiveService):
             return
         if not (event_id := event.get("id")):
             return
-        send_reaction("👍", in_reply_to=event_id, channel=channel)
-        set_user_typing(False)
+        channel.send_reaction("👍", in_reply_to=event_id)
+        channel.set_user_typing(False)
 
     def run(self):
         with self.blocking_connection() as conn:

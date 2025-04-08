@@ -4,14 +4,26 @@ import sys
 
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from collections import namedtuple
-from typing import Any
+from typing import Any, Optional
 
 import pytest
 
 from hive.messaging import Channel
 
-MockEvent = namedtuple("MockEvent", ("type", "routing_key", "message"))
+
+@dataclass
+class MockEvent:
+    type: str
+    routing_key: str
+    message: Optional[dict[str, Any]] = None
+    data: Optional[dict[str, Any]] = None
+
+    def __post_init__(self) -> None:
+        assert (self.message is None) != (self.data is None)
+
+    @property
+    def cloudevent_data(self) -> Optional[dict[str, Any]]:
+        return self.data
 
 
 @dataclass
@@ -47,12 +59,12 @@ class MockConnection:
 class MockChannel(Channel):
     mock_messagebus: MockMessageBus
 
-    def publish_event(self, *, routing_key: str, message: dict[str, Any]):
-        event = MockEvent("event", routing_key, message)
+    def publish_event(self, **kwargs):
+        event = MockEvent("event", **kwargs)
         self.mock_messagebus.published_events.append(event)
 
-    def publish_request(self, *, routing_key: str, message: dict[str, Any]):
-        event = MockEvent("request", routing_key, message)
+    def publish_request(self, **kwargs):
+        event = MockEvent("request", **kwargs)
         self.mock_messagebus.published_events.append(event)
 
 

@@ -1,9 +1,4 @@
-from datetime import datetime, timezone
-from uuid import RFC_4122, UUID
-
 import pytest
-
-from cloudevents.abstract import CloudEvent
 
 from hive.chat import ChatMessage, tell_user, tell_user_errors
 
@@ -15,17 +10,8 @@ def test_basic_operation(mock_messagebus, mock_channel):
     event = mock_messagebus.published_events[0]
     assert event.type == "request"
     assert event.routing_key == "matrix.send.text.requests"
-    message = event.message
-
-    assert isinstance(message, CloudEvent)
-    assert message.data == {"text": "bonjour!"}
-
-    delta = (datetime.now(tz=timezone.utc) - message.time).total_seconds()
-    assert 0 <= delta < 1
-
-    uuid = UUID(message.id)
-    assert uuid.variant == RFC_4122
-    assert uuid.version == 4
+    assert event.message is None
+    assert event.cloudevent_data == {"text": "bonjour!"}
 
 
 def test_channel_creation(mock_messagebus):
@@ -59,5 +45,5 @@ def test_tell_user_errors(mock_messagebus):
     event = mock_messagebus.published_events[0]
     assert event.type == "request"
     assert event.routing_key == "matrix.send.text.requests"
-    assert isinstance(event.message, CloudEvent)
-    assert event.message.data == {"text": "TestError: oh <no>!"}
+    assert event.message is None
+    assert event.cloudevent_data == {"text": "TestError: oh <no>!"}

@@ -76,15 +76,14 @@ class Channel(WrappedPikaThing):
     def _publish(
             self,
             *,
-            message: bytes | dict | CloudEvent,
             routing_key: str,
             topic: str = "",
             correlation_id: Optional[str] = None,
-            content_type: Optional[str] = None,
             mandatory: bool = False,
             consume_by: Optional[timedelta] = None,
+            **kwargs,
     ):
-        payload, content_type = self._encapsulate(message, content_type)
+        payload, content_type = self._encapsulate(routing_key, **kwargs)
 
         exchange = self._exchange_for(routing_key, topic)
         routing_key = topic
@@ -219,8 +218,46 @@ class Channel(WrappedPikaThing):
             **kwargs
         )
 
+    def _encapsulate(cls, routing_key: str, **kwargs) -> tuple[bytes, str]:
+        """Prepare messages for transmission.
+        """
+        message = kwargs.pop("message", None)
+        if message is None:
+            message = cls._encapsulate_new(routing_key, **kwargs)
+            kwargs = {}
+
+        content_type = kwargs.pop("content_type", None)
+        if kwargs:
+            raise ValueError(kwargs)
+
+        return cls._encapsulate_old(message, content_type)
+
     @staticmethod
-    def _encapsulate(
+    def _encapsulate_new(
+            routing_key: str,
+            *,
+            source: Optional[str] = None,
+            type: Optional[str] = None,
+            time: Optional[datetime] = None,
+            **kwargs
+    ) -> CloudEvent:
+        """Prepare messages for transmission.
+        """
+        if not source:
+            source = f"https://gbenson.net/hive/services/{SERVICE_NAME}"
+        if not type:
+            type = "net.gbenson.hive." + (
+                routing_key
+                .removesuffix("s")
+                .removesuffix("e")
+                .replace(".", "_")
+            )
+        if not time:
+            time = utc_now()
+        return CloudEvent(source=source, type=type, time=time, **kwargs)
+
+    @staticmethod
+    def _encapsulate_old(
             msg: bytes | dict | CloudEvent,
             content_type: Optional[str],
     ) -> tuple[bytes, str]:
@@ -351,14 +388,7 @@ class Channel(WrappedPikaThing):
     ) -> None:
         event_type = f"matrix_{event_type}_request"
         routing_key = f"{event_type.replace('_', '.')}s"
-        event_type = f"net.gbenson.hive.{event_type}"
-        message = CloudEvent(
-            source=f"https://gbenson.net/hive/services/{SERVICE_NAME}",
-            type=event_type,
-            time=utc_now(),
-            data=event_data,
-        )
-        self.publish_request(message=message, routing_key=routing_key)
+        self.publish_request(data=event_data, routing_key=routing_key)
 
     def maybe_publish_matrix_event(self, *args, **kwargs):
         try:

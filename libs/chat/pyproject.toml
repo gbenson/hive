@@ -8,9 +8,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-    "cloudevents[pydantic]",
     "hive-common>=0.1.3",
-    "hive-messaging>=0.12.8",
+    "hive-messaging>=0.13.0",
     "pydantic"
 ]
 

@@ -22,15 +22,10 @@ class Service(HiveService):
         event = message.event()
         if event.type != "net.gbenson.hive.matrix_event":
             raise ValueError(event.type)
-        match event.subject:
-            case "m.room.message":
-                self.on_room_message(channel, event)
-            case _:
-                raise NotImplementedError(event.subject)
-
-    def on_room_message(self, channel: Channel, event: CloudEvent) -> None:
+        if event.subject != "m.room.message":
+            return
         try:
-            self._on_room_message(channel, event)
+            self.on_room_message(channel, event)
         except NotImplementedError:
             channel.send_reaction("😕", in_reply_to=event)
             raise
@@ -38,7 +33,7 @@ class Service(HiveService):
             channel.send_reaction("❌", in_reply_to=event)
             raise
 
-    def _on_room_message(self, channel: Channel, event: CloudEvent) -> None:
+    def on_room_message(self, channel: Channel, event: CloudEvent) -> None:
         request = Request(event)
         if request.sender.startswith("@hive"):
             return

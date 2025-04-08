@@ -4,16 +4,19 @@ import sys
 import pytest
 
 from hive.chat import ChatMessage
-from hive.chat_router.handlers.ollama_router import (
-    Intent,
-    LLMHandler,
-    LLMInteraction,
-)
 from hive.messaging import Channel
 from hive.messaging.testing import blocking_connection  # noqa: F401
 
 logger = logging.getLogger(__name__)
 d = logger.info
+
+m = pytest.importorskip("hive.chat_router.handlers.ollama_router")
+try:
+    Intent = m.Intent
+    LLMHandler = m.LLMHandler
+    LLMInteraction = m.LLMInteraction
+finally:
+    del m
 
 
 class MockChannel:

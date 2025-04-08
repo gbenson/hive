@@ -1,10 +1,10 @@
 from cloudevents.abstract import CloudEvent
 
+from hive.common.units import SECOND
 from hive.messaging import Channel, Message
 from hive.service import HiveService
 
 from .ping import handle_ping
-from .reading_list import startswith_link, request_reading_list_update
 from .request import Request
 
 
@@ -37,12 +37,26 @@ class Service(HiveService):
         request = Request(event)
         if request.sender.startswith("@hive"):
             return
-
-        user_input = request.text
-        if startswith_link(user_input):
-            request_reading_list_update(channel, event, user_input)
+        if request.is_reading_list_update_request:
+            self.on_reading_list_update_request(channel, request)
             return
 
-        if handle_ping(channel, user_input):
+        if handle_ping(channel, request.text):
             return
         channel.tell_user("idk what that is")
+
+    def on_reading_list_update_request(
+            self,
+            channel: Channel,
+            request: Request,
+    ) -> None:
+        channel.set_user_typing(5 * SECOND)
+        channel.publish_request(
+            routing_key="readinglist.update.requests",
+            time=request.time,
+            data={
+                "body": request.text,
+                "content_type": "text/plain",
+                "created_from": request.origin,
+            },
+        )

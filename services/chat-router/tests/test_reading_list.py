@@ -1,47 +1,60 @@
-from datetime import datetime, timezone
+import json
 
-import pytest
+from pathlib import Path
 
 from cloudevents.pydantic import CloudEvent
 
+from pika.spec import BasicProperties
+
 from hive.chat_router import Service
+from hive.messaging import Message
+
+RESOURCES = Path(__file__).parent / "resources" / "matrix.events"
 
 
-@pytest.mark.parametrize(
-    "body,expect_html",
-    (("http://www.example.com",
-      '<a href="http://www.example.com">http://www.example.com</a>'),
-     ("https://example.com/foo?whatever=4#bar some quote",
-      '<a href="https://example.com/foo?whatever=4#bar">'
-      "https://example.com/foo?whatever=4#bar</a> some quote"),
-     ))
-def test_reading_list_update(mock_channel, body, expect_html):
-    Service().on_user_input(mock_channel, CloudEvent({
-        "id": "1c0a44e5-48ac-4464-b9ef-0117b11c2140",
-        "source": "reading_list_update_test_source",
-        "type": "reading_list_update_test_type",
-        "time": datetime.fromtimestamp(1730071727.043, tz=timezone.utc),
-    }), body)
+def test_reading_list_update(mock_channel):
+    message_path = RESOURCES / "share-link-multiline.json"
+    message_json = message_path.read_bytes()
+    message_dict = json.loads(message_json)
+    expect_origin = CloudEvent.model_validate(message_dict)
+    expect_body = expect_origin.data["content"]["body"]
 
-    assert len(mock_channel.call_log) == 1
-    _, _, kwargs = mock_channel.call_log[0]
-    origin = kwargs["message"]["meta"]["origin"]["message"]
-    assert origin["id"] == "1c0a44e5-48ac-4464-b9ef-0117b11c2140"
-    assert origin["source"] == "reading_list_update_test_source"
-    assert origin["type"] == "reading_list_update_test_type"
-    assert origin["time"] == "2024-10-27T23:28:47.043000+00:00"
-    assert mock_channel.call_log == [(
-        "publish_request", (), {
-            "message": {
-                "meta": {
-                    "origin": {
-                        "channel": "matrix",
-                        "message": origin,
-                    },
-                },
-                "date": "Sun, 27 Oct 2024 23:28:47 +0000",
-                "body": body,
-            },
-            "routing_key": "readinglist.update.requests",
+    # sanity
+    expect_lines = expect_body.split("\n")
+    assert len(expect_lines) == 3
+    assert expect_lines[0].startswith("https://pypi.org/project/gensim/ ")
+    assert expect_lines[0].endswith(" prior to installing gensim.")
+    assert expect_lines[1] == ""
+    assert expect_lines[2].startswith("It is also recommended you ")
+    assert expect_lines[2].endswith(" don’t need to do anything special.")
+
+    # test
+    Service().on_matrix_event(mock_channel, Message(
+        method=None,
+        properties=BasicProperties(
+            content_type="application/cloudevents+json",
+        ),
+        body=message_json,
+    ))
+
+    assert len(mock_channel.call_log) == 2
+
+    method, routing_key, event = mock_channel.call_log[0]
+    assert method == "publish_request"
+    assert routing_key == "hive.matrix.user.typing.requests"
+    assert event.type == "net.gbenson.hive.matrix_user_typing_request"
+    assert event.data == {"timeout": 5_000_000_000}
+
+    method, routing_key, event = mock_channel.call_log[1]
+    assert method == "publish_request"
+    assert routing_key == "hive.readinglist.update.requests"
+    assert event.type == "net.gbenson.hive.readinglist_update_request"
+    assert event.data == {
+        "body": expect_body,
+        "content_type": "text/plain",
+        "created_from": {
+            "id": "$Iv2XkxkQio3aU3CMcyss7eHWekMcqzpDEB15VZv-SlN",
+            "source": "https://gbenson.net/hive/services/matrix-connector",
+            "type": "net.gbenson.hive.matrix_event"
         },
-    )]
+    }

@@ -8,7 +8,7 @@ class channelfunc:
     name: str
 
     def __call__(self, *args, **kwargs):
-        if (channel := kwargs.pop("channel")):
+        if (channel := kwargs.pop("channel", None)):
             return self._call(channel, *args, **kwargs)
         with blocking_connection(connection_attempts=1) as conn:
             return self._call(conn.channel(), *args, **kwargs)

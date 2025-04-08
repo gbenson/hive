@@ -1,5 +1,6 @@
 import logging
 
+from email.utils import format_datetime
 from functools import cached_property
 from typing import Any
 
@@ -25,9 +26,16 @@ class Service(HiveService):
         return HiveWiki()
 
     def on_update_request(self, channel: Channel, message: Message):
-        email_summary = message.json()
+        if message.is_cloudevent:
+            event = message.event()
+            email_summary = event.data
+            email_summary["date"] = format_datetime(event.time)
+        else:
+            email_summary = message.json()
+
         d("Update request: %r", email_summary)
         entry = ReadingListEntry.from_email_summary(email_summary)
+
         try:
             self.maybe_decorate_entry(channel, entry)
         except Exception:
@@ -61,14 +69,19 @@ class Service(HiveService):
         maybe_decorate_entry(entry, opengraph_properties(r.text))
 
     def maybe_acknowledge(self, channel: Channel, summary: dict[str, Any]):
-        if not (meta := summary.get("meta", {})):
-            return
-        if not (origin := meta.get("origin", {})):
-            return
-        if origin.get("channel") != "matrix":
-            return
-        if not (event := origin.get("message")):
-            return
+        if (origin := summary.get("created_from")):
+            # new style
+            if origin.get("type") != "net.gbenson.hive.matrix_event":
+                return
+            event = origin
+        elif (meta := summary.get("meta")):
+            # old style
+            if not (origin := meta.get("origin", {})):
+                return
+            if origin.get("channel") != "matrix":
+                return
+            if not (event := origin.get("message")):
+                return
         if not (event_id := event.get("id")):
             return
         channel.send_reaction("👍", in_reply_to=event_id)

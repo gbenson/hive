@@ -4,9 +4,7 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Chatbot interface for Hive"
 readme = "README.md"
-classifiers = [
-    "License :: OSI Approved :: MIT License",
-]
+license = "MIT"
 dependencies = [
     "hive-common>=0.1.3",
     "hive-messaging>=0.13.0",

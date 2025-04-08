@@ -4,9 +4,7 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Common code for Hive services"
 readme = "README.md"
-classifiers = [
-    "License :: OSI Approved :: MIT License",
-]
+license = "MIT"
 dependencies = [
     "cloudevents[pydantic]",
     "hive-common>=0.1.2",

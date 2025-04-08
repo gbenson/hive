@@ -5,9 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Email message handling for Hive."
 readme = "README.md"
 requires-python = ">=3.10"  # match..case
-classifiers = [
-    "License :: OSI Approved :: MIT License",
-]
+license = "MIT"
 
 [project.urls]
 Homepage = "https://github.com/gbenson/hive/tree/main/libs/email"

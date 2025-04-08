@@ -4,6 +4,7 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Cryptography library for Hive"
 readme = "README.md"
+license = "MIT"
 dependencies = [
     "PyNaCl",
 ]

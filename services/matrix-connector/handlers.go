@@ -47,7 +47,7 @@ func (h *sendTextRequestHandler) Consume(
 	logger.Ctx(ctx).Info().
 		Str("event_id", resp.EventID.String()).
 		Str("text", r.Text).
-		Msg("Message sent")
+		Msg("Sent")
 
 	return nil
 }
@@ -93,7 +93,7 @@ func (h *sendReactionRequestHandler) Consume(
 		Str("event_id", resp.EventID.String()).
 		Str("reaction", r.Reaction).
 		Str("target_event_id", r.EventID).
-		Msg("Reaction sent")
+		Msg("Sent")
 
 	return nil
 }
@@ -131,7 +131,7 @@ func (h *userTypingRequestHandler) Consume(
 	logger.Ctx(ctx).Info().
 		Bool("user_typing", typing).
 		Dur("timeout", r.Timeout).
-		Msg("Typing status set")
+		Msg("Set")
 
 	return nil
 }

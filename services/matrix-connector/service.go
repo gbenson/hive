@@ -24,8 +24,10 @@ type Service struct {
 }
 
 func (s *Service) Start(ctx context.Context, ch messaging.Channel) (err error) {
+	log := logger.Ctx(ctx)
+
 	if s.Options.Log == nil {
-		s.Options.Log = logger.Ctx(ctx)
+		s.Options.Log = log
 	}
 	if err = s.Options.Populate(); err != nil {
 		return
@@ -43,8 +45,9 @@ func (s *Service) Start(ctx context.Context, ch messaging.Channel) (err error) {
 		if err = s.Client.OnEventType(
 			eventType,
 			func(ctx context.Context, e *event.Event) {
+				ctx = log.WithContext(ctx) // Remove go-mautrix additions
 				if err := s.onEventMessage(ctx, e, ch); err != nil {
-					s.Client.Log.Err(err).Msg("")
+					log.Err(err).Msg("")
 				}
 			},
 		); err != nil {
@@ -59,7 +62,7 @@ func (s *Service) Start(ctx context.Context, ch messaging.Channel) (err error) {
 		err := s.Client.SyncWithContext(ctx)
 		defer s.syncStopWait.Done()
 		if err != nil && !errors.Is(err, context.Canceled) {
-			s.Client.Log.Err(err).Msg("Sync error")
+			log.Err(err).Msg("Sync error")
 		}
 	}()
 
@@ -110,6 +113,10 @@ func (s *Service) onEventMessage(
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
+
+	logger.Ctx(ctx).Info().
+		Interface("event", v).
+		Msg("Received")
 
 	event := messaging.NewEvent()
 	event.SetID(e.ID.String())

@@ -1,5 +1,0 @@
--r ../../requirements.txt
--e ../../libs/chat
--e ../../libs/common
--e ../../libs/messaging
--e ../../libs/service

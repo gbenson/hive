@@ -39,17 +39,17 @@ def test_reading_list_update(mock_channel):
 
     assert len(mock_channel.call_log) == 2
 
-    method, routing_key, event = mock_channel.call_log[0]
-    assert method == "publish_request"
-    assert routing_key == "hive.matrix.user.typing.requests"
-    assert event.type == "net.gbenson.hive.matrix_user_typing_request"
-    assert event.data == {"timeout": 5_000_000_000}
+    call = mock_channel.call_log[0]
+    assert call.method == "publish_request"
+    assert call.routing_key == "hive.matrix.user.typing.requests"
+    assert call.event.type == "net.gbenson.hive.matrix_user_typing_request"
+    assert call.event.data == {"timeout": 5_000_000_000}
 
-    method, routing_key, event = mock_channel.call_log[1]
-    assert method == "publish_request"
-    assert routing_key == "hive.readinglist.update.requests"
-    assert event.type == "net.gbenson.hive.readinglist_update_request"
-    assert event.data == {
+    call = mock_channel.call_log[1]
+    assert call.method == "publish_request"
+    assert call.routing_key == "hive.readinglist.update.requests"
+    assert call.event.type == "net.gbenson.hive.readinglist_update_request"
+    assert call.event.data == {
         "body": expect_body,
         "content_type": "text/plain",
         "created_from": {

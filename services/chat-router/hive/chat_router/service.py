@@ -4,7 +4,7 @@ from hive.common.units import SECOND
 from hive.messaging import Channel, Message
 from hive.service import HiveService
 
-from .ping import handle_ping
+from .brain import router
 from .request import Request
 
 
@@ -40,10 +40,7 @@ class Service(HiveService):
         if request.is_reading_list_update_request:
             self.on_reading_list_update_request(channel, request)
             return
-
-        if handle_ping(channel, request.text):
-            return
-        channel.tell_user("idk what that is")
+        router.dispatch(request.text, self, channel)
 
     def on_reading_list_update_request(
             self,
@@ -60,3 +57,6 @@ class Service(HiveService):
                 "created_from": request.origin,
             },
         )
+
+    def on_send_text(self, channel: Channel, text: str) -> None:
+        channel.send_text(text)

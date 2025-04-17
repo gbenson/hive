@@ -21,9 +21,14 @@ version = {attr = "hive.event_vault.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.event_vault"
+log_level="debug"
 
 [tool.coverage.run]
 omit = [
     "*/venv/*",
     "*/.venv/*",
+    "*/hive/*/__main__.py",
 ]
+
+[tool.coverage.report]
+skip_covered = true

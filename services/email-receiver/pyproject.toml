@@ -25,11 +25,13 @@ version = {attr = "hive.email_receiver.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.email_receiver"
+log_level="debug"
 
 [tool.coverage.run]
 omit = [
     "*/venv/*",
     "*/.venv/*",
+    "*/hive/*/__main__.py",
 ]
 
 [tool.coverage.report]

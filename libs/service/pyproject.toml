@@ -24,11 +24,13 @@ version = {attr = "hive.service.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.service"
+log_level="debug"
 
 [tool.coverage.run]
 omit = [
     "*/venv/*",
     "*/.venv/*",
+    "*/hive/*/__main__.py",
 ]
 
 [tool.coverage.report]

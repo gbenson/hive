@@ -29,11 +29,13 @@ version = {attr = "hive.vane_webui_api.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.vane_webui_api"
+log_level="debug"
 
 [tool.coverage.run]
 omit = [
     "*/venv/*",
     "*/.venv/*",
+    "*/hive/*/__main__.py",
 ]
 
 [tool.coverage.report]

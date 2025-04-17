@@ -26,11 +26,13 @@ version = {attr = "hive.ollama.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.ollama"
+log_level="debug"
 
 [tool.coverage.run]
 omit = [
     "*/venv/*",
     "*/.venv/*",
+    "*/hive/*/__main__.py",
 ]
 
 [tool.coverage.report]

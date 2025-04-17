@@ -26,6 +26,10 @@ from hive.chat_router.service import Service
      ("pInG please", "pOnG!"),
      ("please piNg", "poNg!"),
      ("can you say ping?", 'you say "ping", I say "pong"!'),
+     #
+     ("pnig", "pong"),
+     ("sallop!", "bonjour"),
+     ("Heilo", "hi"),
      ))
 def test_responses(mock_channel, challenge, want_response):
     router.dispatch(challenge, Service(), mock_channel)

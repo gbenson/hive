@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Callable, Optional, Sequence, TypeAlias
 
+from .spellchecker import spellcheck
 from .tokenizer import Token
 
 Handler: TypeAlias = Callable[[], None]
@@ -222,10 +223,9 @@ class Matcher:
         if token_index >= len(self.tokens):
             return
 
-        token = self.tokens[token_index]
         children = c.node.children
-
-        if (s := children.get(token.text)):
+        if (s_token := self._get_word_match(token_index, children)):
+            s, token = s_token
             yield Candidate(s, token_index + 1, [token], c, False)
 
         for wildcard in "^*":
@@ -245,6 +245,33 @@ class Matcher:
             for match_limit in match_limits:
                 match_tokens = self.tokens[match_start:match_limit]
                 yield Candidate(s, match_limit, match_tokens, c, True)
+
+    def _get_word_match(
+            self,
+            token_index: int,
+            children: dict[str, Node],
+    ) -> Optional[tuple[Candidate, Token]]:
+        """Return the candidate and token for a word match.
+        """
+        token = self.tokens[token_index]
+        word = token.text
+
+        if (s := children.get(word)):
+            return s, token  # exact match
+
+        if len(word) < 3:
+            return None
+
+        candidates = spellcheck.candidates(word)
+        if not candidates:
+            return None
+
+        candidates &= children.keys()
+        if len(candidates) != 1:
+            return None
+
+        word = candidates.pop()
+        return children.get(word), token.with_text(word)
 
 
 class PatternGraph(Node):

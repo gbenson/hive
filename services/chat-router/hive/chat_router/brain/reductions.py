@@ -8,9 +8,16 @@ for word in ("can", "could", "will", "would"):
 for word in ("create", "make"):
     rewrite(f"{word} _", "generate *")
 
-for word in ("me", "a", "one", "an"):
-    rewrite(f"draw {word} _", "draw *")
-    rewrite(f"generate {word} _", "generate *")
+for word1 in (
+        "choose",
+        "draw",
+        "generate",
+        "imagine",
+        "pick",
+        "select",
+):
+    for word2 in ("me", "a", "one", "an"):
+        rewrite(f"{word1} {word2} _", f"{word1} *")
 
 rstrip("for me")
 rstrip("please")

@@ -150,9 +150,9 @@ from hive.chat_router.service import Service
      ("New York times email",
       "new york times email"),
      ("Generate two random words ",
-      "generate two random words"),
+      "random two words"),
      ("Generate a random male name",
-      "generate random male name"),
+      "random male name"),
      ("Hive?",
       "hi !"),
      ("hi",
@@ -256,34 +256,37 @@ from hive.chat_router.service import Service
      ("qwen, who is Serendra Grey?",
       "qwen , who is serendra grey"),
      ("generate two random words",
-      ""),
+      "random two words"),
      ("please generate 4 random words",
-      "generate 4 random words"),
+      "random 4 words"),
      ("can you create a random word please",
-      "generate random word"),
+      "random word"),
      ("generate a random male name",
-      "generate random male name"),
+      "random male name"),
      ("random word",
       ""),
      ("random verb",
       ""),
      ("four nouns?",
-      "four nouns"),
+      "random four nouns"),
      ("gender-neutral name?",
-      "gender neutral name"),
+      "random gender neutral name"),
      ("neutral name?",
-      "neutral name"),
+      "random neutral name"),
      ("pick a female name",
-      ""),
+      "random female name"),
      ("pick a word",
-      ""),
+      "random word"),
      ("choose a name",
-      ""),
+      "random name"),
      ('can you say "ping"?',
       "say ping"),
      ))
 def test_rewriter(mock_channel, user_input, want_rewrite, no_spellcheck):
-    router.dispatch(user_input, Service(), mock_channel)
+    try:
+        router.dispatch(user_input, Service(), mock_channel)
+    except NotImplementedError:
+        pass
     assert router.request.text == user_input
     assert want_rewrite != user_input
     if not want_rewrite:

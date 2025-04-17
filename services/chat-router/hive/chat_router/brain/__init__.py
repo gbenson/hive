@@ -47,11 +47,21 @@ add_canned_response = router.add_canned_response
 send_text = router.send_text
 
 
-def route(pattern: str) -> Callable[[Handler], Handler]:
+def route(
+        pattern: str = "",
+        patterns: tuple[str] = (),
+
+) -> Callable[[Handler], Handler]:
     """Decorator.
     """
+    if bool(pattern) == bool(patterns):
+        raise ValueError('need "pattern" or "patterns"')
+    if not patterns:
+        patterns = (pattern,)
+
     def decorator(handler: Handler) -> Handler:
-        router.add_route(pattern, handler)
+        for pattern in patterns:
+            router.add_route(pattern, handler)
         return handler
 
     return decorator

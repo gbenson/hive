@@ -209,6 +209,8 @@ ABBREVIATIONS = dict(
         /       or
         passwd  password
         pls     please
+        u       you
+        ur      your
     """.strip().split("\n")
 )
 DIRECT_ABBREVIATIONS = dict(

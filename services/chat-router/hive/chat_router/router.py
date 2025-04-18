@@ -97,8 +97,11 @@ class Router:
         split = wildcards[0][0]
 
         groups = self.request.match.groups
-        if len(groups) != 1:
+        if len(groups) == 1:
+            matched_tokens = groups[0].matched_tokens
+        elif not groups:
+            matched_tokens = ()
+        else:
             raise NotImplementedError(repr(" ".join(t.text for t in template)))
-        matched_tokens = groups[0].matched_tokens
 
         self._dispatch(template[:split] + matched_tokens + template[split+1:])

@@ -41,6 +41,14 @@ class Service(HiveService):
             self.on_reading_list_update_request(channel, request)
             return
         router.dispatch(request.text, self, channel)
+        channel.maybe_publish_event(
+            routing_key="chat.router.rewrites",
+            time=request.time,
+            data={
+                "input": request.text,
+                "result": router.request.match.match,
+            }
+        )
 
     def on_reading_list_update_request(
             self,

@@ -10,6 +10,7 @@ services:
     secrets:
       - rabbitmq.env
     command:
+      - chat.router.rewrites
       - inbox.emails
       - ollama.api.requests
       - ollama.api.responses

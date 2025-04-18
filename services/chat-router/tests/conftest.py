@@ -6,6 +6,8 @@ from cloudevents.abstract import CloudEvent
 
 from hive.messaging import Channel, Message
 
+from hive.chat_router.pattern_graph import Matcher
+
 
 @dataclass(frozen=True)
 class ChannelCall:
@@ -63,3 +65,8 @@ class MockMethod:
 @pytest.fixture
 def mock_channel():
     return Channel(MockChannel())
+
+
+@pytest.fixture
+def no_spellcheck(monkeypatch):
+    monkeypatch.setattr(Matcher, "SPELL_CHECK_MIN_WORD_LENGTH", 1_000_000)

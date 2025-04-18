@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Callable, Optional, Sequence, TypeAlias
+from typing import Callable, ClassVar, Optional, Sequence, TypeAlias
 
 from .spellchecker import spellcheck
 from .tokenizer import Token
@@ -246,6 +246,8 @@ class Matcher:
                 match_tokens = self.tokens[match_start:match_limit]
                 yield Candidate(s, match_limit, match_tokens, c, True)
 
+    SPELL_CHECK_MIN_WORD_LENGTH: ClassVar[int] = 3
+
     def _get_word_match(
             self,
             token_index: int,
@@ -259,7 +261,7 @@ class Matcher:
         if (s := children.get(word)):
             return s, token  # exact match
 
-        if len(word) < 3:
+        if len(word) < self.SPELL_CHECK_MIN_WORD_LENGTH:
             return None
 
         candidates = spellcheck.candidates(word)

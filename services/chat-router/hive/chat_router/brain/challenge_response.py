@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from . import add_canned_response, add_route, router, send_text
+from . import add_canned_response, add_route, rewrite, router, send_text
 
 CHALLENGE_RESPONSES = (
     ("ping", "pong"),
     ("bonjour", "salop"),
     ("hello", "hi"),
+    ("yo", "hey"),
 )
 
 
@@ -59,3 +60,10 @@ for a, b in CHALLENGE_RESPONSES:
     for c, r in ((a, b), (b, a)):
         add_route(f"{c} ^", respond_to_challenge(c, r))
         add_canned_response(f"say {c}", f'you say "{c}", I say "{r}"!')
+
+
+for when in ("morning", "afternoon", "evening"):
+    rewrite(f"good {when} ^", "hi")
+
+rewrite("hive ?", "hi!")
+rewrite("salut", "salop")

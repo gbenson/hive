@@ -8,7 +8,8 @@ for word in ("can", "could", "will", "would"):
 for word in ("create", "make"):
     rewrite(f"{word} *", "generate *")
 
-for word in ("me", "a", "one"):
+for word in ("me", "a", "one", "an"):
+    rewrite(f"draw {word} *", "draw *")
     rewrite(f"generate {word} *", "generate *")
 
 rstrip("for me")

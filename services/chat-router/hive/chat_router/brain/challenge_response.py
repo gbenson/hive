@@ -6,7 +6,17 @@ CHALLENGE_RESPONSES = (
     ("bonjour", "salop"),
     ("hello", "hi"),
     ("yo", "hey"),
+    ("thanks", "welcome"),
+    ("thx", "yw"),
 )
+
+for challenge in ("thank you", "ta", "tvm"):
+    rewrite(challenge, "thanks")
+
+rewrite("gg", "thx")
+
+for pre_challenge in ("you're", "your", "you"):
+    rewrite(f"{pre_challenge} welcome", "welcome")
 
 
 @dataclass
@@ -19,8 +29,11 @@ class respond_to_challenge:
 
     @property
     def response(self) -> str:
-        lower_response = self.lower_response
         lower_challenge = self.lower_challenge
+
+        lower_response = self.lower_response
+        if lower_response == "welcome":
+            lower_response = "you're welcome!"
 
         for token in router.request.tokens:
             if token.text != lower_challenge:

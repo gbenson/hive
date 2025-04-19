@@ -14,6 +14,9 @@ for word in ("me", "a", "one"):
 rstrip("for me")
 rstrip("please")
 rstrip("?")
+rstrip("!")
+rstrip(",")
+rstrip(".")
 
 for prefix in (
         "what",

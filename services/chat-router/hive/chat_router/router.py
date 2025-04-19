@@ -49,8 +49,11 @@ class Router:
         self._dispatch(tokenize(text))
 
     def _dispatch(self, tokens: Iterable[Token]) -> None:
+        tokens = tuple(tokens)
+        if not tokens:
+            tokens = (Token.from_string("\a"),)
+        self.request.tokens = tokens
         self.request.match = None
-        self.request.tokens = tokens = tuple(tokens)
         d("dispatch: %r", " ".join(t.text for t in tokens))
         if not (matches := self.graph.match(tokens)):
             raise KeyError

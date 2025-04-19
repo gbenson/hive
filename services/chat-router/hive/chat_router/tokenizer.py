@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from itertools import chain
 from dataclasses import asdict, dataclass, field
 
+ANY_WORD_CHAR = re.compile(r"\w")
 WORD_RE = re.compile(r"(\w+)")
 
 
@@ -78,6 +79,7 @@ def tokenize(s: str) -> Iterable[Token]:
     tokens = chain.from_iterable(split_words(t) for t in tokens)
     tokens = disabbreviate(tokens)
     tokens = chain.from_iterable(expand(t) for t in tokens)
+    tokens = drop_most_nonword(tokens)
     return tokens
 
 
@@ -181,6 +183,17 @@ def expand(token: Token) -> Iterable[Token]:
     yield token.with_values(text=u, start=split, starts_word=True)
 
 
+def drop_most_nonword(tokens: Iterable[Token]) -> Iterable[Token]:
+    for token in tokens:
+        s = token.text
+        if s in NONWORD_ALLOWLIST:
+            yield token
+            continue
+        if not ANY_WORD_CHAR.search(s):
+            continue
+        yield token
+
+
 APOSTROPHISH_CODEPOINTS = {
     0x02b9,  # Modifier letter prime
     0x02bc,  # Modifier letter apostrophe
@@ -223,6 +236,8 @@ WHITESPACE_MODIFYING_ABBREVIATIONS = dict(
     for _in, out in ABBREVIATIONS.items()
     if _in not in DIRECT_ABBREVIATIONS
 )
+
+NONWORD_ALLOWLIST = "!*,.?@"
 
 # Standard (and non-standard!) English contractions
 #

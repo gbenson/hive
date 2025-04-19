@@ -14,10 +14,8 @@ from .util import T
         T("password", 10, 18),
         T("for", 19, 22),
         T("smol", 23, 27),
-        T("(", 28, 29),
         T("please", 29, 32, False),
         T("!", 32, 33, False),
-        T(")", 33, 34, False),
      )),
      ))
 def test_disabbreviate(user_input, expect_tokens):

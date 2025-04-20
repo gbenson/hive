@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from collections.abc import Iterable
@@ -6,7 +8,7 @@ from functools import cached_property, partial
 from threading import Lock, local as ThreadLocal
 from typing import Any, Callable, TypeAlias
 
-from .pattern_graph import PatternGraph
+from .pattern_graph import PatternGraph, Span
 from .tokenizer import Token, tokenize
 
 Handler: TypeAlias = Callable[[], None]
@@ -86,25 +88,23 @@ class Router:
     def rewrite(self, pattern: str, template: str) -> None:
         """Register a handler that re-dispatches with replaced input.
         """
-        template_tokens = tuple(tokenize(template))
-        self.add_route(pattern, partial(self._rewrite, template_tokens))
+        t = Template(tuple(tokenize(template)))
+        self.add_route(pattern, partial(self._rewrite, t))
 
-    def _rewrite(self, template: Iterable[Token]) -> None:
-        template = tuple(template)
-        wildcards = [it for it in enumerate(template) if it[1].text in "^*"]
-        if not wildcards:
-            self._dispatch(template)
-            return
-        if len(wildcards) != 1:
-            raise NotImplementedError(repr(" ".join(t.text for t in template)))
-        split = wildcards[0][0]
+    def _rewrite(self, template: Template) -> None:
+        self._dispatch(template.expand(self.request.match.groups))
 
-        groups = self.request.match.groups
-        if len(groups) == 1:
-            matched_tokens = groups[0].matched_tokens
-        elif not groups:
-            matched_tokens = ()
-        else:
-            raise NotImplementedError(repr(" ".join(t.text for t in template)))
 
-        self._dispatch(template[:split] + matched_tokens + template[split+1:])
+@dataclass
+class Template:
+    tokens: tuple[Token]
+
+    def expand(self, subs: Iterable[Span]) -> Iterable[Token]:
+        subs = iter(subs)
+        for token in self.tokens:
+            if token.text != "*":
+                yield token
+                continue
+            sub = next(subs)
+            for token in sub.matched_tokens:
+                yield token

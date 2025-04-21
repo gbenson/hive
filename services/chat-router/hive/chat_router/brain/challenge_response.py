@@ -71,7 +71,12 @@ class respond_to_challenge:
 
 for a, b in CHALLENGE_RESPONSES:
     for c, r in ((a, b), (b, a)):
-        add_route(f"{c} ^", respond_to_challenge(c, r))
+        # XXX this should work with just a route for f"{c} #",
+        # except non-matching sharp matches at the end of the
+        # pattern doesn't bump the priority like it should :(
+        respond = respond_to_challenge(c, r)
+        for challenge in (c, f"{c} #"):
+            add_route(challenge, respond_to_challenge(c, r))
         add_canned_response(f"say {c}", f'you say "{c}", I say "{r}"!')
 
 

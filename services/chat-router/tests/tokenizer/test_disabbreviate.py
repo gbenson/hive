@@ -2,7 +2,7 @@ import pytest
 
 from hive.chat_router.tokenizer import tokenize
 
-from .util import T
+from .util import S, T
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,7 @@ from .util import T
         T("for", 19, 22),
         T("smol", 23, 27),
         T("please", 29, 32, False),
-        T("!", 32, 33, False),
+        S("!", 32, 33, False),
      )),
      ))
 def test_disabbreviate(user_input, expect_tokens):

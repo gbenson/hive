@@ -58,8 +58,8 @@ def route(pattern: str) -> Callable[[Handler], Handler]:
 
 
 def lstrip(prefix: str) -> None:
-    rewrite(f"{prefix} *", "*")
+    rewrite(f"{prefix} _", "*")
 
 
 def rstrip(suffix: str) -> None:
-    rewrite(f"* {suffix}", "*")
+    rewrite(f"_ {suffix}", "*")

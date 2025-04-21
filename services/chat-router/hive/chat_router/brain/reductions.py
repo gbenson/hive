@@ -6,11 +6,11 @@ for word in ("can", "could", "will", "would"):
     lstrip(f"{word} you")
 
 for word in ("create", "make"):
-    rewrite(f"{word} *", "generate *")
+    rewrite(f"{word} _", "generate *")
 
 for word in ("me", "a", "one", "an"):
-    rewrite(f"draw {word} *", "draw *")
-    rewrite(f"generate {word} *", "generate *")
+    rewrite(f"draw {word} _", "draw *")
+    rewrite(f"generate {word} _", "generate *")
 
 rstrip("for me")
 rstrip("please")
@@ -30,4 +30,4 @@ for prefix in (
         "print",
 ):
     for suffix in ("my", "you", "your"):
-        rewrite(f"{prefix} {suffix} *", "show *")
+        rewrite(f"{prefix} {suffix} _", "show *")

@@ -11,13 +11,13 @@ def test_matcher():
     assert len(matches) == 3
 
     assert [m.pattern for m in matches] == [
-        "please *",
+        "_ ?",
+        "please _",
         "*",
-        "* ?",
     ]
     assert [" ".join(s.match for s in m.groups) for m in matches] == [
+        "please could you generate me 14 random male names please",
         "could you generate me 14 random male names please ?",
         "please could you generate me 14 random male names please ?",
-        "please could you generate me 14 random male names please",
     ]
-    assert matcher.best_match is matches[0]
+    assert matcher.best_match is matches[1]

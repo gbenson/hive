@@ -3,8 +3,9 @@ from __future__ import annotations
 import re
 
 from collections.abc import Iterable
-from itertools import chain
 from dataclasses import asdict, dataclass, field
+from itertools import chain
+from typing import Sequence
 
 ANY_WORD_CHAR = re.compile(r"\w")
 WORD_RE = re.compile(r"(\w+)")
@@ -70,16 +71,50 @@ class Token:
     def source_text(self) -> str:
         return self.source[self.start:self.limit]
 
+    @property
+    def is_special(self) -> bool:
+        return isinstance(self, SpecialToken)
 
-def tokenize(s: str) -> Iterable[Token]:
+
+class SpecialToken(Token):
+    @classmethod
+    def capture(
+            cls,
+            special_tokens: Sequence[str],
+            tokens: Iterable[Token],
+    ) -> Iterable[Token]:
+        return (cls.maybe_capture_one(special_tokens, t) for t in tokens)
+
+    @classmethod
+    def maybe_capture_one(
+            cls,
+            special_tokens: Sequence[str],
+            token: Token,
+    ) -> Token:
+        if token.text not in special_tokens:
+            return token
+        return cls(**asdict(token))
+
+
+def tokenize(
+        s: str,
+        special_tokens: Sequence[str] = "!,.?@",
+        append_special: Sequence[str] = "",
+) -> Iterable[Token]:
     """Split a string into normalized tokens.
     """
+    if append_special:
+        special_tokens = set(special_tokens)
+        special_tokens.update(append_special)
+
     tokens = split(s)
+    tokens = SpecialToken.capture(special_tokens, tokens)
     tokens = map(casefold, tokens)
     tokens = chain.from_iterable(split_words(t) for t in tokens)
+    tokens = SpecialToken.capture(special_tokens, tokens)
     tokens = disabbreviate(tokens)
     tokens = chain.from_iterable(expand(t) for t in tokens)
-    tokens = drop_most_nonword(tokens)
+    tokens = drop_nonspecial_nonword(tokens)
     return tokens
 
 
@@ -105,6 +140,10 @@ def casefold(token: Token) -> Token:
 def split_words(token: Token) -> Iterable[Token]:
     """Split a token into a word- and non-word sections.
     """
+    if token.is_special:
+        yield token
+        return
+
     s = token.text
 
     # Make it break on "_" but not on "'"
@@ -183,12 +222,12 @@ def expand(token: Token) -> Iterable[Token]:
     yield token.with_values(text=u, start=split, starts_word=True)
 
 
-def drop_most_nonword(tokens: Iterable[Token]) -> Iterable[Token]:
+def drop_nonspecial_nonword(tokens: Iterable[Token]) -> Iterable[Token]:
     for token in tokens:
-        s = token.text
-        if s in NONWORD_ALLOWLIST:
+        if token.is_special:
             yield token
             continue
+        s = token.text
         if not ANY_WORD_CHAR.search(s):
             continue
         yield token
@@ -236,8 +275,6 @@ WHITESPACE_MODIFYING_ABBREVIATIONS = dict(
     for _in, out in ABBREVIATIONS.items()
     if _in not in DIRECT_ABBREVIATIONS
 )
-
-NONWORD_ALLOWLIST = "!*,.?@"
 
 # Standard (and non-standard!) English contractions
 #

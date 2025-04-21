@@ -142,7 +142,7 @@ from hive.chat_router.service import Service
      ("wtg",
       ""),
      ("* wtf",
-      ""),
+      "wtf"),
      ("hellom",
       ""),
      ("maybe now?",

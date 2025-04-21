@@ -122,6 +122,21 @@ class Span:
         """
         return " ".join(t.text for t in self.matched_tokens)
 
+    _PRIORITIES: ClassVar[dict[str, int]] = {
+        # http://www.aiml.foundation/doc.html
+        #    7,  # dollar match ($word)  top priority word match
+        "#": 6,  # sharp match           zero+ word wildcard match
+        "_": 5,  # underscore match      one+ word wildcard match
+        #    4,  # word match (word)     exact word match
+        #    3,  # set match (<set>name</set>) match found in AIML Set
+        "^": 2,  # caret match           zero+ wildcard match
+        "*": 1,  # star match   *        one+ word wildcard match
+    }
+
+    @property
+    def match_priority(self) -> int:
+        return self._PRIORITIES.get(self.pattern, 4)
+
     def __repr__(self) -> str:
         p, m = p_m = self.pattern, self.match
         return repr(m if m == p else p_m)
@@ -148,6 +163,13 @@ class Match:
     def groups(self) -> tuple[Span]:
         return tuple(s for s in self.spans if s.is_wildcard)
 
+    @property
+    def priority(self) -> int:
+        return min(
+            s.match_priority if s.is_wildcard else 100
+            for s in self.spans
+        )
+
     @cached_property
     def spans(self) -> tuple[Span]:
         result = []
@@ -171,9 +193,12 @@ class Matcher:
     @property
     def best_match(self) -> Match:
         return max(
-            (len(match.pattern) - len(match.groups), -index, match)
+            (match.priority,
+             len(match.pattern) - len(match.groups),
+             -index,
+             match)
             for index, match in enumerate(self.matches)
-        )[2]
+        )[-1]
 
     def __str__(self) -> str:
         return str(self.matches)
@@ -224,11 +249,14 @@ class Matcher:
             return
 
         children = c.node.children
-        if (s_token := self._get_word_match(token_index, children)):
-            s, token = s_token
-            yield Candidate(s, token_index + 1, [token], c, False)
+        for wildcard in "#_-^*":
+            if wildcard == "-":
+                # Exact word match (not a wildcard)
+                if (s_token := self._get_word_match(token_index, children)):
+                    s, token = s_token
+                    yield Candidate(s, token_index + 1, [token], c, False)
+                continue
 
-        for wildcard in "^*":
             if not (s := children.get(wildcard)):
                 continue
 
@@ -236,7 +264,7 @@ class Matcher:
             # the wildcard could consume.
             match_start = token_index
 
-            min_match_limit = match_start + {"^": 0, "*": 1}[wildcard]
+            min_match_limit = match_start + int(wildcard in ("_*"))
             max_match_limit = len(self.tokens)
 
             match_limits = range(min_match_limit, max_match_limit + 1)

@@ -6,12 +6,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import cached_property, partial
 from threading import Lock, local as ThreadLocal
-from typing import Any, Callable, TypeAlias
+from typing import Any
 
-from .pattern_graph import PatternGraph, Span
+from .pattern_graph import Handler, PatternGraph, Span
 from .tokenizer import Token, tokenize
-
-Handler: TypeAlias = Callable[[], None]
 
 logger = logging.getLogger(__name__)
 d = logger.info
@@ -88,7 +86,7 @@ class Router:
     def rewrite(self, pattern: str, template: str) -> None:
         """Register a handler that re-dispatches with replaced input.
         """
-        t = Template(tuple(tokenize(template)))
+        t = Template(tuple(tokenize(template, append_special="#_^*")))
         self.add_route(pattern, partial(self._rewrite, t))
 
     def _rewrite(self, template: Template) -> None:

@@ -1,8 +1,10 @@
 from . import lstrip, rewrite, rstrip
 
 lstrip("please")
+lstrip("i mean")
+lstrip("i meant")
 
-for word in ("can", "could", "will", "would"):
+for word in ("can", "could", "will", "would", "for"):
     lstrip(f"{word} you")
 
 for word in ("create", "make"):

@@ -1,0 +1,26 @@
+services:
+  mediawiki-mariadb:
+    image: mariadb
+    restart: unless-stopped
+    networks:
+      - mediawiki
+    volumes:
+      - hive_mediawiki_mariadb:/var/lib/mysql
+
+  mediawiki-mariadb-setup:
+    extends:
+      service: mediawiki-mariadb
+    restart: no
+    env_file: ./initdb.d/00-root-password.env
+    volumes:
+      - hive_mediawiki_mariadb:/var/lib/mysql
+      - ./initdb.d:/docker-entrypoint-initdb.d:ro
+    profiles:
+      - mediawiki-mariadb-setup
+
+networks:
+  mediawiki:
+
+volumes:
+  hive_mediawiki_mariadb:
+    external: true

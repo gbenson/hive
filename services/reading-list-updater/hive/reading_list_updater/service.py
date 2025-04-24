@@ -69,20 +69,11 @@ class Service(HiveService):
         maybe_decorate_entry(entry, opengraph_properties(r.text))
 
     def maybe_acknowledge(self, channel: Channel, summary: dict[str, Any]):
-        if (origin := summary.get("created_from")):
-            # new style
-            if origin.get("type") != "net.gbenson.hive.matrix_event":
-                return
-            event = origin
-        elif (meta := summary.get("meta")):
-            # old style
-            if not (origin := meta.get("origin", {})):
-                return
-            if origin.get("channel") != "matrix":
-                return
-            if not (event := origin.get("message")):
-                return
-        if not (event_id := event.get("id")):
+        if not (source := summary.get("created_from")):
+            return
+        if source.get("type") != "net.gbenson.hive.matrix_event":
+            return
+        if not (event_id := source.get("id")):
             return
         channel.send_reaction("👍", in_reply_to=event_id)
         channel.set_user_typing(False)

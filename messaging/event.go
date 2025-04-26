@@ -73,8 +73,8 @@ func (e *UnsupportedTypeError) Error() string {
 	return "event: unsupported type: " + e.Type.String()
 }
 
-// completeEvent supplies default values for the "id", "source" and
-// "time" attributes, if unset.
+// completeEvent supplies default values for the "id", "source",
+// "type" and "time" attributes, if unset.
 func completeEvent(e *Event, routingKey string) error {
 	if e.ID() == "" {
 		eventID, err := uuid.NewRandom()

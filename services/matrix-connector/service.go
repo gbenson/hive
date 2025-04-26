@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
+	"gbenson.net/hive/chat"
 	"gbenson.net/hive/logger"
 	"gbenson.net/hive/messaging"
+	"gbenson.net/hive/messaging/matrix"
 
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
@@ -20,7 +23,6 @@ type Service struct {
 	RoomID       id.RoomID
 	cancelSync   context.CancelFunc
 	syncStopWait sync.WaitGroup
-	consumers    []requestHandler
 }
 
 func (s *Service) Start(ctx context.Context, ch messaging.Channel) (err error) {
@@ -66,17 +68,19 @@ func (s *Service) Start(ctx context.Context, ch messaging.Channel) (err error) {
 		}
 	}()
 
-	s.consumers = []requestHandler{
-		&sendTextRequestHandler{s},
-		&sendReactionRequestHandler{s},
-		&userTypingRequestHandler{s},
-	}
-	for _, c := range s.consumers {
-		if err := ch.ConsumeEvents(ctx, c.Queue(), c); err != nil {
+	// separated queue consumers (old)
+	for _, q := range []string{
+		chat.SendTextRequestsQueue,
+		chat.SendReactionRequestsQueue,
+		chat.UserTypingRequestsQueue,
+	} {
+		if err := ch.ConsumeEvents(ctx, q, s); err != nil {
 			return err
 		}
 	}
-	return nil
+
+	// unified queue consumer (new)
+	return ch.ConsumeEvents(ctx, matrix.RequestsQueue, s)
 }
 
 func (s *Service) Close() error {
@@ -125,4 +129,116 @@ func (s *Service) onEventMessage(
 	event.SetData("application/json", v)
 
 	return ch.PublishEvent(ctx, "matrix.events", event)
+}
+
+// Consume receives ...XXX
+func (s *Service) Consume(
+	ctx context.Context,
+	ch messaging.Channel,
+	e *messaging.Event,
+) error {
+	switch e.Type() {
+	case "net.gbenson.hive.matrix_send_text_request":
+		return s.consumeSendTextRequest(ctx, ch, e)
+
+	case "net.gbenson.hive.matrix_send_reaction_request":
+		return s.consumeSendReactionRequest(ctx, ch, e)
+
+	case "net.gbenson.hive.matrix_user_typing_request":
+		return s.consumeUserTypingRequest(ctx, ch, e)
+
+	default:
+		return fmt.Errorf("unexpected event type %q", e.Type())
+	}
+}
+
+func (s *Service) consumeSendTextRequest(
+	ctx context.Context,
+	ch messaging.Channel,
+	e *messaging.Event,
+) error {
+	var r chat.SendTextRequest
+	if err := r.UnmarshalEvent(e); err != nil {
+		return err
+	}
+
+	if r.Text == "" {
+		return ErrBadRequest
+	}
+
+	resp, err := s.Client.SendText(ctx, s.RoomID, r.Text)
+	if err != nil {
+		return err
+	}
+
+	logger.Ctx(ctx).Info().
+		Str("event_id", resp.EventID.String()).
+		Str("text", r.Text).
+		Msg("Sent")
+
+	return nil
+}
+
+func (s *Service) consumeSendReactionRequest(
+	ctx context.Context,
+	ch messaging.Channel,
+	e *messaging.Event,
+) error {
+	var r chat.SendReactionRequest
+	if err := r.UnmarshalEvent(e); err != nil {
+		return err
+	}
+
+	if r.EventID == "" {
+		return ErrNoEventID
+	}
+	if r.Reaction == "" {
+		return ErrBadRequest
+	}
+
+	resp, err := s.Client.SendReaction(
+		ctx,
+		s.RoomID,
+		id.EventID(r.EventID),
+		r.Reaction,
+	)
+	if err != nil {
+		return err
+	}
+
+	logger.Ctx(ctx).Info().
+		Str("event_id", resp.EventID.String()).
+		Str("reaction", r.Reaction).
+		Str("target_event_id", r.EventID).
+		Msg("Sent")
+
+	return nil
+}
+
+func (s *Service) consumeUserTypingRequest(
+	ctx context.Context,
+	ch messaging.Channel,
+	e *messaging.Event,
+) error {
+	var r chat.UserTypingRequest
+	if err := r.UnmarshalEvent(e); err != nil {
+		return err
+	}
+
+	if r.Timeout < 0 {
+		return ErrBadRequest
+	}
+
+	typing := r.Timeout > 0
+	_, err := s.Client.UserTyping(ctx, s.RoomID, typing, r.Timeout)
+	if err != nil {
+		return err
+	}
+
+	logger.Ctx(ctx).Info().
+		Bool("user_typing", typing).
+		Dur("timeout", r.Timeout).
+		Msg("Set")
+
+	return nil
 }

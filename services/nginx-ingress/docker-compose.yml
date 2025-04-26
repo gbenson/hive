@@ -9,7 +9,7 @@ services:
     volumes:
       - hive_letsencrypt:/etc/letsencrypt:ro
       - ./templates:/etc/nginx/templates:ro
-      - ./default_server:/usr/share/nginx/html:ro
+      - ./default_static:/usr/share/nginx/html:ro
     environment:
       - DEFAULT_HOSTNAME
       - SERVICE_HOSTNAME

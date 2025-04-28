@@ -386,9 +386,11 @@ class Channel(WrappedPikaThing):
             event_type: str,
             event_data: dict[str, Any],
     ) -> None:
-        event_type = f"matrix_{event_type}_request"
-        routing_key = f"{event_type.replace('_', '.')}s"
-        self.publish_request(data=event_data, routing_key=routing_key)
+        self.publish_request(
+            type=f"net.gbenson.hive.matrix_{event_type}_request",
+            data=event_data,
+            routing_key="matrix.requests",
+        )
 
     def maybe_publish_matrix_event(self, *args, **kwargs):
         try:

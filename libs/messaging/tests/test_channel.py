@@ -596,7 +596,7 @@ def test_tell_user():
     channel.tell_user("hello world")
 
     assert mock.exchange_declare.call_log == [((), {
-        "exchange": "hive.matrix.send.text.requests",
+        "exchange": "hive.matrix.requests",
         "exchange_type": "fanout",
         "durable": True,
     })]
@@ -605,7 +605,7 @@ def test_tell_user():
     body = mock.basic_publish.call_log[0][1]["body"]
     assert isinstance(body, bytes)
     assert mock.basic_publish.call_log == [((), {
-        "exchange": "hive.matrix.send.text.requests",
+        "exchange": "hive.matrix.requests",
         "routing_key": "",
         "body": body,
         "properties": BasicProperties(

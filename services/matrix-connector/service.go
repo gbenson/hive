@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"gbenson.net/go/logger"
 	"gbenson.net/hive/chat"
-	"gbenson.net/hive/logger"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/messaging/matrix"
 

@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"gbenson.net/hive/logger"
+	"gbenson.net/go/logger"
 	"gbenson.net/hive/messaging"
 )
 

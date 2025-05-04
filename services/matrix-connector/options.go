@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"gbenson.net/go/logger"
 	"gbenson.net/hive/config"
-	"gbenson.net/hive/logger"
 	"gbenson.net/hive/util"
 
 	"maunium.net/go/mautrix/id"

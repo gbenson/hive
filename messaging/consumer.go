@@ -9,7 +9,7 @@ import (
 	"github.com/cloudevents/sdk-go/v2/event"
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"gbenson.net/hive/logger"
+	"gbenson.net/go/logger"
 	"gbenson.net/hive/util"
 )
 
@@ -47,7 +47,7 @@ func consume(ctx context.Context, ch Channel, d *amqp.Delivery, c Consumer) {
 		if err != nil {
 			logger.Ctx(ctx).Err(err).Msg("")
 		}
-		err = util.NewRecoveredPanicError(pv)
+		err = logger.NewRecoveredPanicError(pv)
 	}()
 
 	var e Event

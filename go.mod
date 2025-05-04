@@ -3,13 +3,12 @@ module gbenson.net/hive
 go 1.23.6
 
 require (
+	gbenson.net/go/logger v1.0.1
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/google/uuid v1.6.0
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/rs/zerolog v1.33.0
 	github.com/spf13/viper v1.20.0
-	go.etcd.io/bbolt v1.4.0
 	maunium.net/go/mautrix v0.23.2
 )
 
@@ -25,6 +24,7 @@ require (
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/petermattis/goid v0.0.0-20250303134427-723919f7f203 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.12.0 // indirect

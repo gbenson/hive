@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"gbenson.net/hive/logger"
+	"gbenson.net/go/logger"
 
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto"

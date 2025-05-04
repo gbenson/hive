@@ -8,7 +8,7 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"gbenson.net/hive/logger"
+	"gbenson.net/go/logger"
 	hive "gbenson.net/hive/messaging/internal"
 	"gbenson.net/hive/util"
 )

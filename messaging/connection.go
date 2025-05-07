@@ -1,4 +1,3 @@
-// Package messaging provides messaging services for Hive.
 package messaging
 
 import (

@@ -6,8 +6,9 @@ description = "Chatbot interface for Hive"
 readme = "README.md"
 license = "MIT"
 dependencies = [
+    "cloudevents[pydantic]",
     "hive-common>=0.1.3",
-    "hive-messaging>=0.13.0",
+    "hive-messaging>=0.14.1",
     "pydantic"
 ]
 

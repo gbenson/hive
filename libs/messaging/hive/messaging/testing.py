@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 import pytest
 
@@ -25,7 +26,8 @@ def blocking_connection():
 class ChannelCall:
     method: str
     routing_key: str
-    event: CloudEvent
+    message: Message
+    event: Optional[CloudEvent]
 
 
 @dataclass(frozen=True)
@@ -60,4 +62,8 @@ class MockMethod:
         mandatory = kwargs.pop("mandatory", False)
         name = "publish_request" if mandatory else "publish_event"
         message = Message(method=None, **kwargs)
-        self._call_log.append(ChannelCall(name, routing_key, message.event()))
+        try:
+            event = message.event()
+        except Exception:
+            event = None
+        self._call_log.append(ChannelCall(name, routing_key, message, event))

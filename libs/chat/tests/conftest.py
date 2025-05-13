@@ -4,35 +4,59 @@ import sys
 
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import pytest
 
+from cloudevents.abstract import CloudEvent
+
 from hive.messaging import Channel
+from hive.messaging.testing import ChannelCall, MockChannel
 
 
 @dataclass
 class MockEvent:
-    type: str
-    routing_key: str
-    message: Optional[dict[str, Any]] = None
-    data: Optional[dict[str, Any]] = None
+    cc: ChannelCall
 
-    def __post_init__(self) -> None:
-        assert (self.message is None) != (self.data is None)
+    @property
+    def type(self) -> Literal["event", "request"]:
+        return self.cc.method.removeprefix("publish_")
+
+    @property
+    def routing_key(self) -> str:
+        """XXX HACK: Return the routing key the tests expect, i.e. the
+        non-multiplexed Matrix requests queue this call would have been
+        sent to before they were all multiplexed into "matrix.requests".
+        """
+        if self.cc.routing_key != "hive.matrix.requests":
+            return self.cc.routing_key.removeprefix("hive.")
+
+        prefix, _, base_type = self.cc.event.type.rpartition(".")
+        assert prefix == "net.gbenson.hive"
+        return f"{base_type.replace('_', '.')}s"
+
+    @property
+    def message(self) -> Optional[dict[str, Any]]:
+        if self.cc.event:
+            return None
+        return self.cc.message.json()
 
     @property
     def cloudevent_data(self) -> Optional[dict[str, Any]]:
-        return self.data
+        return self.cc.event.data
 
 
 @dataclass
 class MockMessageBus:
-    published_events: list[MockEvent] = field(default_factory=list)
+    call_log: list[ChannelCall] = field(default_factory=list)
 
     @contextmanager
     def blocking_connection(self, **kwargs) -> MockConnection:
-        yield MockConnection(self)
+        yield MockConnection(self.call_log)
+
+    @property
+    def published_events(self) -> list[CloudEvent]:
+        return list(map(MockEvent, self.call_log))
 
 
 @pytest.fixture
@@ -49,23 +73,10 @@ def mock_messagebus(monkeypatch):
 
 @dataclass
 class MockConnection:
-    mock_messagebus: MockMessageBus
+    call_log: list[ChannelCall] = field(default_factory=list)
 
     def channel(self) -> MockChannel:
-        return MockChannel(self.mock_messagebus)
-
-
-@dataclass
-class MockChannel(Channel):
-    mock_messagebus: MockMessageBus
-
-    def publish_event(self, **kwargs):
-        event = MockEvent("event", **kwargs)
-        self.mock_messagebus.published_events.append(event)
-
-    def publish_request(self, **kwargs):
-        event = MockEvent("request", **kwargs)
-        self.mock_messagebus.published_events.append(event)
+        return Channel(MockChannel(call_log=self.call_log))
 
 
 @pytest.fixture

@@ -22,6 +22,8 @@ services:
       - ollama.api.responses
       - matrix.events
       - readinglist.shares
+    profiles:
+      - mono
 
 volumes:
   event_vault:

@@ -14,6 +14,8 @@ services:
     secrets:
       - rabbitmq.env
       - matrix.yml
+    profiles:
+      - mono
 
 networks:
   matrix-connector:

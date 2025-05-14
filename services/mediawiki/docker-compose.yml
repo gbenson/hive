@@ -6,6 +6,8 @@ services:
       - mediawiki
     volumes:
       - hive_mediawiki_mariadb:/var/lib/mysql
+    profiles:
+      - disabled
 
   mediawiki-mariadb-setup:
     extends:

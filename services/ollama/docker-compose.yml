@@ -8,6 +8,8 @@ services:
       - ollama
     secrets:
       - rabbitmq.env
+    profiles:
+      - disabled
 
   ollama:
     image: ollama/ollama
@@ -24,6 +26,8 @@ services:
       - OLLAMA_HOST=0.0.0.0
       - OLLAMA_KEEP_ALIVE=24h
       - OLLAMA_MODELS=/ollama/models
+    profiles:
+      - disabled
 
 networks:
   ollama:

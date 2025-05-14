@@ -13,6 +13,8 @@ services:
     environment:
       - DEFAULT_HOSTNAME
       - SERVICE_HOSTNAME
+    profiles:
+      - bono
 
 networks:
   nginx-ingress:

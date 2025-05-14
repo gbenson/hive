@@ -10,6 +10,8 @@ services:
     secrets:
       - rabbitmq.env
       - email.yml
+    profiles:
+      - mono
 
   email-receiver-valkey:
     image: valkey/valkey:8
@@ -23,6 +25,8 @@ services:
       - --save
       - 60 1
     hostname: valkey
+    profiles:
+      - mono
 
 networks:
   email-receiver:

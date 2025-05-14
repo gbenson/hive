@@ -13,3 +13,5 @@ services:
       - /venv/bin/python3
       - -m
       - hive.chat_router
+    profiles:
+      - mono

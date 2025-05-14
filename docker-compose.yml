@@ -36,6 +36,8 @@ services:
     #env_file: ./.config/rabbitmq.env
     # Also, after its initial setup might want to disable some plugins we're not using:
     # - docker compose exec rabbitmq rabbitmq-plugins disable rabbitmq_{federation,prometheus}
+    profiles:
+      - mono
 
 secrets:
   rabbitmq.env:

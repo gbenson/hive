@@ -8,8 +8,8 @@ services:
       - ${INBOUND_HTTPS_PORT:-443}:443/tcp
     volumes:
       - hive_letsencrypt:/etc/letsencrypt:ro
+      - hive_static_webroot:/usr/share/nginx/html:ro
       - ./templates:/etc/nginx/templates:ro
-      - ./default_static:/usr/share/nginx/html:ro
     environment:
       - DEFAULT_HOSTNAME
       - SERVICE_HOSTNAME
@@ -18,3 +18,7 @@ services:
 
 networks:
   nginx-ingress:
+
+volumes:
+  hive_static_webroot:
+    external: true

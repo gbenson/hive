@@ -5,6 +5,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/$DEFAULT_HOSTNAME/privkey.pem;
     server_tokens off;
     http2 on;
+    root /usr/share/nginx/html;
 
     # Allow only the HTTP methods we require.
     if ($request_method !~ ^(GET|HEAD)$) {
@@ -20,10 +21,6 @@ server {
     # https://owasp.org/www-community/attacks/Clickjacking
     add_header Content-Security-Policy "frame-ancestors 'none'" always;
     add_header X-Frame-Options DENY always;
-
-    location / {
-        root /usr/share/nginx/html;
-    }
 }
 
 server {
@@ -33,6 +30,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/www.$SERVICE_HOSTNAME/privkey.pem;
     server_tokens off;
     http2 on;
+    root /usr/share/nginx/html;
 
     # Allow only the HTTP methods we require.
     if ($request_method !~ ^(GET|HEAD)$) {
@@ -62,6 +60,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/$SERVICE_HOSTNAME/privkey.pem;
     server_tokens off;
     http2 on;
+    root /usr/share/nginx/html;
 
     # Allow only the HTTP methods we require.
     if ($request_method !~ ^(GET|HEAD|POST)$) {
@@ -78,7 +77,32 @@ server {
     add_header Content-Security-Policy "frame-ancestors 'none'" always;
     add_header X-Frame-Options DENY always;
 
-    location / {
-        root /usr/share/nginx/html;
+    # $WG_ARTICLE_PATH is the short URL prefix of the MediaWiki site.
+    location = /$WG_ARTICLE_PATH {
+        return 301 https://$host$request_uri/;
+    }
+    location /$WG_ARTICLE_PATH/ {
+        try_files $uri $uri/ /$WG_SCRIPT_PATH/index.php;
+    }
+
+    # WG_SCRIPT_PATH is the URL base path of the MediaWiki site.
+    location = /$WG_SCRIPT_PATH {
+        return 301 https://$host$request_uri/;
+    }
+    location /$WG_SCRIPT_PATH/ {
+        auth_basic "Authorization required";
+        auth_basic_user_file /etc/nginx/mediawiki.htpasswd;
+
+        location ~ \.php$ {
+            fastcgi_split_path_info ^/$WG_SCRIPT_PATH(/.+\.php)(/?.*)$;
+            fastcgi_pass mediawiki-fpm:9000;
+            fastcgi_index index.php;
+
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME /var/www/html/$fastcgi_script_name;
+            fastcgi_param PATH_INFO $fastcgi_path_info;
+
+            fastcgi_hide_header X-Powered-By;
+        }
     }
 }

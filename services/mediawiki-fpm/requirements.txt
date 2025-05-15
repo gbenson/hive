@@ -1,0 +1,3 @@
+-r ../../requirements.txt
+-e ../../libs/common
+httpx[http2]

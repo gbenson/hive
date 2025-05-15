@@ -4,15 +4,21 @@ services:
     restart: unless-stopped
     networks:
       - nginx-ingress
+      - mediawiki-fpm
     ports:
       - ${INBOUND_HTTPS_PORT:-443}:443/tcp
     volumes:
       - hive_letsencrypt:/etc/letsencrypt:ro
       - hive_static_webroot:/usr/share/nginx/html:ro
-      - ./templates:/etc/nginx/templates:ro
+      - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./container-setup.sh:/docker-entrypoint.d/90-hive-container-setup.sh:ro
     environment:
       - DEFAULT_HOSTNAME
       - SERVICE_HOSTNAME
+      - WG_ARTICLE_PATH
+      - WG_SCRIPT_PATH
+    secrets:
+      - mediawiki.htpasswd
     profiles:
       - bono
 

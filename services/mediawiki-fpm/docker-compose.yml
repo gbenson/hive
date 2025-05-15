@@ -1,9 +1,18 @@
 services:
+  mediawiki-fpm:
+    image: gbenson/mediawiki-fpm
+    restart: unless-stopped
+    networks:
+      - mediawiki-fpm
+      - mediawiki-mariadb
+    profiles:
+      - bono
+
   mediawiki-mariadb:
     image: mariadb
     restart: unless-stopped
     networks:
-      - mediawiki
+      - mediawiki-mariadb
     volumes:
       - hive_mediawiki_mariadb:/var/lib/mysql
     profiles:
@@ -21,7 +30,10 @@ services:
       - mediawiki-mariadb-setup
 
 networks:
-  mediawiki:
+  mediawiki-fpm:
+    internal: true
+  mediawiki-mariadb:
+    internal: true
 
 volumes:
   hive_mediawiki_mariadb:

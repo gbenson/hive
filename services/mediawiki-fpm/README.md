@@ -16,3 +16,16 @@ make setup
 
 Note that `make setup` never exits, you'll have to `docker stop` the
 container it starts from another terminal.
+
+
+## Testing
+
+```sh
+git clone https://github.com/gbenson/hive.git
+cd hive/services/mediawiki-fpm
+python3 -m venv .venv
+. .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+flake8 && pytest --log-level=INFO
+```

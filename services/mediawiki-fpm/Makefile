@@ -1,7 +1,12 @@
 help:
 	@echo 'Use "make setup" to create and populate the database.'
 
-.PHONY: setup
+.PHONY: check setup test
+
+check: test
+
+test:
+	flake8 && pytest --log-level=INFO
 
 include $(HOME)/.config/hive/mediawiki-mariadb.env
 export

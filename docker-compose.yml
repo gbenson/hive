@@ -7,12 +7,13 @@ include:
   - path: services/email-receiver/docker-compose.yml
   - path: services/event-vault/docker-compose.yml
   - path: services/matrix-connector/docker-compose.yml
-  - path: services/mediawiki/docker-compose.yml
+  - path: services/mediawiki-fpm/docker-compose.yml
 
   - path: services/nginx-ingress/docker-compose.yml
     env_file:
       - $HOME/.config/hive/hostnames.env
       - $HOME/.config/hive/mapped-ports.env
+      - $HOME/.config/hive/mediawiki-paths.env
 
   - path: services/ollama/docker-compose.yml
   - path: services/reading-list-updater/docker-compose.yml
@@ -46,6 +47,8 @@ secrets:
     file: $HOME/.config/hive/email.yml
   matrix.yml:
     file: $HOME/.config/hive/matrix.yml
+  mediawiki.htpasswd:
+    file: $HOME/.config/hive/mediawiki.htpasswd
   mediawiki.yml:
     file: $HOME/.config/hive/mediawiki.yml
   openai.env:

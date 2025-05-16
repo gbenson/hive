@@ -30,7 +30,7 @@ export REQUIRED_PRIVILEGES
 define _make_grant_privileges_sql =
 cat <<EOF | sed -e "/ ON /{s/\"//g}" -e "/^TO /{s/\"/'/g}"
 GRANT $REQUIRED_PRIVILEGES ON $MARIADB_DATABASE.*
-TO $MARIADB_USER@'%' IDENTIFIED BY $MARIADB_PASSWORD;
+TO $MARIADB_USER@'%' IDENTIFIED BY '$MARIADB_PASSWORD';
 EOF
 endef
 export make_grant_privileges_sql = $(value _make_grant_privileges_sql)
@@ -40,6 +40,7 @@ TARGETS = 00-root-password.env 10-grant-privileges.sql 20-import-data.sql.xz
 
 setup: $(addprefix initdb.d/,$(TARGETS))
 	docker volume create hive_mediawiki_mariadb > /dev/null
+	chmod -R og+rX initdb.d
 	docker compose run --rm -it mediawiki-mariadb-setup
 
 initdb.d/.gitignore:

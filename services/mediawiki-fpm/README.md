@@ -2,7 +2,7 @@
 
 [version badge]: https://img.shields.io/docker/v/gbenson/mediawiki?color=limegreen
 
-# hive-mediawiki
+# hive-mediawiki-fpm
 
 PHP-FPM MediaWiki for Hive
 
@@ -10,7 +10,7 @@ PHP-FPM MediaWiki for Hive
 
 ```sh
 git clone https://github.com/gbenson/hive.git
-cd hive/services/mediawiki
+cd hive/services/mediawiki-fpm
 make setup
 ```
 

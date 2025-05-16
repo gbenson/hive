@@ -1,4 +1,4 @@
-name: hive-mediawiki
+name: hive-mediawiki-fpm
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: services/mediawiki
+        working-directory: services/mediawiki-fpm
 
     steps:
       - name: Checkout repository
@@ -34,20 +34,18 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: gbenson/mediawiki
+          images: gbenson/mediawiki-fpm
           tags: |
             type=match,pattern=hive-mediawiki-(\d+\.\d+\.\d+-\d+),group=1
             type=match,pattern=hive-mediawiki-(\d+\.\d+\.\d+),group=1
             type=match,pattern=hive-mediawiki-(\d+\.\d+),group=1
-          flavor: |
-            suffix=-fpm
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
         with:
-          context: services/mediawiki
+          context: services/mediawiki-fpm
           platforms: linux/amd64,linux/arm64
-          push: ${{ startsWith(github.ref, 'refs/tags/hive-mediawiki-') }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |

@@ -45,8 +45,16 @@ secrets:
     file: $HOME/.config/hive/rabbitmq.env
   email.yml:
     file: $HOME/.config/hive/email.yml
+  hostnames.env:
+    file: $HOME/.config/hive/hostnames.env
   matrix.yml:
     file: $HOME/.config/hive/matrix.yml
+  mediawiki-mariadb.env:
+    file: $HOME/.config/hive/mediawiki-mariadb.env
+  mediawiki-paths.env:
+    file: $HOME/.config/hive/mediawiki-paths.env
+  mediawiki-settings.env:
+    file: $HOME/.config/hive/mediawiki-settings.env
   mediawiki.htpasswd:
     file: $HOME/.config/hive/mediawiki.htpasswd
   mediawiki.yml:

@@ -5,6 +5,16 @@ services:
     networks:
       - mediawiki-fpm
       - mediawiki-mariadb
+    volumes:
+      - ./LocalSettings.php:/etc/mediawiki/LocalSettings.php.template:ro
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
+    secrets:
+      - hostnames.env
+      - mediawiki-mariadb.env
+      - mediawiki-paths.env
+      - mediawiki-settings.env
+    entrypoint: /docker-entrypoint.sh
+    command: php-fpm
     profiles:
       - bono
 

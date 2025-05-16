@@ -28,7 +28,7 @@ RUN --mount=type=bind,source=${TEMPLATE_STYLES},target=/tmp/TemplateStyles.tar.g
 
 RUN --mount=type=bind,source=${MINERVA_NEUE},target=/tmp/MinervaNeue.tar.gz \
   set -eux \
-  && tar -C extensions -xzf /tmp/MinervaNeue.tar.gz \
+  && tar -C skins -xzf /tmp/MinervaNeue.tar.gz \
   && chmod -R og-w . && chown -R 0:0 . \
   && find -name '.git*' -print0 | xargs -0 rm -f
 

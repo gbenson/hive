@@ -111,3 +111,25 @@ def main_page_script_url(script_url_prefix: str) -> str:
     """https://en.wikipedia.org/w/index.php?title=Amalia_Ulman
     """
     return f"{script_url_prefix}/index.php?title=Entrance"
+
+
+@pytest.fixture(scope="module")
+def resource_base_path(mediawiki_paths: dict[str, str]) -> str:
+    """The URL path to static resources (images, scripts, etc.)
+
+    For English Wikipedia this would be "static", for URLs like
+    <https://en.wikipedia.org/static/images/icons/wikipedia.png>
+    and <https://en.wikipedia.org/static/favicon/wikipedia.ico>.
+    """
+    result = mediawiki_paths["WG_RESOURCE_BASE_PATH"]
+    assert result.strip("/") == result  # no leading or trailing slash
+    return result
+
+
+@pytest.fixture(scope="module")
+def resource_url_prefix(service_hostname: str, resource_base_path: str) -> str:
+    """The URL prefix of static resources (images, scripts, etc.)
+
+    For English Wikipedia this would be "https://en.wikipedia.org/static/".
+    """
+    return f"https://{service_hostname}/{resource_base_path}"

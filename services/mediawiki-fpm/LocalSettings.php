@@ -117,9 +117,11 @@ $wgDefaultSkin = 'vector';
 wfLoadSkin( 'MinervaNeue' );
 wfLoadSkin( 'Vector' );
 
-## The relative URL path to icons.
-$wgFavicon = "$wgResourceBasePath/favicon.ico";
-$wgAppleTouchIcon = "$wgResourceBasePath/apple-touch.png";
+## The relative URL paths of icons and the site logo. The logo size
+## should be 135x135 pixels.
+$wgLogo = "$wgResourceBasePath/hive/site-logo.png";
+$wgFavicon = "$wgResourceBasePath/hive/favicon.ico";
+$wgAppleTouchIcon = "$wgResourceBasePath/hive/apple-touch-icon.png";
 
 ## https://stackoverflow.com/questions/17824295/
 $wgShowExceptionDetails = true;
@@ -198,10 +200,6 @@ if ( $wgEnableUploads ) {
      $wgSVGConverter = 'rsvg';
    }
 }
-
-## The relative URL path of the site logo. The logo size should be
-## 135x135 pixels.
-$wgLogo = "$wgResourceBasePath/site-logo.png";
 
 ## https://www.mediawiki.org/wiki/Extension:MobileFrontend
 wfLoadExtension( 'MobileFrontend' );

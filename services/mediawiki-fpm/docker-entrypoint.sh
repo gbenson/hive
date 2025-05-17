@@ -35,4 +35,10 @@ make_script >> "$script"
 sh "$script"
 rm -f "$script"
 
+find -type d -name resources \
+  | grep -v /tests/ \
+  | grep -v '\.php$' \
+  | xargs tar cf - \
+  | tar -xf - -C /usr/share/nginx/mediawiki-static
+
 exec docker-php-entrypoint "$@"

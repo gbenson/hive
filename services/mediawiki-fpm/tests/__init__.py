@@ -19,6 +19,14 @@ def assert_not_authorized(r: Response) -> None:
     assert r.text == EXPECT_401_RESPONSE_BODY
 
 
+def assert_forbidden(r: Response) -> None:
+    assert r.status_code == httpx.codes.FORBIDDEN
+    assert not r.has_redirect_location
+    assert "location" not in r.headers
+    assert "www-authenticate" not in r.headers
+    assert r.text == EXPECT_403_RESPONSE_BODY
+
+
 def assert_not_found(r: Response) -> None:
     assert r.status_code == httpx.codes.NOT_FOUND
     assert not r.has_redirect_location
@@ -43,6 +51,17 @@ EXPECT_401_RESPONSE_BODY = """\
 <head><title>401 Authorization Required</title></head>
 <body>
 <center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+""".replace("\n", "\r\n")
+
+
+EXPECT_403_RESPONSE_BODY = """\
+<html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
 <hr><center>nginx</center>
 </body>
 </html>

@@ -1,14 +1,19 @@
 import httpx
 import pytest
 
-from . import assert_moved_permanently, assert_not_authorized, assert_forbidden
+from .config import RESOURCE_URL_PREFIX
+from .util import (
+    assert_forbidden,
+    assert_moved_permanently,
+    assert_not_authorized,
+)
 
 
-def test_unterminated_root_redirect(resource_url_prefix: str) -> None:
+def test_unterminated_root_redirect() -> None:
     """Resource URL prefix without a trailing slash redirects to add the slash.
     """
-    r = httpx.get(resource_url_prefix)
-    assert_moved_permanently(r, f"{resource_url_prefix}/")
+    r = httpx.get(RESOURCE_URL_PREFIX)
+    assert_moved_permanently(r, f"{RESOURCE_URL_PREFIX}/")
 
 
 @pytest.mark.parametrize(
@@ -19,10 +24,10 @@ def test_unterminated_root_redirect(resource_url_prefix: str) -> None:
      "/not-existing-resource.png",
      "/resources/"),
 )
-def test_unauthenticated(resource_url_prefix: str, path: str) -> None:
+def test_unauthenticated(path: str) -> None:
     """Unauthenticated resource URL requests ask for authentication.
     """
-    r = httpx.get(f"{resource_url_prefix}{path}")
+    r = httpx.get(f"{RESOURCE_URL_PREFIX}{path}")
     assert_not_authorized(r)
 
 
@@ -33,14 +38,10 @@ def test_unauthenticated(resource_url_prefix: str, path: str) -> None:
      "/resources/",
      "/resources/assets/"),
 )
-def test_no_directory_indexes(
-        resource_url_prefix: str,
-        path: str,
-        auth: httpx.BasicAuth,
-) -> None:
+def test_no_directory_indexes(path: str, auth: httpx.BasicAuth) -> None:
     """Directory indexes are forbidden in the resource URL namespace.
     """
-    r = httpx.get(f"{resource_url_prefix}{path}", auth=auth)
+    r = httpx.get(f"{RESOURCE_URL_PREFIX}{path}", auth=auth)
     assert_forbidden(r)
 
 
@@ -49,14 +50,10 @@ def test_no_directory_indexes(
     ("/hive/apple-touch-icon.png",
      "/resources/assets/poweredby_mediawiki_176x62.png"),
 )
-def test_static_resources(
-        resource_url_prefix: str,
-        path: str,
-        auth: httpx.BasicAuth,
-) -> None:
+def test_static_resources(path: str, auth: httpx.BasicAuth) -> None:
     """Authenticated static resource requests serve as expected.
     """
-    r = httpx.get(f"{resource_url_prefix}{path}", auth=auth)
+    r = httpx.get(f"{RESOURCE_URL_PREFIX}{path}", auth=auth)
 
     assert r.status_code == httpx.codes.OK
     assert not r.has_redirect_location

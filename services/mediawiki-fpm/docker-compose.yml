@@ -9,6 +9,7 @@ services:
       - ./LocalSettings.php:/etc/mediawiki/LocalSettings.php.template:ro
       - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
       - hive_mediawiki_static:/usr/share/nginx/mediawiki-static
+      - hive_mediawiki_uploads:/var/www/html/images
     secrets:
       - hostnames.env
       - mediawiki-mariadb.env
@@ -56,4 +57,6 @@ volumes:
   hive_mediawiki_mariadb:
     external: true
   hive_mediawiki_static:
+    external: true
+  hive_mediawiki_uploads:
     external: true

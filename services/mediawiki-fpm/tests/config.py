@@ -27,3 +27,10 @@ SCRIPT_URL_PREFIX = f"https://{SERVICE_HOSTNAME}/{SCRIPT_PATH}"
 # <https://en.wikipedia.org/static/favicon/wikipedia.ico>.
 RESOURCE_BASE_PATH = _paths["WG_RESOURCE_BASE_PATH"]
 RESOURCE_URL_PREFIX = f"https://{SERVICE_HOSTNAME}/{RESOURCE_BASE_PATH}"
+
+# The URL path to user uploads.  MediaWiki's default config
+# sets this to "$WG_SCRIPT_PATH/images", which if Wikipedia
+# didn't use commons would result in URLs like:
+# <https://en.wikipedia.org/w/images/8/80/Wikipedia-logo-v2.svg>
+UPLOAD_PATH = _paths["WG_UPLOAD_PATH"]
+UPLOAD_URL_PREFIX = f"https://{SERVICE_HOSTNAME}/{UPLOAD_PATH}"

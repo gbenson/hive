@@ -11,6 +11,7 @@ services:
       - hive_letsencrypt:/etc/letsencrypt:ro
       - hive_static_webroot:/usr/share/nginx/html:ro
       - hive_mediawiki_static:/usr/share/nginx/mediawiki-static:ro
+      - hive_mediawiki_uploads:/usr/share/nginx/mediawiki-uploads:ro
       - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./container-setup.sh:/docker-entrypoint.d/90-hive-container-setup.sh:ro
     environment:
@@ -19,6 +20,7 @@ services:
       - WG_ARTICLE_PATH
       - WG_SCRIPT_PATH
       - WG_RESOURCE_BASE_PATH
+      - WG_UPLOAD_PATH
     secrets:
       - mediawiki.htpasswd
     profiles:

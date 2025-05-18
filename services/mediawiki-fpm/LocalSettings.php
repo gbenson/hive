@@ -156,11 +156,6 @@ wfLoadExtension( 'ParserFunctions' );
 wfLoadExtension( 'Interwiki' );
 $wgGroupPermissions['sysop']['interwiki'] = true;
 
-## https://www.mediawiki.org/wiki/Manual:Configuring_file_uploads
-$wgAllowCopyUploads = true;
-$wgCopyUploadsFromSpecialUpload = true;
-$wgGroupPermissions['user']['upload_by_url'] = true;
-
 ## https://www.semantic-mediawiki.org/wiki/Help:EnableSemantics
 #enableSemantics( '{{ service_hostname }}' );
 
@@ -194,7 +189,7 @@ if ( $wgEnableUploads ) {
      $wgUploadPath = '/{{ wg_upload_path }}';
    }
    if ( !$wgUploadDirectory ) {
-     $wgUploadDirectory = dirname($IP) . $wgUploadPath;
+     $wgUploadDirectory = "$IP/images";
    }
    if ( $wgSVGConverter == 'ImageMagick' ) {
      $wgSVGConverter = 'rsvg';

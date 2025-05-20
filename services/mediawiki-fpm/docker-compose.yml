@@ -47,6 +47,22 @@ services:
     profiles:
       - mediawiki-mariadb-setup
 
+  mediawiki-mariadb-backup:
+    image: mariadb
+    restart: unless-stopped
+    networks:
+      - mediawiki-mariadb
+    volumes:
+      # Piggyback /var/lib/mysql to avoid an anonymous volume.
+      - hive_mediawiki_backups:/var/lib/mysql
+      - ./backup/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./backup/mariadb-backup.sh:/mariadb-backup.sh:ro
+    secrets:
+      - mediawiki-mariadb.env
+    entrypoint: /docker-entrypoint.sh
+    profiles:
+      - bono
+
 networks:
   mediawiki-fpm:
     internal: true
@@ -59,4 +75,6 @@ volumes:
   hive_mediawiki_static:
     external: true
   hive_mediawiki_uploads:
+    external: true
+  hive_mediawiki_backups:
     external: true

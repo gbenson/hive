@@ -1,6 +1,6 @@
-[![version badge]](https://hub.docker.com/r/gbenson/mediawiki)
+[![version badge]](https://hub.docker.com/r/gbenson/mediawiki-fpm)
 
-[version badge]: https://img.shields.io/docker/v/gbenson/mediawiki?color=limegreen
+[version badge]: https://img.shields.io/docker/v/gbenson/mediawiki-fpm?color=limegreen
 
 # hive-mediawiki-fpm
 

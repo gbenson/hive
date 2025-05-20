@@ -1,9 +1,8 @@
-FROM mediawiki:1.35.10-fpm
+FROM mediawiki:1.39.12-fpm
 
-ARG MOBILE_FRONTEND=extensions/MobileFrontend-REL1_35-1421405.tar.gz
-ARG SCRIBUNTO=extensions/Scribunto-REL1_35-d21b655.tar.gz
-ARG TEMPLATE_STYLES=extensions/TemplateStyles-REL1_35-7a40a6a.tar.gz
-ARG MINERVA_NEUE=skins/MinervaNeue-REL1_35-d82e32c.tar.gz
+ARG MOBILE_FRONTEND=extensions/MobileFrontend-REL1_39-3da6863.tar.gz
+ARG SCRIBUNTO=extensions/Scribunto-REL1_39-5880845.tar.gz
+ARG TEMPLATE_STYLES=extensions/TemplateStyles-REL1_39-aecb12f.tar.gz
 
 # File ownership and permissions under /var/www/html are a mess!
 # The obvious solution is:
@@ -43,11 +42,4 @@ RUN --mount=type=bind,source=${TEMPLATE_STYLES},target=/tmp/TemplateStyles.tar.g
   && tar -C extensions -xzf /tmp/TemplateStyles.tar.gz \
   && chmod -R og-w extensions/TemplateStyles \
   && chown -R 0:0 extensions/TemplateStyles \
-  && find -name '.git*' -print0 | xargs -0 rm -f
-
-RUN --mount=type=bind,source=${MINERVA_NEUE},target=/tmp/MinervaNeue.tar.gz \
-  set -eux \
-  && tar -C skins -xzf /tmp/MinervaNeue.tar.gz \
-  && chmod -R og-w skins/MinervaNeue \
-  && chown -R 0:0 skins/MinervaNeue \
   && find -name '.git*' -print0 | xargs -0 rm -f

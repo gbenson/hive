@@ -24,7 +24,7 @@ services:
     secrets:
       - mediawiki.htpasswd
     profiles:
-      - bono
+      - ingress
 
 networks:
   nginx-ingress:

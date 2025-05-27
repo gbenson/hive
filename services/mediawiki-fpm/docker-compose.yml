@@ -18,9 +18,9 @@ services:
     entrypoint: /docker-entrypoint.sh
     command: php-fpm
     profiles:
-      - bono
+      - mediawiki
 
-  mediawiki-mariadb-common:
+  mediawiki-mariadb:
     image: mariadb
     restart: unless-stopped
     networks:
@@ -28,24 +28,7 @@ services:
     volumes:
       - hive_mediawiki_mariadb:/var/lib/mysql
     profiles:
-      - disabled
-
-  mediawiki-mariadb:
-    extends:
-      service: mediawiki-mariadb-common
-    profiles:
-      - bono
-
-  mediawiki-mariadb-setup:
-    extends:
-      service: mediawiki-mariadb-common
-    restart: no
-    env_file: ./initdb.d/00-root-password.env
-    volumes:
-      - hive_mediawiki_mariadb:/var/lib/mysql
-      - ./initdb.d:/docker-entrypoint-initdb.d:ro
-    profiles:
-      - mediawiki-mariadb-setup
+      - mediawiki
 
   mediawiki-mariadb-backup:
     image: mariadb
@@ -61,7 +44,7 @@ services:
       - mediawiki-mariadb.env
     entrypoint: /docker-entrypoint.sh
     profiles:
-      - bono
+      - mediawiki
 
 networks:
   mediawiki-fpm:

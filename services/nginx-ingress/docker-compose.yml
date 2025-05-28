@@ -8,7 +8,7 @@ services:
     ports:
       - 443:443/tcp
     volumes:
-      - hive_letsencrypt:/etc/letsencrypt:ro
+      - hive_certbot_certs:/etc/letsencrypt:ro
       - hive_static_webroot:/usr/share/nginx/html:ro
       - hive_mediawiki_static:/usr/share/nginx/mediawiki-static:ro
       - hive_mediawiki_uploads:/usr/share/nginx/mediawiki-uploads:ro

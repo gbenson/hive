@@ -5,7 +5,7 @@ services:
     networks:
       - certbot
     volumes:
-      - hive_letsencrypt:/etc/letsencrypt
+      - hive_certbot_certs:/etc/letsencrypt
       - certbot_webroot:/var/www/letsencrypt
       - certbot_workdir:/var/lib/letsencrypt
     # This default command means it'll print the message and exit with
@@ -25,7 +25,7 @@ services:
     networks:
       - certbot
     volumes:
-      - hive_letsencrypt:/etc/letsencrypt
+      - hive_certbot_certs:/etc/letsencrypt
       - certbot_webroot:/var/www/letsencrypt
       - certbot_workdir:/var/lib/letsencrypt
       - ./autorenew.py:/opt/hive/autorenew.py:ro
@@ -54,5 +54,5 @@ networks:
 volumes:
   certbot_webroot:
   certbot_workdir:
-  hive_letsencrypt:
+  hive_certbot_certs:
     external: true

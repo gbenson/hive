@@ -29,6 +29,7 @@ services:
       - certbot_webroot:/var/www/letsencrypt
       - certbot_workdir:/var/lib/letsencrypt
       - ./autorenew.py:/opt/hive/autorenew.py:ro
+      - ./delete_expired.py:/opt/hive/delete_expired.py:ro
     entrypoint: python
     command: /opt/hive/autorenew.py
     profiles:

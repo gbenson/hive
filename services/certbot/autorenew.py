@@ -1,6 +1,8 @@
+import os
 import logging
 import random
 import subprocess
+import sys
 
 from datetime import datetime, time, timedelta
 from time import sleep
@@ -20,6 +22,7 @@ def main():
 def _main_loop():
     sleep_until_next_window()
     run_system("certbot", "renew")
+    run_python("delete_expired.py")
 
 
 def sleep_until_next_window():
@@ -43,6 +46,11 @@ def run_system(*command):
         subprocess.run(command)
     except Exception:
         logger.exception("EXCEPTION")
+
+
+def run_python(filename, *args):
+    filename = os.path.join(os.path.dirname(__file__), filename)
+    run_system(sys.executable, filename, *args)
 
 
 if __name__ == "__main__":

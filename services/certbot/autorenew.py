@@ -11,7 +11,18 @@ WINDOW_START = time(hour=4)
 WINDOW_LIMIT = time(hour=5)
 
 
+def main():
+    logging.basicConfig(level=logging.INFO)
+    while True:
+        _main_loop()
+
+
 def _main_loop():
+    sleep_until_next_window()
+    run_system("certbot", "renew")
+
+
+def sleep_until_next_window():
     # This will be an hour out on zone change days.
     now = datetime.now()
     window_start = datetime.combine(now.date(), WINDOW_START)
@@ -25,16 +36,13 @@ def _main_loop():
     wakeup_time = window_start + timedelta(seconds=jitter)
     logger.info("Sleeping until %s", wakeup_time)
     sleep((wakeup_time - now).total_seconds())
+
+
+def run_system(*command):
     try:
-        subprocess.run(("certbot", "renew"))
+        subprocess.run(command)
     except Exception:
         logger.exception("EXCEPTION")
-
-
-def main():
-    logging.basicConfig(level=logging.INFO)
-    while True:
-        _main_loop()
 
 
 if __name__ == "__main__":

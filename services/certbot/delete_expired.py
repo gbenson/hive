@@ -3,6 +3,7 @@ import logging
 import re
 
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -20,6 +21,21 @@ FILENAME_RX = re.compile(rf"(?:{'|'.join(ALL_FOUR)})([0-9]+)\.pem")
 def main():
     logging.basicConfig(level=logging.INFO)
 
+    expired_files = list(certbot_expired_files())
+    if not expired_files:
+        logger.info("No expired files found")
+        return
+
+    for path in expired_files:
+        logger.info("%s: Deleting", path)
+        try:
+            path.unlink()
+        except Exception:
+            logger.exception("EXCEPTION")
+            continue
+
+
+def certbot_expired_files() -> Iterable[Path]:
     # certbot/_internal/main.py: main
     plugins = plugins_disco.PluginsRegistry.find_all()
     config = cli.prepare_and_parse_args(plugins, [])
@@ -42,13 +58,14 @@ def main():
             continue
 
         try:
-            process_lineage(lineage)
+            for expired_file in lineage_expired_files(lineage):
+                yield expired_file
         except Exception:
             logger.exception("EXCEPTION")
             continue
 
 
-def process_lineage(lineage: storage.RenewableCert) -> None:
+def lineage_expired_files(lineage: storage.RenewableCert) -> Iterator[Path]:
     archive_dir = Path(lineage.archive_dir)
 
     paths_by_version = defaultdict(set)
@@ -64,13 +81,13 @@ def process_lineage(lineage: storage.RenewableCert) -> None:
         if Path(cert_path) not in paths:
             logger.warning("%s: File not found", cert_path)
             continue
+        # certbot/_internal/storage.py: RenewableCert.target_expiry
         expiry = crypto_util.notAfter(cert_path)
         if datetime.now(tz=timezone.utc) < expiry:
             continue  # not expired
         logger.info("%s: Certificate is expired", cert_path)
         for path in sorted(paths):
-            logger.info("%s: Deleting", path)
-            path.unlink()
+            yield path
 
 
 if __name__ == "__main__":

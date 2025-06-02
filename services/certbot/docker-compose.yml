@@ -28,8 +28,8 @@ services:
       - hive_certbot_certs:/etc/letsencrypt
       - certbot_webroot:/var/www/letsencrypt
       - certbot_workdir:/var/lib/letsencrypt
-      - ./autorenew.py:/opt/hive/autorenew.py:ro
-      - ./delete_expired.py:/opt/hive/delete_expired.py:ro
+      - ./hive/certbot:/opt/hive:ro
+      - hive_certdist_root:/var/lib/hive/certdist
     entrypoint: python
     command: /opt/hive/autorenew.py
     profiles:
@@ -56,4 +56,6 @@ volumes:
   certbot_webroot:
   certbot_workdir:
   hive_certbot_certs:
+    external: true
+  hive_certdist_root:
     external: true

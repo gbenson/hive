@@ -23,6 +23,7 @@ def _main_loop():
     sleep_until_next_window()
     run_system("certbot", "renew")
     run_python("delete_expired.py")
+    run_python("update_certdist_roots.py")
 
 
 def sleep_until_next_window():
@@ -43,7 +44,7 @@ def sleep_until_next_window():
 
 def run_system(*command):
     try:
-        subprocess.run(command)
+        subprocess.check_call(command)
     except Exception:
         logger.exception("EXCEPTION")
 

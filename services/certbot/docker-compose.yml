@@ -59,3 +59,5 @@ volumes:
     external: true
   hive_certdist_root:
     external: true
+  hive_certdist_host:
+    external: true

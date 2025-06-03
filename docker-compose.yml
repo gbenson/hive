@@ -37,8 +37,8 @@ services:
       - mono
 
 secrets:
-  rabbitmq.env:
-    file: $HOME/.config/hive/rabbitmq.env
+  certdist-config.json:
+    file: $HOME/.config/hive/certdist-config.json
   email.yml:
     file: $HOME/.config/hive/email.yml
   hostnames.env:
@@ -57,6 +57,8 @@ secrets:
     file: $HOME/.config/hive/mediawiki.yml
   openai.env:
     file: $HOME/.config/hive/openai.env
+  rabbitmq.env:
+    file: $HOME/.config/hive/rabbitmq.env
 
 networks:
   default:

@@ -15,10 +15,11 @@ def main():
         logger.info("Installing rsync")
         subprocess.check_call(("apk", "add", "rsync"))
 
+    CONFIG = Path("/run/secrets/certdist-config.json")
     SOURCE = Path("/etc/letsencrypt")
     TARGET = Path("/var/lib/hive/certdist")
 
-    config = json.loads((TARGET / "config.json").read_text())
+    config = json.loads(CONFIG.read_text())
     for target, domains in config.items():
         target = TARGET / target
         logger.info("Updating %s", target)

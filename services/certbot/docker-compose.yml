@@ -30,6 +30,8 @@ services:
       - certbot_workdir:/var/lib/letsencrypt
       - ./hive/certbot:/opt/hive:ro
       - hive_certdist_root:/var/lib/hive/certdist
+    secrets:
+      - certdist-config.json
     entrypoint: python
     command: /opt/hive/autorenew.py
     profiles:

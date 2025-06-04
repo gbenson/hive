@@ -50,9 +50,27 @@ services:
     profiles:
       - ingress
 
+  certdist-mono:
+    image: gbenson/rsync
+    restart: unless-stopped
+    networks:
+      - certdist-mono
+    ports:
+      - 2222:22/tcp
+    volumes:
+      - hive_certdist_mono:/srv:ro
+    secrets:
+      - source: certdist-mono-server-id_ed25519
+        target: ssh_host_ed25519_key
+      - source: certdist-mono-client-id_ed25519.pub
+        target: authorized_keys
+    profiles:
+      - ingress
+
 networks:
   certbot:
   nginx-http:
+  certdist-mono:
 
 volumes:
   certbot_webroot:
@@ -62,4 +80,6 @@ volumes:
   hive_certdist_root:
     external: true
   hive_certdist_host:
+    external: true
+  hive_certdist_mono:
     external: true

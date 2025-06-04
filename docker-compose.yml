@@ -39,6 +39,10 @@ services:
 secrets:
   certdist-config.json:
     file: $HOME/.config/hive/certdist-config.json
+  certdist-mono-server-id_ed25519:
+    file: $HOME/.config/hive/certdist-mono-server-id_ed25519
+  certdist-mono-client-id_ed25519.pub:
+    file: $HOME/.config/hive/certdist-mono-client-id_ed25519.pub
   email.yml:
     file: $HOME/.config/hive/email.yml
   hostnames.env:

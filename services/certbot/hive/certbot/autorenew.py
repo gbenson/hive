@@ -15,6 +15,8 @@ WINDOW_LIMIT = time(hour=5)
 
 def main():
     logging.basicConfig(level=logging.INFO)
+    os.chown("/run/secrets", 0, 0)
+    os.chmod("/run/secrets", 0o700)
     while True:
         _main_loop()
 

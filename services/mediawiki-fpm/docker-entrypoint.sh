@@ -1,6 +1,8 @@
 #!/bin/sh
 
 set -e
+chown 0:0 /run/secrets
+chmod 700 /run/secrets
 
 make_script() {
   echo 'set -e'

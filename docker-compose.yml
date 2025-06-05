@@ -43,6 +43,10 @@ secrets:
     file: $HOME/.config/hive/certdist-mono-server-id_ed25519
   certdist-mono-client-id_ed25519.pub:
     file: $HOME/.config/hive/certdist-mono-client-id_ed25519.pub
+  certdist-server.env:
+    file: $HOME/.config/hive/certdist-server.env
+  certdist-client-id_ed25519:
+    file: $HOME/.config/hive/certdist-id_ed25519
   email.yml:
     file: $HOME/.config/hive/email.yml
   hostnames.env:

@@ -67,10 +67,27 @@ services:
     profiles:
       - ingress
 
+  certdist-receiver:
+    image: gbenson/rsync
+    init: true
+    restart: unless-stopped
+    networks:
+      - certdist-receiver
+    volumes:
+      - hive_certdist_host:/srv
+      - ./receiver/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+    secrets:
+      - source: certdist-server.env
+      - source: certdist-client-id_ed25519
+        target: id_ed25519
+    profiles:
+      - non-ingress
+
 networks:
   certbot:
   nginx-http:
   certdist-mono:
+  certdist-receiver:
 
 volumes:
   certbot_webroot:

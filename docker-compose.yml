@@ -12,29 +12,12 @@ include:
       - $HOME/.config/hive/mediawiki-paths.env
 
   - path: services/ollama/docker-compose.yml
-  - path: services/reading-list-updater/docker-compose.yml
 
-services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    restart: unless-stopped
-    networks:
-      - default
-      - message-bus
-    ports:
-      - 5672:5672/tcp    # queues
-      - 5552:5552/tcp    # streams
-      - 15672:15672/tcp  # management
-    volumes:
-      - rabbitmq:/var/lib/rabbitmq
-    hostname: rabbit
-    # Uncomment when first run, to seed the default user,
-    # then comment back out to avoid credential exposure.
-    #env_file: ./.config/rabbitmq.env
-    # Also, after its initial setup might want to disable some plugins we're not using:
-    # - docker compose exec rabbitmq rabbitmq-plugins disable rabbitmq_{federation,prometheus}
-    profiles:
-      - mono
+  - path: services/rabbitmq/docker-compose.yml
+    env_file:
+      - $HOME/.config/hive/rabbitmq.env
+
+  - path: services/reading-list-updater/docker-compose.yml
 
 secrets:
   certdist-config.json:
@@ -67,11 +50,3 @@ secrets:
     file: $HOME/.config/hive/openai.env
   rabbitmq.env:
     file: $HOME/.config/hive/rabbitmq.env
-
-networks:
-  default:
-  message-bus:
-    internal: true
-
-volumes:
-  rabbitmq:

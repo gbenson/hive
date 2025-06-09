@@ -2,7 +2,11 @@ include:
   - path: services/certbot/docker-compose.yml
   - path: services/chat-router/docker-compose.yml
   - path: services/email-receiver/docker-compose.yml
+
   - path: services/event-vault/docker-compose.yml
+    env_file:
+      - $HOME/.config/hive/rabbitmq.env
+
   - path: services/matrix-connector/docker-compose.yml
   - path: services/mediawiki-fpm/docker-compose.yml
 

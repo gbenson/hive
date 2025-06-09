@@ -43,22 +43,22 @@ RUN ln -s ../../venv/bin/hive-event-vault /usr/bin
 
 RUN set -eux \
   \
-  && addgroup --system --gid 1991 msgstore \
-  && adduser --system --uid 1991 --gid 1991 \
-       --home /var/lib/hive-event-vault --disabled-password msgstore \
+  && addgroup --system --gid 235 hive-event-vault \
+  && adduser --system --uid 235 --gid 235 \
+       --home /var/lib/hive-event-vault --disabled-password hive-event-vault \
   && rm -f /run/adduser \
-  && install -d -oroot -gmsgstore -m710 /run/secrets
+  && install -d -oroot -ghive-event-vault -m710 /run/secrets
 
 FROM install AS test
 RUN set -eux \
   \
-  && install -d -omsgstore -gmsgstore /src \
+  && install -d -ohive-event-vault -ghive-event-vault /src \
   && /venv/bin/pip install \
        pep440-version-utils \
        pytest-cov
 COPY tests /src/tests
 
-USER msgstore:msgstore
+USER hive-event-vault:hive-event-vault
 WORKDIR /src
 
 RUN set -eux \
@@ -71,9 +71,9 @@ FROM install AS dist
 RUN --mount=type=bind,from=test,target=/test \
   grep -q '[^ ][^0]%$' /test/src/coverage.report
 
-RUN set -eux install -d -omsgstore -gmsgstore /data
+RUN set -eux install -d -ohive-event-vault -ghive-event-vault /data
 VOLUME /data
-USER msgstore:msgstore
+USER hive-event-vault:hive-event-vault
 WORKDIR /data
 
 ENTRYPOINT ["hive-event-vault"]

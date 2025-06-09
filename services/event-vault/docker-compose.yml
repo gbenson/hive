@@ -1,29 +1,23 @@
 services:
   event-vault:
-    image: gbenson/hive-service-py
+    image: gbenson/hive-event-vault
     init: true
     restart: unless-stopped
     networks:
-      - message-bus
+      - event-vault
+    extra_hosts:
+      - "${RABBITMQ_HOST}=${RABBITMQ_IP}"
     volumes:
-      - ./hive/event_vault:/venv/lib/python3.11/site-packages/hive/event_vault:ro
       - event_vault:/data
     secrets:
       - rabbitmq.env
-    user: 1991:6130
-    working_dir: /data
     command:
-      - /venv/bin/python3
-      - -m
-      - hive.event_vault
-      - chat.router.rewrites
-      - inbox.emails
-      - ollama.api.requests
-      - ollama.api.responses
-      - matrix.events
       - readinglist.shares
     profiles:
-      - mono
+      - event-vault
+
+networks:
+  event-vault:
 
 volumes:
   event_vault:

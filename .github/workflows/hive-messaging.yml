@@ -20,12 +20,12 @@ jobs:
 
     services:
       rabbitmq:
-        image: rabbitmq:3
+        image: gbenson/hive-test-rabbitmq:4
         env:
           RABBITMQ_DEFAULT_USER: guest
           RABBITMQ_DEFAULT_PASS: guest
         ports:
-          - 5672
+          - 5671
 
     steps:
       - name: Checkout repository
@@ -60,7 +60,7 @@ jobs:
         run: pytest
         env:
           RABBITMQ_HOST: localhost
-          RABBITMQ_PORT: ${{ job.services.rabbitmq.ports['5672'] }}
+          RABBITMQ_PORT: ${{ job.services.rabbitmq.ports['5671'] }}
 
       - name: Upload tested packages
         uses: actions/upload-artifact@v4

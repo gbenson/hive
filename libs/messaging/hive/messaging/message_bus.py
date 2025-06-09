@@ -1,12 +1,15 @@
 import os
+import ssl
 
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from functools import cached_property
+from typing import Any, Callable, Optional
 
 from pika import (
     BlockingConnection,
     ConnectionParameters,
     PlainCredentials,
+    SSLOptions,
 )
 from pika.exceptions import AMQPConnectionError
 
@@ -20,22 +23,30 @@ from .publisher import PublisherConnection
 @dataclass
 class MessageBus:
     host: str = field(
-        default_factory=lambda: os.environ.get(
-            "RABBITMQ_HOST", "rabbit"),
+        default_factory=lambda: os.environ.get("RABBITMQ_HOST", ""),
     )
     port: int = field(
-        default_factory=lambda: int(os.environ.get(
-            "RABBITMQ_PORT",
-            str(ConnectionParameters.DEFAULT_PORT))),
+        default_factory=lambda: int(os.environ.get("RABBITMQ_PORT", "0")),
     )
-    credentials_key: str = "rabbitmq"
+    config_key: str = "rabbitmq"
+
+    def __post_init__(self) -> None:
+        if not self.host:
+            self.host = self.config["host"]
+        if not self.port:
+            self.port = self.config.get("port", 0)
+        if not self.port:
+            self.port = ConnectionParameters.DEFAULT_SSL_PORT
+
+    @cached_property
+    def config(self) -> dict[str, Any]:
+        return read_config(self.config_key)
 
     @property
     def credentials(self) -> PlainCredentials:
-        config = read_config(self.credentials_key)
         return PlainCredentials(
-            config["default_user"],
-            config["default_pass"],
+            self.config["default_user"],
+            self.config["default_pass"],
         )
 
     def connection_params(
@@ -60,6 +71,9 @@ class MessageBus:
         return ConnectionParameters(
             host=host,
             port=port,
+            ssl_options=SSLOptions(
+                context=ssl.create_default_context(),
+            ),
             credentials=credentials,
             connection_attempts=connection_attempts,
             retry_delay=retry_delay,

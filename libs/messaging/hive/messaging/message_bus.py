@@ -30,14 +30,6 @@ class MessageBus:
     )
     config_key: str = "rabbitmq"
 
-    def __post_init__(self) -> None:
-        if not self.host:
-            self.host = self.config["host"]
-        if not self.port:
-            self.port = self.config.get("port", 0)
-        if not self.port:
-            self.port = ConnectionParameters.DEFAULT_SSL_PORT
-
     @cached_property
     def config(self) -> dict[str, Any]:
         return read_config(self.config_key)
@@ -62,9 +54,12 @@ class MessageBus:
             **kwargs
     ) -> ConnectionParameters:
         if not host:
-            host = self.host
+            host = self.host or self.config["host"]
         if not port:
-            port = self.port
+            port = self.port or self.config.get(
+                "port",
+                ConnectionParameters.DEFAULT_SSL_PORT,
+            )
         if not credentials:
             credentials = self.credentials
 

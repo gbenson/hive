@@ -1,5 +1,5 @@
 services:
-  event-vault-base:
+  event-vault:
     image: gbenson/hive-event-vault
     init: true
     restart: unless-stopped
@@ -7,39 +7,23 @@ services:
       - "${RABBITMQ_NETWORK:-event-vault}"
     extra_hosts:
       - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
-    secrets:
-      - rabbitmq.env
-    profiles:
-      - abstract
-
-  event-vault:
-    extends:
-      service: event-vault-base
     volumes:
       - hive_event_vault:/data
-    command:
-      - inbox.emails
-      - readinglist.shares
-    profiles:
-      - event-vault
-
-  debug-event-vault:
-    extends:
-      service: event-vault-base
-    volumes:
-      - event_vault:/data
+    secrets:
+      - rabbitmq.env
     command:
       - chat.router.rewrites
+      - inbox.emails
       - matrix.events
       - ollama.api.requests
       - ollama.api.responses
+      - readinglist.shares
     profiles:
-      - debug-event-vault
+      - event-vault
 
 networks:
   event-vault:
 
 volumes:
-  event_vault:
   hive_event_vault:
     external: true

@@ -4,7 +4,9 @@ services:
     restart: unless-stopped
     networks:
       - matrix-connector
-      - message-bus
+      - "${RABBITMQ_NETWORK:-event-vault}"
+    extra_hosts:
+      - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
     volumes:
       - matrix_connector:/var/lib/hive
     environment:
@@ -15,7 +17,7 @@ services:
       - rabbitmq.env
       - matrix.yml
     profiles:
-      - mono
+      - hivebot
 
 networks:
   matrix-connector:

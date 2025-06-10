@@ -19,11 +19,18 @@ type conn struct {
 	log  *logger.Logger
 }
 
+var rabbitConfigKeys = []string{
+	"host",
+	"port",
+	"default_user",
+	"default_pass",
+}
+
 // Dial returns a new connection to the Hive message bus.
 func Dial(ctx context.Context) (Conn, error) {
 	c := config.New("rabbitmq")
 
-	uri, err := amqp.ParseURI("amqp:")
+	uri, err := amqp.ParseURI("amqps:")
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +38,9 @@ func Dial(ctx context.Context) (Conn, error) {
 	c.SetDefault("host", "rabbit")
 	c.SetDefault("port", uri.Port)
 
-	c.RegisterAlias("default_user", "rabbitmq_default_user")
-	c.RegisterAlias("default_pass", "rabbitmq_default_pass")
+	for _, k := range rabbitConfigKeys {
+		c.RegisterAlias(k, "rabbitmq_"+k)
+	}
 
 	if err := c.Read(); err != nil {
 		return nil, err

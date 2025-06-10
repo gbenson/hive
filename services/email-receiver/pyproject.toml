@@ -7,8 +7,8 @@ readme = "README.md"
 dependencies = [
     "hive-common>=0.0.3",
     "hive-email",
-    "hive-messaging>=0.12.6",
-    "hive-service>=0.0.13",
+    "hive-messaging>=0.15.1",
+    "hive-service>=0.1.0",
     "imapclient",
     "valkey",
 ]

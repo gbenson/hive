@@ -18,9 +18,8 @@ services:
     volumes:
       - hive_event_vault:/data
     command:
-      - chat.router.rewrites
+      - inbox.emails
       - readinglist.shares
-      - matrix.events
     profiles:
       - event-vault
 
@@ -30,7 +29,8 @@ services:
     volumes:
       - event_vault:/data
     command:
-      - inbox.emails
+      - chat.router.rewrites
+      - matrix.events
       - ollama.api.requests
       - ollama.api.responses
     profiles:

@@ -1,15 +1,21 @@
 services:
   email-receiver:
-    image: gbenson/hive-email-receiver
+    image: gbenson/hive-service-py
     init: true
     restart: unless-stopped
     networks:
       - email-receiver
       - email-receiver-valkey
       - message-bus
+    volumes:
+      - ./hive/email_receiver:/venv/lib/python3.11/site-packages/hive/email_receiver:ro
     secrets:
       - rabbitmq.env
       - email.yml
+    command:
+      - /venv/bin/python3
+      - -m
+      - hive.email_receiver
     profiles:
       - mono
 

@@ -4,7 +4,7 @@ services:
     init: true
     restart: unless-stopped
     networks:
-      - "${RABBITMQ_NETWORK:-event-vault}"
+      - "${RABBITMQ_NETWORK:-event-vault-msgbus}"
     extra_hosts:
       - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
     volumes:
@@ -12,17 +12,13 @@ services:
     secrets:
       - rabbitmq.env
     command:
-      - chat.router.rewrites
       - inbox.emails
-      - matrix.events
-      - ollama.api.requests
-      - ollama.api.responses
       - readinglist.shares
     profiles:
       - event-vault
 
 networks:
-  event-vault:
+  event-vault-msgbus:
 
 volumes:
   hive_event_vault:

@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     networks:
       - matrix-connector
-      - "${RABBITMQ_NETWORK:-event-vault}"
+      - "${RABBITMQ_NETWORK:-matrix-connector-msgbus}"
     extra_hosts:
       - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
     volumes:
@@ -21,6 +21,7 @@ services:
 
 networks:
   matrix-connector:
+  matrix-connector-msgbus:
 
 volumes:
   matrix_connector:

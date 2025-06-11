@@ -4,13 +4,10 @@ services:
     restart: unless-stopped
     hostname: $RABBITMQ_HOST
     networks:
-      rabbitmq:     # for external connections
-      message-bus:  # no external connectivity
-        aliases:
-          - rabbit  # XXX REMOVE (for non-TLS connections)
+     - rabbitmq     # inter-host
+     - message-bus  # intra-host
     ports:
       - 5671:5671/tcp    # queues
-      - 5672:5672/tcp    # queues XXX REMOVE (non-TLS)
       - 15671:15671/tcp  # management
     volumes:
       - ./rabbitmq.conf:/etc/rabbitmq/conf.d/20-hive.conf.template:ro

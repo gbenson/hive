@@ -11,8 +11,11 @@ services:
       - hive_event_vault:/data
     secrets:
       - rabbitmq.env
+    environment:
+      - LOGSPOUT=ignore
     command:
       - inbox.emails
+      - logspout.events
       - readinglist.shares
     profiles:
       - event-vault

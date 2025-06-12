@@ -86,6 +86,7 @@ func (c *conn) Channel() (Channel, error) {
 
 // closeChannel closes an AMQP channel.
 func (c *conn) closeChannel(ch *amqp.Channel, name string) error {
-	logger.LoggedClose(c.log, ch, name+" subchannel")
+	log := c.log.With().Str("kind", "consumer").Logger()
+	logger.LoggedClose(&log, ch, "subchannel")
 	return nil
 }

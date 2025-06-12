@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
@@ -16,10 +17,14 @@ import (
 type channel struct {
 	conn       *conn
 	pubc, conc *amqp.Channel
+	mu         sync.RWMutex
 }
 
 // Close closes the channel.
 func (c *channel) Close() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if c.pubc != nil {
 		defer c.conn.closeChannel(c.pubc, "publisher")
 	}
@@ -31,9 +36,23 @@ func (c *channel) Close() error {
 
 // publishChannel returns an amqp.Channel to use for publishing.
 func (c *channel) publishChannel() (ch *amqp.Channel, err error) {
+	c.mu.RLock()
+	ch = c.pubc
+	c.mu.RUnlock()
+	if ch != nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if ch = c.pubc; ch != nil {
 		return
-	} else if ch, err = c.conn.amqp.Channel(); err != nil {
+	}
+
+	c.conn.log.Debug().Str("kind", "publisher").Msg("Creating subchannel")
+
+	if ch, err = c.conn.amqp.Channel(); err != nil {
 		return nil, err
 	}
 
@@ -49,9 +68,24 @@ func (c *channel) publishChannel() (ch *amqp.Channel, err error) {
 
 // consumeChannel returns an amqp.Channel to use for consuming.
 func (c *channel) consumeChannel() (ch *amqp.Channel, err error) {
+	c.mu.RLock()
+	ch = c.conc
+	c.mu.RUnlock()
+
+	if ch != nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if ch = c.conc; ch != nil {
 		return
-	} else if ch, err = c.conn.amqp.Channel(); err != nil {
+	}
+
+	c.conn.log.Debug().Str("kind", "consumer").Msg("Creating subchannel")
+
+	if ch, err = c.conn.amqp.Channel(); err != nil {
 		return nil, err
 	}
 

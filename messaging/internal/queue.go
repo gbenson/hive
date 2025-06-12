@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+
+	"gbenson.net/go/logger"
 )
 
 type Queue struct {
@@ -13,7 +15,7 @@ type Queue struct {
 	DeadLetter bool
 }
 
-func (q *Queue) Declare(ch *amqp.Channel) error {
+func (q *Queue) Declare(ctx context.Context, ch *amqp.Channel) error {
 	var args amqp.Table
 
 	if q.DeadLetter {
@@ -22,7 +24,7 @@ func (q *Queue) Declare(ch *amqp.Channel) error {
 			Kind:    "direct",
 			Durable: true,
 		}
-		if err := dlx.Declare(ch); err != nil {
+		if err := dlx.Declare(ctx, ch); err != nil {
 			return err
 		}
 
@@ -30,7 +32,7 @@ func (q *Queue) Declare(ch *amqp.Channel) error {
 			Name:    fmt.Sprintf("x.%s", q.Name),
 			Durable: true,
 		}
-		if err := dlq.Declare(ch); err != nil {
+		if err := dlq.Declare(ctx, ch); err != nil {
 			return err
 		}
 
@@ -39,9 +41,13 @@ func (q *Queue) Declare(ch *amqp.Channel) error {
 		}
 
 		args = amqp.Table{
-			"x-dead-letter-exchange": dlx.amqpName(),
+			"x-dead-letter-exchange": dlx.amqpName,
 		}
 	}
+
+	logger.Ctx(ctx).Debug().
+		Str("name", q.Name).
+		Msg("Declaring queue")
 
 	declaredQueue, err := ch.QueueDeclare(
 		q.Name,    // name
@@ -60,7 +66,7 @@ func (q *Queue) Declare(ch *amqp.Channel) error {
 }
 
 func (q *Queue) Bind(ch *amqp.Channel, e *Exchange, routingKey string) error {
-	return ch.QueueBind(q.Name, routingKey, e.amqpName(), false, nil)
+	return ch.QueueBind(q.Name, routingKey, e.amqpName, false, nil)
 }
 
 func (q *Queue) Consume(

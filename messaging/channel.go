@@ -18,6 +18,7 @@ type channel struct {
 	conn       *conn
 	pubc, conc *amqp.Channel
 	mu         sync.RWMutex
+	exchanges  map[string]*hive.Exchange
 }
 
 // Close closes the channel.
@@ -99,6 +100,45 @@ func (c *channel) consumeChannel() (ch *amqp.Channel, err error) {
 	return ch, nil
 }
 
+// declaredExchange returns a declared hive.Exchange for publishing or consuming.
+func (c *channel) declaredExchange(
+	ctx context.Context,
+	ch *amqp.Channel,
+	routingKey string,
+) (ex *hive.Exchange, err error) {
+	c.mu.RLock()
+	ex = c.exchanges[routingKey]
+	c.mu.RUnlock()
+	if ex != nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if ex = c.exchanges[routingKey]; ex != nil {
+		return
+	}
+
+	ctx = c.conn.log.WithContext(ctx)
+
+	ex = &hive.Exchange{
+		Name:    routingKey,
+		Kind:    "fanout",
+		Durable: true,
+	}
+	if err = ex.Declare(ctx, ch); err != nil {
+		return nil, err
+	}
+
+	if c.exchanges == nil {
+		c.exchanges = make(map[string]*hive.Exchange)
+	}
+	c.exchanges[routingKey] = ex
+
+	return
+}
+
 // ConsumeEvents starts an event consumer that runs until its context
 // is cancelled.
 func (c *channel) ConsumeEvents(
@@ -111,14 +151,12 @@ func (c *channel) ConsumeEvents(
 		return err
 	}
 
-	exchange := hive.Exchange{
-		Name:    routingKey,
-		Kind:    "fanout",
-		Durable: true,
-	}
-	if err := exchange.Declare(ch); err != nil {
+	exchange, err := c.declaredExchange(ctx, ch, routingKey)
+	if err != nil {
 		return err
 	}
+
+	ctx = c.conn.log.WithContext(ctx)
 
 	consumerName := strings.ReplaceAll(util.ServiceName(), "-", ".")
 	queue := hive.Queue{
@@ -126,11 +164,11 @@ func (c *channel) ConsumeEvents(
 		Durable:    true,
 		DeadLetter: true,
 	}
-	if err := queue.Declare(ch); err != nil {
+	if err := queue.Declare(ctx, ch); err != nil {
 		return err
 	}
 
-	if err := queue.Bind(ch, &exchange, ""); err != nil {
+	if err := queue.Bind(ch, exchange, ""); err != nil {
 		return err
 	}
 
@@ -169,12 +207,8 @@ func (c *channel) PublishEvent(
 		return err
 	}
 
-	exchange := hive.Exchange{
-		Name:    routingKey,
-		Kind:    "fanout",
-		Durable: true,
-	}
-	if err := exchange.Declare(ch); err != nil {
+	exchange, err := c.declaredExchange(ctx, ch, routingKey)
+	if err != nil {
 		return err
 	}
 

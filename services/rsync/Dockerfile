@@ -19,6 +19,4 @@ RUN --mount=type=tmpfs,target=/var/cache \
 COPY --chmod=755 docker-entrypoint.sh /
 COPY --chmod=600 sshd_config /etc/ssh/sshd_config.d/hive-rsync.conf
 
-VOLUME /srv
-
 ENTRYPOINT ["/docker-entrypoint.sh"]

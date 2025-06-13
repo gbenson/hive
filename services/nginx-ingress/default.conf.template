@@ -6,12 +6,12 @@ log_format json escape=json '{'
     '"request_uri":"$request_uri",'
     '"server_protocol":"$server_protocol",'
     '"ssl_protocol":"$ssl_protocol",'
-    '"status":"$status",'
-    '"body_bytes_sent":"$body_bytes_sent",'
+    '"status":$status,'
+    '"body_bytes_sent":$body_bytes_sent,'
     '"http_user_agent":"$http_user_agent",'
     '"http_referer":"$http_referer",'
-    '"request_length":"$request_length",'
-    '"timestamp":"$msec"'
+    '"request_length":$request_length,'
+    '"timestamp":$msec'
 '}';
 
 access_log off;

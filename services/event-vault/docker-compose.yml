@@ -16,6 +16,7 @@ services:
     command:
       - inbox.emails
       - logspout.events
+      - nginx.access.events
       - readinglist.shares
     profiles:
       - event-vault

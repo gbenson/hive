@@ -51,12 +51,6 @@ func (s *Service) Close() error {
 	return nil
 }
 
-type record struct {
-	RunID    string      `json:"run"`    // Unique UUID of this forwarder run.
-	Sequence uint64      `json:"seq"`    // Order this record was received.
-	Record   interface{} `json:"record"` // Received record, decoded from JSON.
-}
-
 func (s *Service) receive(ctx context.Context, ch messaging.Channel) {
 	connP := s.conn.Load()
 	if connP == nil {
@@ -113,18 +107,17 @@ func (s *Service) handle(
 		log.Warn().Msg("Possible truncation")
 	}
 
-	var v interface{}
-	if err := json.Unmarshal(buf, &v); err != nil {
+	var r InputRecord
+	if err := json.Unmarshal(buf, &r); err != nil {
 		log.Warn().Err(err).Msg("Malformed JSON")
 		return
 	}
-	log.Trace().Interface("record", v).Msg("Received")
+	log.Trace().Interface("record", r).Msg("Received")
 
-	event := messaging.NewEvent()
-	event.SetData("application/json", &record{runID, seq, v})
+	r.RunID = runID
+	r.Sequence = seq
 
-	err = ch.PublishEvent(ctx, "logspout.events", event)
-	if err != nil {
-		log.Warn().Err(err).Msg("Publish")
+	if err := r.Forward(log.WithContext(ctx), ch); err != nil {
+		log.Warn().Err(err).Msg("Forward")
 	}
 }

@@ -10,11 +10,9 @@ services:
     environment:
       - LOGSPOUT=ignore
       - >-
-        RAW_FORMAT={
-        "container":"${COMPOSE_HOSTNAME:-}{{ .Container.Name }}",
-        "timestamp":"{{ .Time.Format "2006-01-02T15:04:05Z07:00" }}",
-        "source":"{{ .Source }}",
-        "message":{{ toJSON .Data }}}
+        RAW_FORMAT={"h":"${COMPOSE_HOSTNAME:-}","c":"{{ .Container.Name
+        }}","t":"{{ .Time.Format "2006-01-02T15:04:05.999999999Z07:00"
+        }}","s":"{{ .Source }}","m":{{ toJSON .Data }}}
     command:
       - raw://log-forwarder:5000
     profiles:

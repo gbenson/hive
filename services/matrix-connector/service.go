@@ -68,18 +68,6 @@ func (s *Service) Start(ctx context.Context, ch messaging.Channel) (err error) {
 		}
 	}()
 
-	// separated queue consumers (old)
-	for _, q := range []string{
-		chat.SendTextRequestsQueue,
-		chat.SendReactionRequestsQueue,
-		chat.UserTypingRequestsQueue,
-	} {
-		if err := ch.ConsumeEvents(ctx, q, s); err != nil {
-			return err
-		}
-	}
-
-	// unified queue consumer (new)
 	return ch.ConsumeEvents(ctx, matrix.RequestsQueue, s)
 }
 

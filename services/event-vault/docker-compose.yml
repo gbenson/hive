@@ -18,6 +18,7 @@ services:
       - logspout.events
       - nginx.access.events
       - readinglist.shares
+      - syslog.events
     profiles:
       - event-vault
 

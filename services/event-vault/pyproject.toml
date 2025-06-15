@@ -6,7 +6,7 @@ description = "Event vault for Hive"
 dependencies = [
     "hive-common",
     "hive-messaging>=0.15.1",
-    "hive-service>=0.1.0",
+    "hive-service>=0.1.1",
 ]
 
 [project.scripts]

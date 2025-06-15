@@ -12,7 +12,7 @@ from hive.messaging import Channel, Message
 from hive.service import HiveService
 
 logger = logging.getLogger(__name__)
-d = logger.info  # logger.debug
+d = logger.debug
 
 
 @dataclass
@@ -45,7 +45,7 @@ class Service(HiveService):
                     queue=queue,
                     on_message_callback=partial(self.on_message, queue),
                 )
-            d("Consuming %s", ", ".join(self.queues))
+            logger.info("Consuming %s", ", ".join(self.queues))
             channel.start_consuming()
 
     EXTENSIONS: ClassVar[dict[str, str]] = {
@@ -60,4 +60,8 @@ class Service(HiveService):
         path = dirpath / f"{uuid4()}{extension}"
         dirpath.mkdir(parents=True, exist_ok=True)
         bytes_written = path.write_bytes(message.body)
+
+        # Be very careful not to log anything here that might loop
+        # if this service is configured to consume events that are
+        # emitted as a result of these log messages being scraped!
         d("Wrote %s (%d bytes)", path, bytes_written)

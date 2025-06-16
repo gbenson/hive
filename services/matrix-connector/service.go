@@ -3,7 +3,6 @@ package matrix
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -25,19 +24,23 @@ type Service struct {
 	syncStopWait sync.WaitGroup
 }
 
-func (s *Service) Start(ctx context.Context, ch messaging.Channel) (err error) {
+func (s *Service) Start(
+	ctx context.Context,
+	ch messaging.Channel,
+) (<-chan error, error) {
 	log := logger.Ctx(ctx)
 
 	if s.Options.Log == nil {
 		s.Options.Log = log
 	}
-	if err = s.Options.Populate(); err != nil {
-		return
+	err := s.Options.Populate()
+	if err != nil {
+		return nil, err
 	}
 	s.RoomID = id.RoomID(s.Options.RoomID)
 
 	if s.Client, err = Dial(ctx, &s.Options); err != nil {
-		return
+		return nil, err
 	}
 
 	for _, eventType := range []event.Type{
@@ -53,22 +56,20 @@ func (s *Service) Start(ctx context.Context, ch messaging.Channel) (err error) {
 				}
 			},
 		); err != nil {
-			return
+			return nil, err
 		}
 	}
 
+	errC := make(chan error)
 	ctx, s.cancelSync = context.WithCancel(ctx)
 	s.syncStopWait.Add(1)
 
 	go func() {
-		err := s.Client.SyncWithContext(ctx)
 		defer s.syncStopWait.Done()
-		if err != nil && !errors.Is(err, context.Canceled) {
-			log.Err(err).Msg("Sync error")
-		}
+		errC <- s.Client.SyncWithContext(ctx)
 	}()
 
-	return ch.ConsumeEvents(ctx, matrix.RequestsQueue, s)
+	return errC, ch.ConsumeEvents(ctx, matrix.RequestsQueue, s)
 }
 
 func (s *Service) Close() error {

@@ -17,24 +17,28 @@ type Service struct {
 	stopWait sync.WaitGroup
 }
 
-func (s *Service) Start(ctx context.Context, ch messaging.Channel) error {
+func (s *Service) Start(
+	ctx context.Context,
+	ch messaging.Channel,
+) (<-chan error, error) {
 	s.log = logger.Ctx(ctx)
 
 	if conn, err := net.ListenPacket("udp", ":5000"); err != nil {
-		return err
+		return nil, err
 	} else {
 		s.conn.Store(&conn)
 	}
 
+	errC := make(chan error)
 	s.stopWait.Add(1)
 
 	go func() {
 		defer s.stopWait.Done()
 
-		s.receive(ctx, ch)
+		errC <- s.receive(ctx, ch)
 	}()
 
-	return nil
+	return errC, nil
 }
 
 func (s *Service) Close() error {
@@ -51,7 +55,7 @@ func (s *Service) Close() error {
 	return nil
 }
 
-func (s *Service) receive(ctx context.Context, ch messaging.Channel) {
+func (s *Service) receive(ctx context.Context, ch messaging.Channel) error {
 	connP := s.conn.Load()
 	if connP == nil {
 		panic("no connection")
@@ -60,7 +64,7 @@ func (s *Service) receive(ctx context.Context, ch messaging.Channel) {
 
 	runID, err := randomUUID()
 	if err != nil {
-		s.log.Warn().Err(err).Msg("Generating run ID")
+		return err
 	}
 
 	s.log.Info().
@@ -71,8 +75,7 @@ func (s *Service) receive(ctx context.Context, ch messaging.Channel) {
 	var seq uint64
 	for {
 		if err := ctx.Err(); err != nil {
-			s.log.Debug().Err(err).Msg("Receive")
-			return
+			return err
 		}
 
 		var buf [1472]byte // mtu1500-ipv4 header size

@@ -15,7 +15,7 @@ import (
 
 type Service interface {
 	// Start starts the service's goroutines.
-	Start(ctx context.Context, ch messaging.Channel) error
+	Start(ctx context.Context, ch messaging.Channel) (<-chan error, error)
 }
 
 // Run runs a Hive service.
@@ -71,7 +71,8 @@ func runContext(ctx context.Context, s Service) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	if err = s.Start(ctx, ch); err != nil {
+	errC, err := s.Start(ctx, ch)
+	if err != nil {
 		return err
 	}
 
@@ -88,6 +89,12 @@ func runContext(ctx context.Context, s Service) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
+
+		case err := <-errC:
+			signal.Reset() // Restore default handlers.
+			log.Err(err).Msg("Shutting down")
+			cancel()
+
 		case sig := <-sigC:
 			signal.Reset() // Restore default handlers.
 			log.Info().

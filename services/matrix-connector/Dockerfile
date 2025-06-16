@@ -44,3 +44,4 @@ COPY --from=builder --chown=0:0 --chmod=755 /go/src/hive-$SERVICE /usr/bin
 
 USER hivetrix:hivetrix
 WORKDIR /var/lib/hive/matrix-connector
+ENTRYPOINT ["hive-matrix-connector"]

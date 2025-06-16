@@ -11,8 +11,6 @@ services:
       - matrix_connector:/var/lib/hive
     environment:
       - XDG_STATE_HOME=/var/lib
-    command:
-      - hive-matrix-connector
     secrets:
       - rabbitmq.env
       - matrix.yml

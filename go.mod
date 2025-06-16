@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	gbenson.net/go/logger v1.3.0
 	github.com/cloudevents/sdk-go/v2 v2.16.1
+	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/google/uuid v1.6.0
 	github.com/rabbitmq/amqp091-go v1.10.0

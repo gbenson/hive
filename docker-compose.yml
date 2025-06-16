@@ -4,7 +4,7 @@ include:
   - path: services/email-receiver/docker-compose.yml
 
   - path: services/event-vault/docker-compose.yml
-  - path: services/logspout/docker-compose.yml
+  - path: services/log-forwarder/docker-compose.yml
   - path: services/matrix-connector/docker-compose.yml
   - path: services/mediawiki-fpm/docker-compose.yml
 

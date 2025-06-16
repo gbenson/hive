@@ -15,10 +15,9 @@ services:
       - LOGSPOUT=ignore
     command:
       - inbox.emails
-      - logspout.events
       - nginx.access.events
       - readinglist.shares
-      - syslog.events
+      - systemd.journald.events
     profiles:
       - event-vault
 

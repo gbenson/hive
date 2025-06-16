@@ -13,5 +13,5 @@ Log forwarder service for Hive.
 ```sh
 git clone https://github.com/gbenson/hive.git
 gofmt -w . && ./ci/go-vet && ./ci/go-test && \
-LL=debug go run ./services/logspout/forwarder/cmd/hive-log-forwarder.go
+LL=debug go run ./services/log-forwarder/cmd/hive-log-forwarder.go
 ```

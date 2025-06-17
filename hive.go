@@ -11,6 +11,7 @@ import (
 
 	"gbenson.net/go/logger"
 	"gbenson.net/hive/messaging"
+	"gbenson.net/hive/util"
 )
 
 type Service interface {
@@ -20,7 +21,7 @@ type Service interface {
 
 // Run runs a Hive service.
 func Run(s Service) {
-	log := logger.New(&logger.Options{})
+	log := logger.New(nil)
 	RunContext(log.WithContext(context.Background()), s)
 }
 
@@ -33,14 +34,20 @@ func RunContext(ctx context.Context, s Service) {
 		panic("nil service")
 	}
 
-	log := logger.Ctx(ctx)
+	log := logger.Ctx(ctx).With().
+		Str("service", "hive-"+util.ServiceName()).
+		Logger()
+
+	log.Info().Msg("Starting")
 
 	if err := runContext(ctx, s); err != nil && err != context.Canceled {
-		log.Err(err).Msg("")
+		log.WithLevel(logger.LevelFor(err)).
+			Err(err).
+			Msg("Error exit")
 		os.Exit(1)
 	}
 
-	log.Debug().Msg("Normal exit")
+	log.Info().Msg("Normal exit")
 }
 
 func runContext(ctx context.Context, s Service) error {

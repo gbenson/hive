@@ -17,22 +17,23 @@ services:
       - -m
       - hive.email_receiver
     profiles:
-      - mono
+      - email-receiver
 
   email-receiver-valkey:
     image: valkey/valkey:8
     restart: unless-stopped
     networks:
-      - email-receiver-valkey
+      email-receiver-valkey:
+         aliases:
+           - valkey
     volumes:
       - email_receiver_valkey:/data
     command:
       - valkey-server
-      - --save
-      - 60 1
-    hostname: valkey
+      - --save 60 1
+      - --loglevel warning
     profiles:
-      - mono
+      - email-receiver
 
 networks:
   email-receiver:

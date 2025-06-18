@@ -13,6 +13,7 @@ type Queue struct {
 	Name       string
 	Durable    bool
 	DeadLetter bool
+	Exclusive  bool
 }
 
 func (q *Queue) Declare(ctx context.Context, ch *amqp.Channel) error {
@@ -50,11 +51,11 @@ func (q *Queue) Declare(ctx context.Context, ch *amqp.Channel) error {
 		Msg("Declaring queue")
 
 	declaredQueue, err := ch.QueueDeclare(
-		q.Name,    // name
-		q.Durable, // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
+		q.Name,      // name
+		q.Durable,   // durable
+		false,       // delete when unused
+		q.Exclusive, // exclusive
+		false,       // no-wait
 		args,
 	)
 	if err != nil {

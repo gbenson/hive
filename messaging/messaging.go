@@ -18,6 +18,10 @@ type Channel interface {
 	// context is cancelled.
 	ConsumeEvents(ctx context.Context, routingKey string, c Consumer) error
 
+	// ConsumeExclusive works like ConsumeEvents but with a queue
+	// which the broker will delete when the channel is closed.
+	ConsumeExclusive(ctx context.Context, routingKey string, c Consumer) error
+
 	// PublishEvent publishes an event.
 	PublishEvent(ctx context.Context, routingKey string, event any) error
 

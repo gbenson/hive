@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"context"
+	crypto_rand "crypto/rand"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -146,6 +147,34 @@ func (c *channel) ConsumeEvents(
 	routingKey string,
 	consumer Consumer,
 ) error {
+	queue := hive.Queue{
+		Durable:    true,
+		DeadLetter: true,
+	}
+	return c.consumeEvents(ctx, routingKey, consumer, queue)
+}
+
+// ConsumeExclusive works like ConsumeEvents but with an exclusive
+// queue which the broker will delete when the channel is closed.
+func (c *channel) ConsumeExclusive(
+	ctx context.Context,
+	routingKey string,
+	consumer Consumer,
+) error {
+	queue := hive.Queue{
+		Exclusive: true,
+	}
+	return c.consumeEvents(ctx, routingKey, consumer, queue)
+}
+
+// consumeEvents starts an event consumer that runs until its context
+// is cancelled.
+func (c *channel) consumeEvents(
+	ctx context.Context,
+	routingKey string,
+	consumer Consumer,
+	queue hive.Queue,
+) error {
 	ch, err := c.consumeChannel()
 	if err != nil {
 		return err
@@ -158,12 +187,17 @@ func (c *channel) ConsumeEvents(
 
 	ctx = c.conn.log.WithContext(ctx)
 
-	consumerName := strings.ReplaceAll(util.ServiceName(), "-", ".")
-	queue := hive.Queue{
-		Name:       fmt.Sprintf("%s.%s", consumerName, routingKey),
-		Durable:    true,
-		DeadLetter: true,
+	if queue.Name == "" {
+		consumerName := strings.ReplaceAll(util.ServiceName(), "-", ".")
+
+		var uniq string
+		if queue.Exclusive {
+			uniq = "-" + crypto_rand.Text()[:8]
+		}
+
+		queue.Name = fmt.Sprintf("%s.%s%s", consumerName, routingKey, uniq)
 	}
+
 	if err := queue.Declare(ctx, ch); err != nil {
 		return err
 	}

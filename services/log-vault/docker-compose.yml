@@ -1,0 +1,45 @@
+services:
+  log-vault:
+    image: mongo
+    restart: unless-stopped
+    networks:
+      - log-vault
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./initdb.d:/docker-entrypoint-initdb.d:ro
+      - hive_log_vault:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+      - MONGO_INITDB_DATABASE
+    secrets:
+      - log-ingester.env
+    entrypoint: /docker-entrypoint.sh
+    command:
+      - mongod
+      - --auth
+    profiles:
+      - log-vault
+
+  log-ingester:
+    image: gbenson/hive-log-ingester
+    restart: unless-stopped
+    networks:
+      - log-vault
+      - "${RABBITMQ_NETWORK:-log-ingester-msgbus}"
+    extra_hosts:
+      - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
+    secrets:
+      - log-ingester.env
+      - rabbitmq.env
+    profiles:
+      - log-vault
+
+networks:
+  log-ingester-msgbus:
+  log-vault:
+    internal: true
+
+volumes:
+  hive_log_vault:
+    external: true

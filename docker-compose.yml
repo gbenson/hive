@@ -5,6 +5,11 @@ include:
 
   - path: services/event-vault/docker-compose.yml
   - path: services/log-forwarder/docker-compose.yml
+
+  - path: services/log-vault/docker-compose.yml
+    env_file:
+      - $HOME/.config/hive/log-vault.env
+
   - path: services/matrix-connector/docker-compose.yml
   - path: services/mediawiki-fpm/docker-compose.yml
 
@@ -36,6 +41,8 @@ secrets:
     file: $HOME/.config/hive/email.yml
   hostnames.env:
     file: $HOME/.config/hive/hostnames.env
+  log-ingester.env:
+    file: $HOME/.config/hive/log-ingester.env
   matrix.yml:
     file: $HOME/.config/hive/matrix.yml
   mediawiki-mariadb.env:

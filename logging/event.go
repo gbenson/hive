@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"maps"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/blake2b"
 )
@@ -23,7 +24,11 @@ type Event struct {
 	CollectionTimestamp int64 `json:"collected_nsec,omitempty" bson:"hive_collect_time_ns"`
 	IngestionTimestamp  int64 `json:"ingested_nsec,omitempty" bson:"hive_ingest_time_ns"`
 
-	// All fields of a journal entry, less outlined address fields.
+	// All fields of a journal entry, less outlined address fields, as defined in
+	// https://www.freedesktop.org/software/systemd/man/latest/systemd.journal-fields.html.
+	// Note that fields prefixed with an underscore are systemd _trusted fields_
+	// added by systemd on the originating host.  Note that it's _systemd_ doing
+	// the trusting.
 	Fields map[string]string `json:"fields"`
 }
 
@@ -45,4 +50,47 @@ func (e *Event) Blake2b256Digest() string {
 
 	buf := blake2b.Sum256(data)
 	return "BLAKE2b:" + strings.TrimRight(b64encode(buf[:]), "=")
+}
+
+// Command returns the name of the process this journal entry
+// originates from.  Generally this will be the name you see
+// in top, so mostly lowercase alphanumeric with the occasional
+// random one in parentheses.
+func (e *Event) Command() string {
+	// Prefer the "_COMM" trusted field.
+	if result := e.Fields["_COMM"]; result != "" {
+		return result
+	}
+
+	// Fall back to the "SYSLOG_IDENTIFIER" compatibility field.
+	return e.Fields["SYSLOG_IDENTIFIER"]
+}
+
+// ContainerName returns the name of the container the originating
+// process is running in.  Docker sets this, maybe others too.
+// Will be empty if the originating process isn't in a container,
+// or if the originating process is in a container managed by an
+// engine we don't yet handle.
+func (e *Event) ContainerName() string {
+	return e.Fields["CONTAINER_NAME"]
+}
+
+// Hostname returns the name of the originating host.
+func (e *Event) Hostname() string {
+	return e.Fields["_HOSTNAME"]
+}
+
+// RawMessage returns the human-readable text of this entry, as
+// supplied by the originating process.  It's supposed to be the
+// primary text shown to the user.  Note that newline characters
+// are permitted.  Expect to find ANSI control sequences too.
+func (e *Event) RawMessage() string {
+	return e.Fields["MESSAGE"]
+}
+
+// Time returns the wallclock time of the originating host at the
+// point in time the entry was received by the systemd journal.
+// It has microsecond granularity.
+func (e *Event) Time() time.Time {
+	return time.UnixMicro(int64(e.RealtimeTimestamp))
 }

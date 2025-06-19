@@ -79,7 +79,7 @@ func ackOrReject(ctx context.Context, d *amqp.Delivery, ok bool) {
 	if ok {
 		err = d.Ack(false)
 	} else {
-		err = d.Reject(false)
+		err = d.Nack(false, false)
 	}
 	if err == nil {
 		return

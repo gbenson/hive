@@ -12,6 +12,8 @@ import (
 	"gbenson.net/go/logger"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/util"
+
+	"gbenson.net/hive/services/logging/collector/filters"
 )
 
 const DefaultBacklog = time.Minute
@@ -144,14 +146,24 @@ func (s *Service) onSerializedEntry(
 	}
 
 	cursor := entry.Cursor
-	entry.Cursor = "" // saves ~128 bytes...
+	if filters.ShouldForwardEvent(entry.Fields) {
+		entry.Cursor = "" // saves ~128 bytes...
 
-	e := messaging.NewEvent()
-	e.SetData("application/json", &entry)
-
-	if err := ch.PublishEvent(ctx, "systemd.journald.events", e); err != nil {
-		return err
+		if err := forwardEntry(ctx, ch, &entry); err != nil {
+			return err
+		}
 	}
 
 	return s.cm.Update(cursor)
+}
+
+func forwardEntry(
+	ctx context.Context,
+	ch messaging.Channel,
+	entry *sdjournal.JournalEntry,
+) error {
+	event := messaging.NewEvent()
+	event.SetData("application/json", entry)
+
+	return ch.PublishEvent(ctx, "systemd.journald.events", event)
 }

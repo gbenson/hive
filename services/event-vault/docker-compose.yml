@@ -17,7 +17,7 @@ services:
       - inbox.emails
       - nginx.access.events
       - readinglist.shares
-      - systemd.journald.events
+      - systemd.journal.events
     profiles:
       - event-vault
 

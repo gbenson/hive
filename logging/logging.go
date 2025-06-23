@@ -2,4 +2,4 @@
 package logging
 
 // RawEventsQueue is where hive-log-collector publishes the events it collects.
-const RawEventsQueue = "systemd.journald.events"
+const RawEventsQueue = "systemd.journal.events"

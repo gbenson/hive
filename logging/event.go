@@ -11,20 +11,20 @@ import (
 // Event represents a systemd journal entry plus address fields.
 type Event struct {
 	// Digest of Fields plus the two timestamp address fields.
-	Digest string `bson:"digest"`
+	Digest string `json:"digest,omitempty"`
 
 	// systemd address fields that sdjournal moves out of line.
 	// Both are in **microseconds** since the epoch.
-	RealtimeTimestamp  uint64 `bson:"realtime_us"`
-	MonotonicTimestamp uint64 `bson:"monotonic_us"`
+	RealtimeTimestamp  uint64 `json:"realtime_usec" bson:"realtime_us"`
+	MonotonicTimestamp uint64 `json:"monotonic_usec" bson:"monotonic_us"`
 
 	// Hive collection and ingestion timestamps.
 	// These are in **nanoseconds** since the epoch.
-	CollectionTimestamp int64 `bson:"hive_collect_time_ns"`
-	IngestionTimestamp  int64 `bson:"hive_ingest_time_ns"`
+	CollectionTimestamp int64 `json:"collected_nsec,omitempty" bson:"hive_collect_time_ns"`
+	IngestionTimestamp  int64 `json:"ingested_nsec,omitempty" bson:"hive_ingest_time_ns"`
 
 	// All fields of a journal entry, less outlined address fields.
-	Fields map[string]string `bson:"fields"`
+	Fields map[string]string `json:"fields"`
 }
 
 // Blake2b256Digest returns the string-encoded BLAKE2b-256 digest of

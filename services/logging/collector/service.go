@@ -10,6 +10,7 @@ import (
 	"github.com/coreos/go-systemd/v22/sdjournal"
 
 	"gbenson.net/go/logger"
+	"gbenson.net/hive/logging"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/util"
 
@@ -136,6 +137,8 @@ func (s *Service) onSerializedEntry(
 	ch messaging.Channel,
 	b []byte,
 ) error {
+	collectionTime := time.Now()
+
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -145,25 +148,22 @@ func (s *Service) onSerializedEntry(
 		return err
 	}
 
-	cursor := entry.Cursor
 	if filters.ShouldForwardEvent(entry.Fields) {
-		entry.Cursor = "" // saves ~128 bytes...
+		payload := logging.Event{
+			Fields:             entry.Fields,
+			RealtimeTimestamp:  entry.RealtimeTimestamp,
+			MonotonicTimestamp: entry.MonotonicTimestamp,
+		}
+		event := messaging.NewEvent()
 
-		if err := forwardEntry(ctx, ch, &entry); err != nil {
+		event.SetID(payload.Blake2b256Digest())
+		event.SetTime(collectionTime)
+		event.SetData("application/json", payload)
+
+		if err := ch.PublishEvent(ctx, logging.RawEventsQueue, event); err != nil {
 			return err
 		}
 	}
 
-	return s.cm.Update(cursor)
-}
-
-func forwardEntry(
-	ctx context.Context,
-	ch messaging.Channel,
-	entry *sdjournal.JournalEntry,
-) error {
-	event := messaging.NewEvent()
-	event.SetData("application/json", entry)
-
-	return ch.PublishEvent(ctx, "systemd.journald.events", event)
+	return s.cm.Update(entry.Cursor)
 }

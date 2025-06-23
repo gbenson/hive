@@ -9,7 +9,7 @@ services:
     volumes:
       - /etc/machine-id:/etc/machine-id:ro
       - /var/log/journal:/var/log/journal:ro
-      - log_forwarder:/var/lib/hive/log-collector
+      - log_collector:/var/lib/hive/log-collector
     environment:
       - XDG_STATE_HOME=/var/lib
     secrets:
@@ -58,6 +58,6 @@ networks:
     internal: true
 
 volumes:
+  log_collector:
   hive_log_vault:
     external: true
-  log_forwarder:

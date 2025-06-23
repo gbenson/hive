@@ -22,8 +22,10 @@ RUN apt-get -y install --no-install-recommends libolm-dev
 
 WORKDIR /go/src
 COPY go.mod go.sum ./
+RUN go mod edit -droprequire github.com/coreos/go-systemd/v22
 RUN go mod download
 COPY . ./
+RUN rm -rf services/logging/collector
 RUN gofmt -w .
 RUN ci/go-vet
 RUN ci/go-test

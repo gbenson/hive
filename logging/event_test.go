@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"encoding/json"
 	"maps"
 	"slices"
 	"testing"
@@ -52,4 +53,26 @@ func TestMarshalBSON(t *testing.T) {
 func TestBlake2b256Digest(t *testing.T) {
 	wantDigest := "BLAKE2b:XV8rVOrEXt3g4OX6sbbyynactnXVLFcFfmhNV8t7I2c"
 	assert.Equal(t, newTestEvent().Blake2b256Digest(), wantDigest)
+}
+
+// Marshalling to JSON results in the expected output.
+func TestMarshalJSON(t *testing.T) {
+	b, err := json.Marshal(newTestEvent())
+	assert.NilError(t, err)
+
+	wantJSON := `{"realtime_usec":1750582250015059` +
+		`,"monotonic_usec":12829479768044` +
+		`,"fields":` +
+		`{"MESSAGE":"veth9b80305: renamed from eth0"` +
+		`,"PRIORITY":"6"` +
+		`,"SYSLOG_FACILITY":"0"` +
+		`,"SYSLOG_IDENTIFIER":"kernel"` +
+		`,"_BOOT_ID":"27fbd0a3c26945e28624dad56044f8fe"` +
+		`,"_HOSTNAME":"box1"` +
+		`,"_MACHINE_ID":"b7ae3b30d3284b1dacb78ec9b966f531"` +
+		`,"_SOURCE_MONOTONIC_TIMESTAMP":"12829697985567"` +
+		`,"_TRANSPORT":"kernel"` +
+		`}}`
+
+	assert.Equal(t, string(b), wantJSON)
 }

@@ -2,9 +2,8 @@ package ingester
 
 import (
 	"context"
+	"fmt"
 	"time"
-
-	"github.com/coreos/go-systemd/v22/sdjournal"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -57,19 +56,39 @@ func (s *Service) Consume(
 ) error {
 	ingestionTime := time.Now()
 
-	var se sdjournal.JournalEntry
-	if err := event.DataAs(&se); err != nil {
+	var entry logging.Event
+	if err := event.DataAs(&entry); err != nil {
 		return err
 	}
 
-	entry := logging.Event{
-		Fields:              se.Fields,
-		RealtimeTimestamp:   se.RealtimeTimestamp,
-		MonotonicTimestamp:  se.MonotonicTimestamp,
-		CollectionTimestamp: event.Time().UnixNano(),
-		IngestionTimestamp:  ingestionTime.UnixNano(),
+	if entry.CollectionTimestamp != 0 {
+		s.log.Warn().
+			Str("field", "CollectionTimestamp").
+			Int64("value", entry.CollectionTimestamp).
+			Msg("Overwriting")
 	}
-	entry.Digest = entry.Blake2b256Digest()
+	entry.CollectionTimestamp = event.Time().UnixNano()
+
+	if entry.IngestionTimestamp != 0 {
+		s.log.Warn().
+			Str("field", "IngestionTimestamp").
+			Int64("value", entry.IngestionTimestamp).
+			Msg("Overwriting")
+	}
+	entry.IngestionTimestamp = ingestionTime.UnixNano()
+
+	if entry.Digest != "" {
+		s.log.Warn().
+			Str("field", "Digest").
+			Str("value", entry.Digest).
+			Msg("Overwriting")
+	}
+	entry.Digest = event.ID()
+	wantDigest := entry.Blake2b256Digest()
+
+	if entry.Digest != wantDigest {
+		return fmt.Errorf("%q != %q", wantDigest, entry.Digest)
+	}
 
 	_, err := s.db.Collection.InsertOne(ctx, entry)
 	if err != nil {

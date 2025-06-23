@@ -16,15 +16,13 @@ RUN --mount=type=tmpfs,target=/var/cache \
 
 FROM golang:bookworm AS builder
 ARG SERVICE=log-ingester
-RUN apt-get -y update
-RUN apt-get -y install --no-install-recommends libsystemd-dev
-
 WORKDIR /go/src
 COPY go.mod go.sum ./
 RUN go mod edit -droprequire maunium.net/go/mautrix
+RUN go mod edit -droprequire github.com/coreos/go-systemd/v22
 RUN go mod download
 COPY . ./
-RUN rm -rf services/matrix-connector
+RUN rm -rf services/matrix-connector services/logging/collector
 RUN gofmt -w .
 RUN ci/go-vet
 RUN ci/go-test

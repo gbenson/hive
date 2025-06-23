@@ -34,7 +34,7 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
-          file: services/log-vault/ingester/Dockerfile
+          file: services/logging/ingester/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: ${{ startsWith(github.ref, 'refs/tags/hive-log-ingester-') }}
           tags: ${{ steps.meta.outputs.tags }}

@@ -29,7 +29,7 @@ RUN gofmt -w .
 RUN ci/go-vet
 RUN ci/go-test
 RUN go build -trimpath -ldflags="-s -w" \
-    ./services/log-vault/ingester/cmd/hive-$SERVICE.go
+    ./services/logging/ingester/cmd/hive-$SERVICE.go
 
 FROM base AS install
 RUN set -eux \

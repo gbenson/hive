@@ -3,7 +3,7 @@ package main
 
 import (
 	"gbenson.net/hive"
-	"gbenson.net/hive/services/log-vault/ingester"
+	"gbenson.net/hive/services/logging/ingester"
 )
 
 func main() {

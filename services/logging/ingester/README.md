@@ -13,5 +13,5 @@ Log ingester service for Hive.
 ```sh
 git clone https://github.com/gbenson/hive.git
 gofmt -w . && ./ci/go-vet && ./ci/go-test && \
-LL=debug go run ./services/log-vault/ingester/cmd/hive-log-ingester.go
+LL=debug go run ./services/logging/ingester/cmd/hive-log-ingester.go
 ```

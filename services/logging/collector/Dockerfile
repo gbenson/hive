@@ -16,7 +16,7 @@ RUN --mount=type=tmpfs,target=/var/cache \
   && rm -f /var/lib/dpkg/*-old
 
 FROM golang:bookworm AS builder
-ARG SERVICE=log-forwarder
+ARG SERVICE=log-collector
 RUN apt-get -y update
 RUN apt-get -y install --no-install-recommends libsystemd-dev
 
@@ -29,7 +29,8 @@ RUN rm -rf services/matrix-connector
 RUN gofmt -w .
 RUN ci/go-vet
 RUN ci/go-test
-RUN go build -trimpath -ldflags="-s -w" ./services/$SERVICE/cmd/hive-$SERVICE.go
+RUN go build -trimpath -ldflags="-s -w" \
+  ./services/logging/collector/cmd/hive-$SERVICE.go
 
 FROM base AS install
 RUN set -eux \
@@ -37,7 +38,7 @@ RUN set -eux \
   && install -d -m700 /run/secrets
 
 FROM install AS dist
-ARG SERVICE=log-forwarder
+ARG SERVICE=log-collector
 COPY --from=builder --chown=0:0 --chmod=755 /go/src/hive-$SERVICE /usr/bin
 
-ENTRYPOINT ["hive-log-forwarder"]
+ENTRYPOINT ["hive-log-collector"]

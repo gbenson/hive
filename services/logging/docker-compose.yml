@@ -1,22 +1,22 @@
 services:
-  log-forwarder:
-    image: gbenson/hive-log-forwarder
+  log-collector:
+    image: gbenson/hive-log-collector
     restart: unless-stopped
     networks:
-      - "${RABBITMQ_NETWORK:-log-forwarder-msgbus}"
+      - "${RABBITMQ_NETWORK:-log-collector-msgbus}"
     extra_hosts:
       - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
     volumes:
       - /etc/machine-id:/etc/machine-id:ro
       - /var/log/journal:/var/log/journal:ro
-      - log_forwarder:/var/lib/hive/log-forwarder
+      - log_forwarder:/var/lib/hive/log-collector
     environment:
       - XDG_STATE_HOME=/var/lib
     secrets:
       - rabbitmq.env
 
 networks:
-  log-forwarder-msgbus:
+  log-collector-msgbus:
 
 volumes:
   log_forwarder:

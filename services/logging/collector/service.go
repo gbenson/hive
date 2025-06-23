@@ -1,4 +1,4 @@
-package forwarder
+package collector
 
 import (
 	"context"

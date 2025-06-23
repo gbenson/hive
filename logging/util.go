@@ -1,4 +1,4 @@
-package ingester
+package logging
 
 import (
 	"encoding/base64"

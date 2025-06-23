@@ -12,6 +12,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	golang.org/x/crypto v0.36.0
+	gotest.tools/v3 v3.5.2
 	maunium.net/go/mautrix v0.23.2
 )
 
@@ -20,6 +21,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect

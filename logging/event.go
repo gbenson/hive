@@ -1,4 +1,4 @@
-package ingester
+package logging
 
 import (
 	"encoding/json"
@@ -6,17 +6,14 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/blake2b"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type JournalEntry struct {
-	ID bson.ObjectID `bson:"_id"`
-
+// Event represents a systemd journal entry plus address fields.
+type Event struct {
 	// Digest of Fields plus the two timestamp address fields.
 	Digest string `bson:"digest"`
 
-	// systemd address fields sdjournal moves out of line.
+	// systemd address fields that sdjournal moves out of line.
 	// Both are in **microseconds** since the epoch.
 	RealtimeTimestamp  uint64 `bson:"realtime_us"`
 	MonotonicTimestamp uint64 `bson:"monotonic_us"`
@@ -34,7 +31,7 @@ type JournalEntry struct {
 // Fields, including the address field timestamps systemd moved out
 // of line: everything hive-log-forwarder read from the journal less
 // the cursor which it drops before forwarding to save bytes.
-func (e *JournalEntry) Blake2b256Digest() string {
+func (e *Event) Blake2b256Digest() string {
 	fields := maps.Clone(e.Fields) // shallow copy
 
 	fields["__REALTIME_TIMESTAMP"] = utoa(e.RealtimeTimestamp)

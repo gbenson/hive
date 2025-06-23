@@ -6,10 +6,10 @@ import (
 
 	"github.com/coreos/go-systemd/v22/sdjournal"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"gbenson.net/go/logger"
+	"gbenson.net/hive/logging"
 	"gbenson.net/hive/messaging"
 )
 
@@ -35,7 +35,7 @@ func (s *Service) Start(
 	errC := make(chan error)
 	s.errC = errC
 
-	return errC, ch.ConsumeEvents(ctx, "systemd.journald.events", s)
+	return errC, ch.ConsumeEvents(ctx, logging.RawEventsQueue, s)
 }
 
 // Close shuts down the service.
@@ -62,8 +62,7 @@ func (s *Service) Consume(
 		return err
 	}
 
-	entry := JournalEntry{
-		ID:                  bson.NewObjectID(),
+	entry := logging.Event{
 		Fields:              se.Fields,
 		RealtimeTimestamp:   se.RealtimeTimestamp,
 		MonotonicTimestamp:  se.MonotonicTimestamp,

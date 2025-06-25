@@ -17,20 +17,20 @@ func (s *Service) Start(
 	ctx context.Context,
 	ch messaging.Channel,
 ) (<-chan error, error) {
-	return nil, ch.ConsumeExclusive(ctx, logging.RawEventsQueue, s)
+	return nil, ch.ConsumeExclusive(ctx, logging.EventsQueue, s)
 }
 
 // Consume consumes one event.
 func (s *Service) Consume(
 	ctx context.Context,
 	ch messaging.Channel,
-	e *messaging.Event,
+	me *messaging.Event,
 ) error {
-	var entry logging.Event
-	if err := e.DataAs(&entry); err != nil {
+	le, err := logging.UnmarshalEvent(me)
+	if err != nil {
 		return err
 	}
 
-	fmt.Println(s.fmt.Format(&entry))
+	fmt.Println(s.fmt.Format(le))
 	return nil
 }

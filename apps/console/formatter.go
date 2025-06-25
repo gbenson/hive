@@ -12,7 +12,7 @@ type Formatter struct {
 	prettyHostnames map[string]string
 }
 
-func (f *Formatter) Format(e *logging.Event) string {
+func (f *Formatter) Format(e logging.Event) string {
 	var b builder
 
 	b.WriteTime(e.Time())
@@ -24,7 +24,7 @@ func (f *Formatter) Format(e *logging.Event) string {
 		b.WriteString(f.colorCommand(e.Command()))
 	}
 	b.WriteSpace()
-	b.WriteString(e.RawMessage())
+	b.WriteString(e.Message())
 
 	return b.String()
 }

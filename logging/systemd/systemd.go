@@ -82,11 +82,11 @@ func (e *JournalEntry) Hostname() string {
 	return e.Fields["_HOSTNAME"]
 }
 
-// RawMessage returns the human-readable text of this entry, as
+// Message returns the human-readable text of this entry, as
 // supplied by the originating process.  It's supposed to be the
 // primary text shown to the user.  Note that newline characters
 // are permitted.  Expect to find ANSI control sequences too.
-func (e *JournalEntry) RawMessage() string {
+func (e *JournalEntry) Message() string {
 	return e.Fields["MESSAGE"]
 }
 

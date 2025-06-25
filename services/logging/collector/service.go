@@ -165,5 +165,9 @@ func (s *Service) onSerializedEntry(
 		}
 	}
 
-	return s.cm.Update(entry.Cursor)
+	var err error
+	if s.cm != nil {
+		err = s.cm.Update(entry.Cursor)
+	}
+	return err
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"gbenson.net/hive/logging/systemd"
 	"gbenson.net/hive/messaging"
 	"github.com/coreos/go-systemd/v22/sdjournal"
 	"gotest.tools/v3/assert"
@@ -66,6 +67,16 @@ func TestOnSerializedEntry(t *testing.T) {
 	assert.NilError(t, err)
 	wantKeys := []string{"fields", "monotonic_usec", "realtime_usec"}
 	assert.DeepEqual(t, slices.Sorted(maps.Keys(m)), wantKeys)
+
+	// The event should unmarshal correctly into a systemd.JournalEntry.
+	// hive-log-ingester will fail if this doesn't work.
+	entry, err := systemd.UnmarshalEvent(e)
+	assert.NilError(t, err)
+
+	assert.Equal(t, entry.RealtimeTimestamp, uint64(1750582250015059))
+	assert.Equal(t, entry.MonotonicTimestamp, uint64(12829479768044))
+	assert.Equal(t, entry.CollectionTimestamp, etime.UnixNano())
+
 }
 
 type mockChannel struct {

@@ -125,3 +125,29 @@ func (e *JournalEntry) MarshalEvent() (*messaging.Event, error) {
 
 	return event, nil
 }
+
+// UnmarshalEvent unmarshals a [messaging.Event] into a [JournalEntry].
+func UnmarshalEvent(e *messaging.Event) (*JournalEntry, error) {
+	var entry JournalEntry
+	if err := messaging.UnmarshalEvent(e, &entry); err != nil {
+		return nil, err
+	}
+	return &entry, nil
+}
+
+// UnmarshalEvent implements the [messaging.EventUnarshaler] interface.
+func (e *JournalEntry) UnmarshalEvent(event *messaging.Event) error {
+	if err := event.DataAs(e); err != nil {
+		return err
+	}
+
+	// Sink the collection timestamp and digest, if necessary.
+	if e.CollectionTimestamp == 0 {
+		e.CollectionTimestamp = event.Time().UnixNano()
+	}
+	if e.Digest == "" {
+		e.Digest = event.ID()
+	}
+
+	return nil
+}

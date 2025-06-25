@@ -2,13 +2,13 @@ package ingester
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"gbenson.net/go/logger"
-	"gbenson.net/hive/logging"
+	"gbenson.net/hive/logging/systemd"
 	"gbenson.net/hive/messaging"
 )
 
@@ -34,7 +34,7 @@ func (s *Service) Start(
 	errC := make(chan error)
 	s.errC = errC
 
-	return errC, ch.ConsumeEvents(ctx, logging.RawEventsQueue, s)
+	return errC, ch.ConsumeEvents(ctx, systemd.EventsQueue, s)
 }
 
 // Close shuts down the service.
@@ -56,41 +56,26 @@ func (s *Service) Consume(
 ) error {
 	ingestionTime := time.Now()
 
-	var entry logging.Event
-	if err := event.DataAs(&entry); err != nil {
+	entry, err := systemd.UnmarshalEvent(event)
+	if err != nil {
 		return err
 	}
 
-	if entry.CollectionTimestamp != 0 {
-		s.log.Warn().
-			Str("field", "CollectionTimestamp").
-			Int64("value", entry.CollectionTimestamp).
-			Msg("Overwriting")
+	if entry.CollectionTimestamp < 1 {
+		return errors.New("invalid collection timestamp")
 	}
-	entry.CollectionTimestamp = event.Time().UnixNano()
 
 	if entry.IngestionTimestamp != 0 {
-		s.log.Warn().
-			Str("field", "IngestionTimestamp").
-			Int64("value", entry.IngestionTimestamp).
-			Msg("Overwriting")
+		return errors.New("unexpected ingestion timestamp")
 	}
 	entry.IngestionTimestamp = ingestionTime.UnixNano()
 
-	if entry.Digest != "" {
-		s.log.Warn().
-			Str("field", "Digest").
-			Str("value", entry.Digest).
-			Msg("Overwriting")
-	}
-	entry.Digest = event.ID()
 	wantDigest := entry.Blake2b256Digest()
-
 	if entry.Digest != wantDigest {
-		return fmt.Errorf("%q != %q", wantDigest, entry.Digest)
+		return &systemd.DigestError{Got: entry.Digest, Want: wantDigest}
 	}
 
-	_, err := s.db.Collection.InsertOne(ctx, entry)
+	_, err = s.db.Collection.InsertOne(ctx, entry)
 	if err != nil {
 		if !mongo.IsDuplicateKeyError(err) {
 			return err

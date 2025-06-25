@@ -10,7 +10,7 @@ import (
 	"github.com/coreos/go-systemd/v22/sdjournal"
 
 	"gbenson.net/go/logger"
-	"gbenson.net/hive/logging"
+	"gbenson.net/hive/logging/systemd"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/util"
 
@@ -149,18 +149,14 @@ func (s *Service) onSerializedEntry(
 	}
 
 	if filters.ShouldForwardEvent(entry.Fields) {
-		payload := logging.Event{
-			Fields:             entry.Fields,
-			RealtimeTimestamp:  entry.RealtimeTimestamp,
-			MonotonicTimestamp: entry.MonotonicTimestamp,
+		event := systemd.JournalEntry{
+			Fields:              entry.Fields,
+			RealtimeTimestamp:   entry.RealtimeTimestamp,
+			MonotonicTimestamp:  entry.MonotonicTimestamp,
+			CollectionTimestamp: collectionTime.UnixNano(),
 		}
-		event := messaging.NewEvent()
 
-		event.SetID(payload.Blake2b256Digest())
-		event.SetTime(collectionTime)
-		event.SetData("application/json", payload)
-
-		if err := ch.PublishEvent(ctx, logging.RawEventsQueue, event); err != nil {
+		if err := ch.PublishEvent(ctx, systemd.EventsQueue, &event); err != nil {
 			return err
 		}
 	}

@@ -10,6 +10,15 @@ func b64encode(b []byte) string {
 	return base64.StdEncoding.EncodeToString(b)
 }
 
+// clone returns a shallow copy of an object.
+func clone[T any](obj *T) *T {
+	if obj == nil {
+		panic("nil object")
+	}
+	r := *obj
+	return &r
+}
+
 // itoa returns the string representation of i in base 10.
 func itoa(i int64) string {
 	return strconv.FormatInt(i, 10)

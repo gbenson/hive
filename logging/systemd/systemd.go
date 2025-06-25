@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"gbenson.net/hive/messaging"
 	"golang.org/x/crypto/blake2b"
 )
 
@@ -94,4 +95,33 @@ func (e *JournalEntry) RawMessage() string {
 // It has microsecond granularity.
 func (e *JournalEntry) Time() time.Time {
 	return time.UnixMicro(int64(e.RealtimeTimestamp))
+}
+
+// MarshalEvent implements the [messaging.EventMarshaler] interface.
+func (e *JournalEntry) MarshalEvent() (*messaging.Event, error) {
+	event := messaging.NewEvent()
+
+	// Hoist the digest into the envelope.
+	digest := e.Blake2b256Digest()
+	switch e.Digest {
+	case digest:
+		e = clone(e)
+		e.Digest = ""
+		fallthrough
+	case "":
+		event.SetID(digest)
+	default:
+		return nil, &DigestError{Got: e.Digest, Want: digest}
+	}
+
+	// Hoist the collection timestamp into the envelope.
+	if e.CollectionTimestamp != 0 {
+		event.SetTime(time.Unix(0, e.CollectionTimestamp))
+		e = clone(e)
+		e.CollectionTimestamp = 0
+	}
+
+	event.SetData("application/json", e)
+
+	return event, nil
 }

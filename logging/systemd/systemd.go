@@ -1,4 +1,5 @@
-package logging
+// Package systemd manages systemd journal entries for Hive.
+package systemd
 
 import (
 	"encoding/json"
@@ -9,8 +10,8 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
-// Event represents a systemd journal entry plus address fields.
-type Event struct {
+// JournalEntry represents a systemd journal entry plus address fields.
+type JournalEntry struct {
 	// Digest of Fields plus the two timestamp address fields.
 	Digest string `json:"digest,omitempty"`
 
@@ -36,7 +37,7 @@ type Event struct {
 // Fields, including the address field timestamps systemd moved out
 // of line: everything hive-log-forwarder read from the journal less
 // the cursor which it drops before forwarding to save bytes.
-func (e *Event) Blake2b256Digest() string {
+func (e *JournalEntry) Blake2b256Digest() string {
 	fields := maps.Clone(e.Fields) // shallow copy
 
 	fields["__REALTIME_TIMESTAMP"] = utoa(e.RealtimeTimestamp)
@@ -56,7 +57,7 @@ func (e *Event) Blake2b256Digest() string {
 // originates from.  Generally this will be the name you see
 // in top, so mostly lowercase alphanumeric with the occasional
 // random one in parentheses.
-func (e *Event) Command() string {
+func (e *JournalEntry) Command() string {
 	// Prefer the "_COMM" trusted field.
 	if result := e.Fields["_COMM"]; result != "" {
 		return result
@@ -71,12 +72,12 @@ func (e *Event) Command() string {
 // Will be empty if the originating process isn't in a container,
 // or if the originating process is in a container managed by an
 // engine we don't yet handle.
-func (e *Event) ContainerName() string {
+func (e *JournalEntry) ContainerName() string {
 	return e.Fields["CONTAINER_NAME"]
 }
 
 // Hostname returns the name of the originating host.
-func (e *Event) Hostname() string {
+func (e *JournalEntry) Hostname() string {
 	return e.Fields["_HOSTNAME"]
 }
 
@@ -84,13 +85,13 @@ func (e *Event) Hostname() string {
 // supplied by the originating process.  It's supposed to be the
 // primary text shown to the user.  Note that newline characters
 // are permitted.  Expect to find ANSI control sequences too.
-func (e *Event) RawMessage() string {
+func (e *JournalEntry) RawMessage() string {
 	return e.Fields["MESSAGE"]
 }
 
 // Time returns the wallclock time of the originating host at the
 // point in time the entry was received by the systemd journal.
 // It has microsecond granularity.
-func (e *Event) Time() time.Time {
+func (e *JournalEntry) Time() time.Time {
 	return time.UnixMicro(int64(e.RealtimeTimestamp))
 }

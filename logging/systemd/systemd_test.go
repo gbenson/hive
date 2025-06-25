@@ -1,4 +1,4 @@
-package logging
+package systemd
 
 import (
 	"encoding/json"
@@ -10,8 +10,8 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func newTestEvent() *Event {
-	return &Event{
+func newTestEvent() *JournalEntry {
+	return &JournalEntry{
 		RealtimeTimestamp:  1750582250015059,
 		MonotonicTimestamp: 12829479768044,
 		Fields: map[string]string{

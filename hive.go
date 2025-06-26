@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"golang.org/x/term"
+
 	"gbenson.net/go/logger"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/util"
@@ -22,6 +24,11 @@ type Service interface {
 // Run runs a Hive service.
 func Run(s Service) {
 	log := logger.New(nil)
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		log = log.With().
+			Str("net_gbenson_logger", "hive-service-go").
+			Logger()
+	}
 	RunContext(log.WithContext(context.Background()), s)
 }
 

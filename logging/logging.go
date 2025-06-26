@@ -40,7 +40,11 @@ func UnmarshalEvent(me *messaging.Event) (Event, error) {
 		return nil, err
 	}
 
+	// format-specific wrappers
 	e = maybeWrapJSONEvent(e)
+
+	// application-specific wrappers
+	e = maybeWrapRabbitMQEvent(e)
 
 	return e, nil
 }

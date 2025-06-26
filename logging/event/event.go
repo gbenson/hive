@@ -20,13 +20,10 @@ type Event interface {
 	// Hostname returns the name of the originating host.
 	Hostname() string
 
-	// Message returns the human-readable text of this logged event,
-	// as supplied by the originating process.  This is the primary
-	// text intended to be shown to the user.  Note that newline
-	// characters are permitted.
-	Message() string
+	// Message returns the primary content of this logged event.
+	Message() Message
 
-	// Time returns the wallclock time of the originating host when the
-	// event was logged.
+	// Time returns the wallclock time of the originating host when
+	// the event was logged.
 	Time() time.Time
 }

@@ -1,7 +1,9 @@
 package console
 
 import (
+	"fmt"
 	"strings"
+	"unicode"
 
 	"golang.org/x/crypto/blake2b"
 
@@ -23,8 +25,27 @@ func (f *Formatter) Format(e logging.Event) string {
 	} else {
 		b.WriteString(f.colorCommand(e.Command()))
 	}
-	b.WriteSpace()
-	b.WriteString(e.Message())
+
+	// Prefer a structured message, if available.
+	msg := e.Message()
+	pos := b.Len()
+	for k, v := range msg.Pairs() {
+		s := fmt.Sprintf("%v", v)
+		if s == "" {
+			continue
+		}
+		if shouldQuoteFieldValue(s) {
+			s = fmt.Sprintf("%q", s)
+		}
+		b.WriteString(Cyan(" " + k + "="))
+		b.WriteString(s)
+	}
+
+	// Fall back to unstructured message if not.
+	if b.Len() == pos {
+		b.WriteSpace()
+		b.WriteString(e.Message().String())
+	}
 
 	return b.String()
 }
@@ -65,4 +86,20 @@ func (f *Formatter) colorContainerName(s string) string {
 
 func (f *Formatter) colorCommand(s string) string {
 	return Colors(248, 238, " "+s+" ")
+}
+
+func shouldQuoteFieldValue(s string) bool {
+	if strings.ContainsAny(s, "'\"`\\ \t\n\r") {
+		return true
+	}
+	for _, r := range s {
+		if strings.ContainsRune("-_.,<>()[]{}:;@#?/|+*&^%$~", r) {
+			continue
+		}
+		if unicode.IsLetter(r) || unicode.IsNumber(r) {
+			continue
+		}
+		return true
+	}
+	return false
 }

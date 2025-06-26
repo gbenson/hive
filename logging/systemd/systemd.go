@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"gbenson.net/hive/logging/event"
+	"gbenson.net/hive/logging/internal"
 	"gbenson.net/hive/messaging"
 	"golang.org/x/crypto/blake2b"
 )
@@ -86,8 +88,8 @@ func (e *JournalEntry) Hostname() string {
 // supplied by the originating process.  It's supposed to be the
 // primary text shown to the user.  Note that newline characters
 // are permitted.  Expect to find ANSI control sequences too.
-func (e *JournalEntry) Message() string {
-	return e.Fields["MESSAGE"]
+func (e *JournalEntry) Message() event.Message {
+	return internal.UnstructuredMessage(e.Fields["MESSAGE"])
 }
 
 // Time returns the wallclock time of the originating host at the

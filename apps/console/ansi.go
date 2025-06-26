@@ -1,6 +1,7 @@
 package console
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -10,6 +11,10 @@ const (
 	RESET  = CSI + "0m"        // all attributes off
 	M_GREY = CSI + "38;5;244m" // mid grey
 )
+
+func Cyan(s string) string {
+	return fmt.Sprintf("%s36m%s%s", CSI, s, RESET)
+}
 
 func MidGrey(s string) string {
 	return Colors(244, -1, s)

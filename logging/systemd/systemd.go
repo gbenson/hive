@@ -4,6 +4,7 @@ package systemd
 import (
 	"encoding/json"
 	"maps"
+	"strconv"
 	"strings"
 	"time"
 
@@ -90,6 +91,26 @@ func (e *JournalEntry) Hostname() string {
 // are permitted.  Expect to find ANSI control sequences too.
 func (e *JournalEntry) Message() event.Message {
 	return internal.UnstructuredMessage(e.Fields["MESSAGE"])
+}
+
+// Priority returns the RFC 5424 syslog severity level of this event,
+// as reported by the originating process.  This isn't always present
+// or useful, e.g. entries from processes in Docker containers are
+// reported as PriInfo if collected from stdout or PriErr if reported
+// on stderr, so the reported priority may well not line up with the
+// content of the message.
+func (e *JournalEntry) Priority() event.Priority {
+	v, err := strconv.Atoi(e.Fields["PRIORITY"])
+	if err != nil {
+		return event.PriUnknown
+	}
+
+	p := event.Priority(v)
+	if p < event.PriEmerg || p > event.PriDebug {
+		return event.PriUnknown
+	}
+
+	return p
 }
 
 // Time returns the wallclock time of the originating host at the

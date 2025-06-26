@@ -18,6 +18,21 @@ type Event = event.Event
 // Message represents the primary content of a logged event.
 type Message = event.Message
 
+// Priority is the RFC 5424 syslog severity level of an event.
+type Priority = event.Priority
+
+const (
+	PriEmerg   = event.PriEmerg
+	PriAlert   = event.PriAlert
+	PriCrit    = event.PriCrit
+	PriErr     = event.PriErr
+	PriWarning = event.PriWarning
+	PriNotice  = event.PriNotice
+	PriInfo    = event.PriInfo
+	PriDebug   = event.PriDebug
+	PriUnknown = event.PriUnknown
+)
+
 // UnmarshalEvent unmarshals a [messaging.Event] into an [Event].
 func UnmarshalEvent(me *messaging.Event) (Event, error) {
 	e, err := unmarshalEvent(me)

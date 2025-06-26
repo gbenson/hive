@@ -23,6 +23,10 @@ type Event interface {
 	// Message returns the primary content of this logged event.
 	Message() Message
 
+	// Priority returns the RFC 5424 syslog severity level of this
+	// event, as reported by the originating process.
+	Priority() Priority
+
 	// Time returns the wallclock time of the originating host when
 	// the event was logged.
 	Time() time.Time

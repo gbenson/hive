@@ -29,6 +29,10 @@ func (e *wrappedEvent) Message() Message {
 	return e.w.Message()
 }
 
+func (e *wrappedEvent) Priority() Priority {
+	return e.w.Priority()
+}
+
 func (e *wrappedEvent) Time() time.Time {
 	return e.w.Time()
 }

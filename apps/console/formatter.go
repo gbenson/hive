@@ -25,6 +25,10 @@ func (f *Formatter) Format(e logging.Event) string {
 	} else {
 		b.WriteString(f.colorCommand(e.Command()))
 	}
+	if s := f.formatPriority(e.Priority()); s != "" {
+		b.WriteSpace()
+		b.WriteString(s)
+	}
 
 	// Prefer a structured message, if available.
 	msg := e.Message()
@@ -48,6 +52,29 @@ func (f *Formatter) Format(e logging.Event) string {
 	}
 
 	return b.String()
+}
+
+func (f *Formatter) formatPriority(p logging.Priority) string {
+	switch p {
+	case logging.PriEmerg:
+		return Colors(220, 196, " EMERGENCY ")
+	case logging.PriAlert:
+		return Colors(220, 196, " ALERT ")
+	case logging.PriCrit:
+		return Colors(220, 196, " CRITICAL ")
+	case logging.PriErr:
+		return Colors(220, 196, " error ")
+	case logging.PriWarning:
+		return Colors(0, 220, " warning ")
+	case logging.PriNotice:
+		return Colors(234, 242, " notice ")
+	case logging.PriInfo:
+		return ""
+	case logging.PriDebug:
+		return MidGrey(" debug ")
+	default:
+		return MidGrey(" unknown ")
+	}
 }
 
 func (f *Formatter) colorHostname(s string) string {

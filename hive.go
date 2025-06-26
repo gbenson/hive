@@ -12,6 +12,7 @@ import (
 	"golang.org/x/term"
 
 	"gbenson.net/go/logger"
+	"gbenson.net/hive/logging"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/util"
 )
@@ -26,7 +27,7 @@ func Run(s Service) {
 	log := logger.New(nil)
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
 		log = log.With().
-			Str("net_gbenson_logger", "hive-service-go").
+			Str(logging.LoggerTagField, "hive-service-go").
 			Logger()
 	}
 	RunContext(log.WithContext(context.Background()), s)

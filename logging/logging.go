@@ -34,6 +34,10 @@ const (
 	PriUnknown = event.PriUnknown
 )
 
+// LoggerTagField is a field that can be added to structured log
+// entries to avoid having to guess how they should be parsed.
+const LoggerTagField = "net_gbenson_logger"
+
 // Logger is used to report errors that would otherwise be ignored.
 // Be sure to avoid loops if you enable this.
 var defaultLogger = logger.New(&logger.Options{Level: "disabled"})
@@ -50,6 +54,7 @@ func UnmarshalEvent(me *messaging.Event) (Event, error) {
 	e = maybeWrapJSONEvent(e)
 
 	// application-specific wrappers
+	e = maybeWrapNginxAccessEvent(e)
 	e = maybeWrapRabbitMQEvent(e)
 
 	return e, nil

@@ -7,8 +7,9 @@ readme = "README.md"
 license = "MIT"
 dependencies = [
     "cloudevents[pydantic]",
-    "hive-common>=0.1.2",
+    "hive-common>=0.2.0",
     "hive-messaging>=0.12.5",
+    "python-json-logger",
 ]
 
 [project.urls]

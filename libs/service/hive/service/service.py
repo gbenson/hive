@@ -14,6 +14,8 @@ from hive.messaging import (
     publisher_connection,
 )
 
+from .logging import maybe_enable_json_logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -31,6 +33,7 @@ class Service(ABC):
     def __post_init__(self):
         if not self.argument_parser:
             self.argument_parser = self.make_argument_parser()
+        maybe_enable_json_logging()
 
         in_pytest = self.argument_parser.prog == "pytest"
         if self.unparsed_arguments is None:

@@ -33,8 +33,8 @@ def test_library_default_log_level(monkeypatch):
     with monkeypatch.context() as mp:
         mp.setattr(logging, "basicConfig", mock_bc)
         mp.delenv("LL", raising=False)
+        mp.setattr(ArgumentParser, "DEFAULT_LOGLEVEL", None)
         parser = ArgumentParser()
-        parser.DEFAULT_LOGLEVEL = None
         _ = parser.parse_args()
 
 

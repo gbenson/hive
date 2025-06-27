@@ -11,7 +11,9 @@ class HiveArgumentParser(ArgumentParser):
     DEFAULT_EPILOG = "Run with LL=debug for so much extra logging."
     DEFAULT_LOGLEVEL = logging.INFO
 
-    def parse_args(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         if not self.epilog:
             self.epilog = self.DEFAULT_EPILOG
 
@@ -20,4 +22,3 @@ class HiveArgumentParser(ArgumentParser):
                 logging.basicConfig(level=log_level)
             except ValueError:
                 logger.warning(f"Ignoring LL={log_level!r}")
-        return super().parse_args(*args, *kwargs)

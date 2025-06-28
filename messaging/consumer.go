@@ -1,12 +1,10 @@
 package messaging
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/cloudevents/sdk-go/v2/event"
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	"gbenson.net/go/logger"
@@ -71,7 +69,7 @@ func unmarshalForConsume(e *Event, d *amqp.Delivery) error {
 		return fmt.Errorf("unexpected content type %q", d.ContentType)
 	}
 
-	return event.ReadJson(e, bytes.NewReader(d.Body))
+	return UnmarshalJSONEvent(e, d.Body)
 }
 
 func ackOrReject(ctx context.Context, d *amqp.Delivery, ok bool) {

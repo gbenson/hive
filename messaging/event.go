@@ -1,11 +1,13 @@
 package messaging
 
 import (
+	"bytes"
 	"reflect"
 	"strings"
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/gertd/go-pluralize"
 	"github.com/google/uuid"
 
@@ -29,6 +31,21 @@ var DefaultEventSource = "https://gbenson.net/hive/services/" + util.ServiceName
 func NewEvent() *Event {
 	e := cloudevents.NewEvent()
 	return &e
+}
+
+// NewEventFromJSON parses the JSON-encoded data into an [Event].
+func NewEventFromJSON(b []byte) (*Event, error) {
+	e := NewEvent()
+	if err := UnmarshalJSONEvent(e, b); err != nil {
+		return nil, err
+	}
+	return e, nil
+}
+
+// UnmarshalJSONEvent parses the JSON-encoded data and stores the
+// result in the value pointed to by e.
+func UnmarshalJSONEvent(e *Event, b []byte) error {
+	return event.ReadJson(e, bytes.NewReader(b))
 }
 
 // MarshalEvent returns v as an [Event].

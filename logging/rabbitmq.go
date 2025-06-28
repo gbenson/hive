@@ -14,9 +14,12 @@ type RabbitMQEvent struct {
 // rabbitMQPIDrx matches the "pid" field of RabbitMQ structured events.
 var rabbitMQPIDrx = regexp.MustCompile(`^<\d+\.\d+\.\d+>$`)
 
-// rabbitMQLevels maps RabbitMQ log levels to syslog severity levels.
-// https://www.rabbitmq.com/docs/logging#log-levels
-var rabbitMQLevels map[string]Priority = map[string]Priority{
+// rabbitMQPairs declares which fields to omit from Pairs.
+var rabbitMQPairs = omitPairs("level", "time")
+
+// rabbitMQPriorityMap maps RabbitMQ log levels to syslog severity
+// levels.  https://www.rabbitmq.com/docs/logging#log-levels
+var rabbitMQPriorityMap = priorityMap{
 	"debug":    PriDebug,
 	"info":     PriInfo,
 	"warning":  PriWarning,
@@ -41,11 +44,7 @@ func maybeWrapRabbitMQEvent(e Event) Event {
 
 // Priority returns the syslog severity level of this event.
 func (e *RabbitMQEvent) Priority() Priority {
-	level := StringField(e, "level")
-	if p, ok := rabbitMQLevels[level]; ok {
-		return p
-	}
-	return PriUnknown
+	return rabbitMQPriorityMap.Get(Field(e, "level"))
 }
 
 // Time returns the wallclock timestamp of this event.
@@ -85,21 +84,5 @@ func (e *RabbitMQEvent) Message() Message {
 
 // Pairs returns ordered key-value pairs for message construction.
 func (e *RabbitMQEvent) Pairs() iter.Seq2[string, any] {
-	return func(yield func(string, any) bool) {
-		if !yield("msg", e.Fields()["msg"]) {
-			return
-		}
-
-		for k, v := range e.w.Message().Pairs() {
-			switch k {
-			case "level":
-			case "msg":
-			case "time":
-			default:
-				if !yield(k, v) {
-					return
-				}
-			}
-		}
-	}
+	return rabbitMQPairs(e.w.Message().Pairs())
 }

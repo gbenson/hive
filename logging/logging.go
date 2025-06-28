@@ -19,21 +19,6 @@ type Event = event.Event
 // Message represents the primary content of a logged event.
 type Message = event.Message
 
-// Priority is the RFC 5424 syslog severity level of an event.
-type Priority = event.Priority
-
-const (
-	PriEmerg   = event.PriEmerg
-	PriAlert   = event.PriAlert
-	PriCrit    = event.PriCrit
-	PriErr     = event.PriErr
-	PriWarning = event.PriWarning
-	PriNotice  = event.PriNotice
-	PriInfo    = event.PriInfo
-	PriDebug   = event.PriDebug
-	PriUnknown = event.PriUnknown
-)
-
 // LoggerTagField is a field that can be added to structured log
 // entries to avoid having to guess how they should be parsed.
 const LoggerTagField = "net_gbenson_logger"
@@ -55,6 +40,7 @@ func UnmarshalEvent(me *messaging.Event) (Event, error) {
 
 	// application-specific wrappers
 	e = maybeWrapNginxAccessEvent(e)
+	e = maybeWrapNginxErrorEvent(e)
 	e = maybeWrapRabbitMQEvent(e)
 
 	return e, nil

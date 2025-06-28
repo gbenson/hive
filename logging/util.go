@@ -12,8 +12,14 @@ func LoggerTag(e Event) string {
 	return StringField(e, LoggerTagField)
 }
 
-// StringField returns the string value of an event's message field.
+// StringField returns the string value of a field in a structured
+// event's message.
 func StringField(e Event, k string) string {
-	v, _ := e.Message().Fields()[k].(string)
+	v, _ := Field(e, k).(string)
 	return v
+}
+
+// Field returns the value of a field in a structured event's message.
+func Field(e Event, k string) any {
+	return e.Message().Fields()[k]
 }

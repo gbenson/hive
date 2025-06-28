@@ -51,7 +51,7 @@ func Dial(ctx context.Context) (Conn, error) {
 	uri.Username = c.GetString("default_user")
 	uri.Password = c.GetString("default_pass")
 
-	return dial(ctx, fmt.Sprintf("%s?heartbeat=600", uri))
+	return dial(ctx, fmt.Sprintf("%s?heartbeat=60", uri))
 }
 
 func dial(ctx context.Context, uri string) (Conn, error) {

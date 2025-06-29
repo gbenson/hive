@@ -4,6 +4,7 @@ package logging
 import (
 	"fmt"
 
+	"gbenson.net/go/logger"
 	"gbenson.net/hive/logging/event"
 	"gbenson.net/hive/logging/systemd"
 	"gbenson.net/hive/messaging"
@@ -32,6 +33,11 @@ const (
 	PriDebug   = event.PriDebug
 	PriUnknown = event.PriUnknown
 )
+
+// Logger is used to report errors that would otherwise be ignored.
+// Be sure to avoid loops if you enable this.
+var defaultLogger = logger.New(&logger.Options{Level: "disabled"})
+var Logger = &defaultLogger
 
 // UnmarshalEvent unmarshals a [messaging.Event] into an [Event].
 func UnmarshalEvent(me *messaging.Event) (Event, error) {

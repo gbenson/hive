@@ -55,6 +55,11 @@ func (e *RabbitMQEvent) Time() time.Time {
 	s := StringField(e, "time")
 	rtime, err := time.Parse(rabbitMQTimeFormat, s)
 	if err != nil {
+		Logger.Warn().
+			Err(err).
+			Str("format", rabbitMQTimeFormat).
+			Str("input", s).
+			Msg("time.Parse failed")
 		return jtime
 	}
 
@@ -62,6 +67,11 @@ func (e *RabbitMQEvent) Time() time.Time {
 	// the time journald recorded, e.g. ~1.4ms on unloaded rpi4.
 	d := jtime.Sub(rtime)
 	if d < 0 || d > time.Hour {
+		Logger.Warn().
+			Dur("delta", d).
+			Time("journald_time", jtime).
+			Time("rabbitmq_time", rtime).
+			Msg("Unexpected skew")
 		return jtime
 	}
 

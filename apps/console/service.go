@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"gbenson.net/go/logger"
 	"gbenson.net/hive/logging"
 	"gbenson.net/hive/messaging"
 )
@@ -17,6 +18,7 @@ func (s *Service) Start(
 	ctx context.Context,
 	ch messaging.Channel,
 ) (<-chan error, error) {
+	logging.Logger = logger.Ctx(ctx)
 	return nil, ch.ConsumeExclusive(ctx, logging.EventsQueue, s)
 }
 

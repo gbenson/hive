@@ -1,7 +1,8 @@
 package console
 
 import (
-	"fmt"
+	"encoding/json"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -34,12 +35,9 @@ func (f *Formatter) Format(e logging.Event) string {
 	msg := e.Message()
 	pos := b.Len()
 	for k, v := range msg.Pairs() {
-		s := fmt.Sprintf("%v", v)
+		s := formatValue(v)
 		if s == "" {
 			continue
-		}
-		if shouldQuoteFieldValue(s) {
-			s = fmt.Sprintf("%q", s)
 		}
 		b.WriteString(Cyan(" " + k + "="))
 		b.WriteString(s)
@@ -115,7 +113,26 @@ func (f *Formatter) colorCommand(s string) string {
 	return Colors(248, 238, " "+s+" ")
 }
 
-func shouldQuoteFieldValue(s string) bool {
+func formatValue(v any) string {
+	if s, gotstr := v.(string); gotstr {
+		if !shouldQuoteString(s) {
+			return s
+		}
+		qs := strconv.Quote(s)
+		if strings.ContainsRune(qs, '\\') && strconv.CanBackquote(s) {
+			return "`" + s + "`"
+		}
+		return qs
+	}
+
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
+}
+
+func shouldQuoteString(s string) bool {
 	if strings.ContainsAny(s, "'\"`\\ \t\n\r") {
 		return true
 	}

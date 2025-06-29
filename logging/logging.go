@@ -39,6 +39,7 @@ func UnmarshalEvent(me *messaging.Event) (Event, error) {
 	e = maybeWrapJSONEvent(e)
 
 	// application-specific wrappers
+	e = maybeWrapHiveServiceEvent(e)
 	e = maybeWrapNginxAccessEvent(e)
 	e = maybeWrapNginxErrorEvent(e)
 	e = maybeWrapRabbitMQEvent(e)

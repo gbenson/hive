@@ -20,6 +20,9 @@ type Event interface {
 	// Hostname returns the name of the originating host.
 	Hostname() string
 
+	// ID returns a string that uniquely identifies this event.
+	ID() string
+
 	// Message returns the primary content of this logged event.
 	Message() Message
 

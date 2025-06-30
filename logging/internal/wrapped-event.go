@@ -31,6 +31,10 @@ func (e *WrappedEvent) Hostname() string {
 	return e.Wrapped.Hostname()
 }
 
+func (e *WrappedEvent) ID() string {
+	return e.Wrapped.ID()
+}
+
 func (e *WrappedEvent) Message() Message {
 	return e.Wrapped.Message()
 }

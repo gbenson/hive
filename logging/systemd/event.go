@@ -84,6 +84,17 @@ func (e *JournalEntry) Hostname() string {
 	return e.Fields["_HOSTNAME"]
 }
 
+// ID returns an opaque string that can be used to uniquely identify
+// this event.
+func (e *JournalEntry) ID() string {
+	d := e.Digest
+	if d == "" {
+		d = e.Blake2b256Digest()
+		e.Digest = d
+	}
+	return d
+}
+
 // Message returns the human-readable text of this entry, as
 // supplied by the originating process.  It's supposed to be the
 // primary text shown to the user.  Note that newline characters

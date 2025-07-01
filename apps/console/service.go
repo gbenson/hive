@@ -6,6 +6,7 @@ import (
 
 	"gbenson.net/go/logger"
 	"gbenson.net/hive/logging"
+	"gbenson.net/hive/logging/systemd"
 	"gbenson.net/hive/messaging"
 )
 
@@ -19,7 +20,7 @@ func (s *Service) Start(
 	ch messaging.Channel,
 ) (<-chan error, error) {
 	logging.Logger = logger.Ctx(ctx)
-	return nil, ch.ConsumeExclusive(ctx, logging.EventsQueue, s)
+	return nil, ch.ConsumeExclusive(ctx, systemd.EventsQueue, s)
 }
 
 // Consume consumes one event.

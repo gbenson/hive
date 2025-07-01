@@ -10,9 +10,6 @@ import (
 	"gbenson.net/hive/messaging"
 )
 
-// EventsQueue is where log collectors publish the events they collect.
-const EventsQueue = systemd.EventsQueue
-
 // Event represents a single logged event.
 type Event = event.Event
 

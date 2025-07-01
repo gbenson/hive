@@ -8,14 +8,14 @@ import (
 
 	"golang.org/x/crypto/blake2b"
 
-	"gbenson.net/hive/logging"
+	. "gbenson.net/hive/logging/event"
 )
 
 type Formatter struct {
 	prettyHostnames map[string]string
 }
 
-func (f *Formatter) Format(e logging.Event) string {
+func (f *Formatter) Format(e Event) string {
 	var b builder
 
 	b.WriteTime(e.Time())
@@ -52,23 +52,23 @@ func (f *Formatter) Format(e logging.Event) string {
 	return b.String()
 }
 
-func (f *Formatter) formatPriority(p logging.Priority) string {
+func (f *Formatter) formatPriority(p Priority) string {
 	switch p {
-	case logging.PriEmerg:
+	case PriEmerg:
 		return Colors(220, 196, " EMERGENCY ")
-	case logging.PriAlert:
+	case PriAlert:
 		return Colors(220, 196, " ALERT ")
-	case logging.PriCrit:
+	case PriCrit:
 		return Colors(220, 196, " CRITICAL ")
-	case logging.PriErr:
+	case PriErr:
 		return Colors(220, 196, " error ")
-	case logging.PriWarning:
+	case PriWarning:
 		return Colors(0, 220, " warning ")
-	case logging.PriNotice:
+	case PriNotice:
 		return Colors(234, 242, " notice ")
-	case logging.PriInfo:
+	case PriInfo:
 		return ""
-	case logging.PriDebug:
+	case PriDebug:
 		return MidGrey(" debug ")
 	default:
 		return MidGrey(" unknown ")

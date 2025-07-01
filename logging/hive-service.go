@@ -1,6 +1,10 @@
 package logging
 
-import "iter"
+import (
+	"iter"
+
+	. "gbenson.net/hive/logging/event"
+)
 
 // HiveServiceEvent represents a JSON-formatted event logged by a
 // Hive service.

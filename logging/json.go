@@ -3,6 +3,8 @@ package logging
 import (
 	"encoding/json"
 	"iter"
+
+	. "gbenson.net/hive/logging/event"
 )
 
 // jsonEvent represents a logged event whose message is a JSON-encoded

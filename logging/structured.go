@@ -4,6 +4,8 @@ import (
 	"iter"
 	"maps"
 	"slices"
+
+	. "gbenson.net/hive/logging/event"
 )
 
 // sortedPairs iterates over e.Fields(), with the field "message" or

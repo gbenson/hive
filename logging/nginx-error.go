@@ -6,6 +6,8 @@ import (
 	"maps"
 	"strings"
 
+	. "gbenson.net/hive/logging/event"
+
 	"gbenson.net/hive/logging/internal/rxp"
 	"gbenson.net/hive/logging/internal/rxparser"
 )

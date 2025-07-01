@@ -3,6 +3,8 @@ package logging
 import (
 	"encoding/json"
 	"iter"
+
+	. "gbenson.net/hive/logging/event"
 )
 
 // NginxAccessEvent represents a JSON-formatted access_log event

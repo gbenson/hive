@@ -4,6 +4,8 @@ import (
 	"iter"
 	"regexp"
 	"time"
+
+	. "gbenson.net/hive/logging/event"
 )
 
 // RabbitMQEvent represents a JSON-formatted event logged by RabbitMQ.

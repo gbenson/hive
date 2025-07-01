@@ -1,4 +1,4 @@
-// Package event provides the Event interface.
+// Package event provides the Event interface and supporting types.
 package event
 
 import "time"

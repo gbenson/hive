@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/crypto/blake2b"
 
-	"gbenson.net/hive/logging/event"
+	. "gbenson.net/hive/logging/event"
 	"gbenson.net/hive/logging/internal"
 )
 
@@ -88,7 +88,7 @@ func (e *JournalEntry) Hostname() string {
 // supplied by the originating process.  It's supposed to be the
 // primary text shown to the user.  Note that newline characters
 // are permitted.  Expect to find ANSI control sequences too.
-func (e *JournalEntry) Message() event.Message {
+func (e *JournalEntry) Message() Message {
 	return internal.UnstructuredMessage(e.Fields["MESSAGE"])
 }
 
@@ -98,15 +98,15 @@ func (e *JournalEntry) Message() event.Message {
 // reported as PriInfo if collected from stdout or PriErr if reported
 // on stderr, so the reported priority may well not line up with the
 // content of the message.
-func (e *JournalEntry) Priority() event.Priority {
+func (e *JournalEntry) Priority() Priority {
 	v, err := strconv.Atoi(e.Fields["PRIORITY"])
 	if err != nil {
-		return event.PriUnknown
+		return PriUnknown
 	}
 
-	p := event.Priority(v)
-	if p < event.PriEmerg || p > event.PriDebug {
-		return event.PriUnknown
+	p := Priority(v)
+	if p < PriEmerg || p > PriDebug {
+		return PriUnknown
 	}
 
 	return p

@@ -3,6 +3,8 @@ package logging
 import (
 	"iter"
 	"time"
+
+	. "gbenson.net/hive/logging/event"
 )
 
 // wrappedEvent is a base class with every [Event] and [Message]

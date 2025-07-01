@@ -1,6 +1,10 @@
 package logging
 
-import "github.com/rs/zerolog"
+import (
+	"github.com/rs/zerolog"
+
+	. "gbenson.net/hive/logging/event"
+)
 
 // zerologPriorityMap maps zerolog logging levels to syslog severity
 // levels.  https://pkg.go.dev/github.com/rs/zerolog#pkg-variables

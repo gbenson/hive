@@ -7,6 +7,8 @@ import (
 
 	"gbenson.net/hive/messaging"
 	"gotest.tools/v3/assert"
+
+	. "gbenson.net/hive/logging/event"
 )
 
 func TestBasicNotice(t *testing.T) {

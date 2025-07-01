@@ -3,6 +3,8 @@ package messaging
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -15,8 +17,9 @@ import (
 // conn represents a connection to the Hive message bus.
 // It implements the Conn interface.
 type conn struct {
-	amqp *amqp.Connection
-	log  *logger.Logger
+	amqp      *amqp.Connection
+	log       *logger.Logger
+	closeWait sync.WaitGroup
 }
 
 var rabbitConfigKeys = []string{
@@ -67,7 +70,7 @@ func dial(ctx context.Context, uri string) (Conn, error) {
 		return nil, err
 	}
 
-	return &conn{c, &log}, nil
+	return &conn{amqp: c, log: &log}, nil
 }
 
 // ConnCloseTimeout is the maximum time [Conn.Close()] will wait
@@ -75,8 +78,53 @@ func dial(ctx context.Context, uri string) (Conn, error) {
 const ConnCloseTimeout = 30 * time.Second
 
 // Close closes the connection.
-func (c *conn) Close() (err error) {
-	return c.amqp.CloseDeadline(time.Now().Add(ConnCloseTimeout))
+func (c *conn) Close() error {
+	defer c.closeWait.Wait()
+
+	deadline := time.Now().Add(ConnCloseTimeout)
+	err := c.amqp.CloseDeadline(deadline)
+
+	// Suppress error if close is called on an already-closed channel.
+	// Could run a NotifyClose to detect being closed by the server
+	// and only suppress the error if that is the case, but that's
+	// likely overkill.
+	if err != nil && isAlreadyClosedError(err) {
+		return nil
+	}
+
+	return err
+}
+
+// isAlreadyClosedError reports whether an error is the AMQP
+// 'Exception (504) Reason: "channel/connection is not open"'.
+func isAlreadyClosedError(e error) bool {
+	err, ok := e.(*amqp.Error)
+	return ok &&
+		err.Code == amqp.ChannelError &&
+		strings.HasSuffix(err.Reason, " not open")
+}
+
+// NotifyClose registers a listener for close events either initiated
+// by an error accompanying a connection.close method or by a normal
+// shutdown.
+func (c *conn) NotifyClose() <-chan error {
+	srcC := make(chan *amqp.Error)
+	dstC := make(chan error)
+
+	c.closeWait.Add(1)
+	go func() {
+		defer c.closeWait.Done()
+
+		for {
+			err, ok := <-srcC
+			if !ok {
+				break
+			}
+			dstC <- err
+		}
+	}()
+	c.amqp.NotifyClose(srcC)
+	return dstC
 }
 
 // Channel opens a channel for publishing and consuming messages.

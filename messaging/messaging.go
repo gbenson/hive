@@ -10,6 +10,11 @@ type Conn interface {
 
 	// Close closes the connection.
 	Close() error
+
+	// NotifyClose registers a listener for close events either
+	// initiated by an error accompanying a connection.close method
+	// or by a normal shutdown.
+	NotifyClose() <-chan error
 }
 
 // Channel is a channel for publishing and consuming messages.

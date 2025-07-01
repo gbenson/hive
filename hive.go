@@ -71,6 +71,7 @@ func runContext(ctx context.Context, s Service) error {
 		return err
 	}
 	defer logger.LoggedClose(log, conn, "message bus connection")
+	closeC := conn.NotifyClose()
 
 	ch, err := conn.Channel()
 	if err != nil {
@@ -104,6 +105,11 @@ func runContext(ctx context.Context, s Service) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
+
+		case err := <-closeC:
+			signal.Reset() // Restore default handlers.
+			log.Err(err).Msg("Shutting down")
+			cancel()
 
 		case err := <-errC:
 			signal.Reset() // Restore default handlers.

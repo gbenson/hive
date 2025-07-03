@@ -3,6 +3,8 @@ package hive
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	stdlog "log"
 	"os"
@@ -84,45 +86,99 @@ func runContext(ctx context.Context, s Service) error {
 		defer logger.LoggedClose(log, c, "service", "stop")
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	ctx, stop := signal.NotifyContext(
+		ctx,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer stop()
 
 	errC, err := s.Start(ctx, ch)
 	if err != nil {
 		return err
 	}
 
-	// Block until cancelled or interrupted.
-	sigC := make(chan os.Signal, 1)
-	signal.Notify(
-		sigC,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-	)
+	// Block until stopped or interrupted.
+	//
+	// Shutdown sequence:
+	//   1. One of the following causes ctx to be canceled:
+	//        - a service goroutine writes/closes errC
+	//        - amqp client writes/closing closeC
+	//        - one of the signals is recieved
+	//   2. Canceling ctx resets the signal handlers, allowing the
+	//      shutdown to be interrupted if it locks up or whatever.
+	//   3. [If it wasn't a signal, select now reads context.Canceled]
+	//   4. This function returns.
+	//   5. [deferred service.Close is called, if installed]
+	//   6. [deferred channel.Close is called]
+	//   7. [deferred connection.Close is called. Thiswaits for the
+	//      NotifyClose goroutine to exit, so if this wasn't the AMQP
+	//      client closing the connection already then we will now
+	//      wait for that to happen]
+	//   8. Control finally returns to RunContext, which logs any error.
 
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			if err == nil {
+				// A signal was received.
+				err = ctx.Err()
+				if err == context.Canceled {
+					err = nil
+				}
+			}
+			return err
 
-		case err := <-closeC:
-			signal.Reset() // Restore default handlers.
-			log.Err(err).Msg("Shutting down")
-			cancel()
+		case re, ok := <-closeC:
+			err = channelShutdown(ctx, re, err, ok, "close notify")
+			stop()
 
-		case err := <-errC:
-			signal.Reset() // Restore default handlers.
-			log.Err(err).Msg("Shutting down")
-			cancel()
-
-		case sig := <-sigC:
-			signal.Reset() // Restore default handlers.
-			log.Info().
-				Str("reason", "signal").
-				Str("signal", sig.String()).
-				Msg("Shutting down")
-			cancel()
+		case re, ok := <-errC:
+			err = channelShutdown(ctx, re, err, ok, "service error")
+			stop()
 		}
 	}
+}
+
+var closedChannels = make(map[string]bool)
+
+func channelShutdown(
+	ctx context.Context,
+	thisEvent, shutdownCause error,
+	isChannelOpen bool,
+	channelName string,
+) error {
+	log := logger.Ctx(ctx).With().Str("channel", channelName).Logger()
+
+	if thisEvent == nil {
+		if isChannelOpen {
+			thisEvent = errors.New("nil error")
+		} else {
+			thisEvent = channelClosed(channelName)
+		}
+	}
+
+	if shutdownCause != nil {
+		log.Debug().
+			Err(thisEvent).
+			Str("when", "during shutdown").
+			Msg("Activity")
+
+		return shutdownCause
+	}
+
+	log.Err(thisEvent).Msg("Initiating shutdown")
+
+	return thisEvent
+}
+
+func channelClosed(name string) error {
+	err := fmt.Errorf("%s channel: closed", name)
+	if closedChannels[name] {
+		err = fmt.Errorf("%w again!", err)
+	} else {
+		closedChannels[name] = true
+	}
+	return err
 }

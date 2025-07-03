@@ -54,7 +54,7 @@ func consume(ctx context.Context, ch Channel, d *amqp.Delivery, c Consumer) {
 	}
 
 	log := logger.Ctx(ctx)
-	log.Debug().
+	log.Trace().
 		RawJSON("event", d.Body).
 		Msg("Received")
 

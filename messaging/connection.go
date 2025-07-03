@@ -107,7 +107,7 @@ func isAlreadyClosedError(e error) bool {
 // NotifyClose registers a listener for connection closure events.
 func (c *conn) NotifyClose() <-chan error {
 	srcC := make(chan *amqp.Error)
-	dstC := make(chan error)
+	dstC := make(chan error, 1)
 
 	c.closeWait.Add(1)
 	go func() {

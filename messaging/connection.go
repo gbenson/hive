@@ -104,9 +104,7 @@ func isAlreadyClosedError(e error) bool {
 		strings.HasSuffix(err.Reason, " not open")
 }
 
-// NotifyClose registers a listener for close events either initiated
-// by an error accompanying a connection.close method or by a normal
-// shutdown.
+// NotifyClose registers a listener for connection closure events.
 func (c *conn) NotifyClose() <-chan error {
 	srcC := make(chan *amqp.Error)
 	dstC := make(chan error)
@@ -115,11 +113,15 @@ func (c *conn) NotifyClose() <-chan error {
 	go func() {
 		defer c.closeWait.Done()
 
+		log := c.log.With().Str("subchannel", "close_notify").Logger()
 		for {
 			err, ok := <-srcC
 			if !ok {
+				log.Debug().Msg("Closed")
+				// close(dstC) // "forward" the close?
 				break
 			}
+			log.Debug().Interface("notification", err).Msg("Received")
 			dstC <- err
 		}
 	}()

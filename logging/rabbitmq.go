@@ -6,6 +6,7 @@ import (
 	"time"
 
 	. "gbenson.net/hive/logging/event"
+	. "gbenson.net/hive/logging/internal"
 )
 
 // RabbitMQEvent represents a JSON-formatted event logged by RabbitMQ.
@@ -17,11 +18,11 @@ type RabbitMQEvent struct {
 var rabbitMQPIDrx = regexp.MustCompile(`^<\d+\.\d+\.\d+>$`)
 
 // rabbitMQPairs declares which fields to omit from Pairs.
-var rabbitMQPairs = omitPairs("level", "time")
+var rabbitMQPairs = OmitPairs("level", "time")
 
 // rabbitMQPriorityMap maps RabbitMQ log levels to syslog severity
 // levels.  https://www.rabbitmq.com/docs/logging#log-levels
-var rabbitMQPriorityMap = priorityMap{
+var rabbitMQPriorityMap = PriorityMap{
 	"debug":    PriDebug,
 	"info":     PriInfo,
 	"warning":  PriWarning,
@@ -41,7 +42,7 @@ func maybeWrapRabbitMQEvent(e Event) Event {
 		return e
 	}
 
-	return &RabbitMQEvent{wrappedEvent{e}}
+	return &RabbitMQEvent{Wrap(e)}
 }
 
 // Priority returns the syslog severity level of this event.
@@ -51,7 +52,7 @@ func (e *RabbitMQEvent) Priority() Priority {
 
 // Time returns the wallclock timestamp of this event.
 func (e *RabbitMQEvent) Time() time.Time {
-	jtime := e.w.Time()
+	jtime := e.Wrapped.Time()
 
 	s := StringField(e, "time")
 	rtime, err := time.Parse(rabbitMQTimeFormat, s)
@@ -86,5 +87,5 @@ func (e *RabbitMQEvent) Message() Message {
 
 // Pairs returns ordered key-value pairs for message construction.
 func (e *RabbitMQEvent) Pairs() iter.Seq2[string, any] {
-	return rabbitMQPairs(e.w.Message().Pairs())
+	return rabbitMQPairs(e.Wrapped.Message().Pairs())
 }

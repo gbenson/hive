@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 
 	. "gbenson.net/hive/logging/event"
-	"gbenson.net/hive/logging/internal"
+	. "gbenson.net/hive/logging/internal"
 )
 
 // JournalEntry represents a systemd journal entry plus address fields.
@@ -89,7 +89,7 @@ func (e *JournalEntry) Hostname() string {
 // primary text shown to the user.  Note that newline characters
 // are permitted.  Expect to find ANSI control sequences too.
 func (e *JournalEntry) Message() Message {
-	return internal.UnstructuredMessage(e.Fields["MESSAGE"])
+	return UnstructuredMessage(e.Fields["MESSAGE"])
 }
 
 // Priority returns the RFC 5424 syslog severity level of this event,

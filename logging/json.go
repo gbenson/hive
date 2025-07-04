@@ -5,6 +5,7 @@ import (
 	"iter"
 
 	. "gbenson.net/hive/logging/event"
+	. "gbenson.net/hive/logging/internal"
 )
 
 // jsonEvent represents a logged event whose message is a JSON-encoded
@@ -34,7 +35,7 @@ func maybeWrapJSONEvent(e Event) Event {
 		return e
 	}
 
-	return &jsonEvent{wrappedEvent{e}, m}
+	return &jsonEvent{Wrap(e), m}
 }
 
 // Message implements the [Event] interface.
@@ -49,5 +50,5 @@ func (e *jsonEvent) Fields() map[string]any {
 
 // Pairs implements the [Message] interface.
 func (e *jsonEvent) Pairs() iter.Seq2[string, any] {
-	return sortedPairs(e)
+	return SortedPairs(e)
 }

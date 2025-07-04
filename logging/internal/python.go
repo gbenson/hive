@@ -1,10 +1,10 @@
-package logging
+package internal
 
 import . "gbenson.net/hive/logging/event"
 
-// pythonPriorityMap maps Python logging levels to syslog severity
+// PythonPriorityMap maps Python logging levels to syslog severity
 // levels.  https://docs.Python.org/3/library/logging.html#levels
-var pythonPriorityMap priorityMap = priorityMap{
+var PythonPriorityMap = PriorityMap{
 	"CRITICAL": PriCrit,
 	"ERROR":    PriErr,
 	"WARNING":  PriWarning,

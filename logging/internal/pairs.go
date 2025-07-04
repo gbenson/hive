@@ -1,4 +1,4 @@
-package logging
+package internal
 
 import (
 	"iter"
@@ -8,10 +8,10 @@ import (
 	. "gbenson.net/hive/logging/event"
 )
 
-// sortedPairs iterates over e.Fields(), with the field "message" or
-// "msg" first, and everything else sorted alphabetically by name
-// afterwards.
-func sortedPairs(e Event) iter.Seq2[string, any] {
+// SortedPairs iterates over e.Message().Fields(), yields the field
+// "message" or "msg" first, and everything else sorted lexically by
+// name afterwards.
+func SortedPairs(e Event) iter.Seq2[string, any] {
 	return func(yield func(string, any) bool) {
 		msg := e.Message().Fields()
 
@@ -41,8 +41,8 @@ func sortedPairs(e Event) iter.Seq2[string, any] {
 	}
 }
 
-// omitPairs returns a function which removes all kk from seq.
-func omitPairs(kk ...string) func(iter.Seq2[string, any]) iter.Seq2[string, any] {
+// OmitPairs returns a function which removes all kk from seq.
+func OmitPairs(kk ...string) func(iter.Seq2[string, any]) iter.Seq2[string, any] {
 	return func(seq iter.Seq2[string, any]) iter.Seq2[string, any] {
 		return func(yield func(string, any) bool) {
 			for k, v := range seq {

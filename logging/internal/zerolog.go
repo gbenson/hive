@@ -1,4 +1,4 @@
-package logging
+package internal
 
 import (
 	"github.com/rs/zerolog"
@@ -6,9 +6,9 @@ import (
 	. "gbenson.net/hive/logging/event"
 )
 
-// zerologPriorityMap maps zerolog logging levels to syslog severity
+// ZerologPriorityMap maps zerolog logging levels to syslog severity
 // levels.  https://pkg.go.dev/github.com/rs/zerolog#pkg-variables
-var zerologPriorityMap priorityMap = priorityMap{
+var ZerologPriorityMap = PriorityMap{
 	zerolog.LevelTraceValue: PriDebug,
 	zerolog.LevelDebugValue: PriDebug,
 	zerolog.LevelInfoValue:  PriInfo,

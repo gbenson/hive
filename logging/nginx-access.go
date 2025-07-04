@@ -5,6 +5,7 @@ import (
 	"iter"
 
 	. "gbenson.net/hive/logging/event"
+	. "gbenson.net/hive/logging/internal"
 )
 
 // NginxAccessEvent represents a JSON-formatted access_log event
@@ -47,7 +48,7 @@ func maybeWrapNginxAccessEvent(e Event) Event {
 		return e
 	}
 
-	r := &NginxAccessEvent{wrappedEvent: wrappedEvent{e}}
+	r := &NginxAccessEvent{wrappedEvent: Wrap(e)}
 	if err := json.Unmarshal(b, &r); err != nil {
 		Logger.Warn().
 			Err(err).
@@ -82,21 +83,22 @@ func (e *NginxAccessEvent) Pairs() iter.Seq2[string, any] {
 		tls = "none"
 	}
 
-	var pairs []kvp = []kvp{
-		kvp{"client", e.RemoteAddr},
-		kvp{"user", e.RemoteUser},
-		kvp{"method", e.Method},
-		kvp{"uri", e.RequestURI},
-		kvp{"proto", e.Proto},
-		kvp{"tls", tls},
-		kvp{"status", e.StatusCode},
-		kvp{"referer", e.Referer},
-		kvp{"user_agent", e.UserAgent},
-		kvp{"host", e.Host},
-	}
-
 	return func(yield func(string, any) bool) {
-		for _, pair := range pairs {
+		for _, pair := range []struct {
+			k string
+			v any
+		}{
+			{"client", e.RemoteAddr},
+			{"user", e.RemoteUser},
+			{"method", e.Method},
+			{"uri", e.RequestURI},
+			{"proto", e.Proto},
+			{"tls", tls},
+			{"status", e.StatusCode},
+			{"referer", e.Referer},
+			{"user_agent", e.UserAgent},
+			{"host", e.Host},
+		} {
 			if s, ok := pair.v.(string); ok && s == "" {
 				continue // no empty strings
 			}

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	. "gbenson.net/hive/logging/event"
+	. "gbenson.net/hive/logging/internal"
 
 	"gbenson.net/hive/logging/internal/rxp"
 	"gbenson.net/hive/logging/internal/rxparser"
@@ -26,11 +27,11 @@ var nginxErrorLogParser = rxparser.MustCompile(rxp.NginxErrorLogEntry)
 var nginxTrailingFieldParser = rxparser.MustCompile(rxp.NginxTrailingField)
 
 // nginxErrorPairs declares which fields to omit from Pairs.
-var nginxErrorPairs = omitPairs("level", "time")
+var nginxErrorPairs = OmitPairs("level", "time")
 
 // nginxErrorPriorityMap maps Nginx error_log levels to syslog severity
 // levels.  https://nginx.org/en/docs/ngx_core_module.html#error_log
-var nginxErrorPriorityMap = priorityMap{
+var nginxErrorPriorityMap = PriorityMap{
 	"debug":  PriDebug,
 	"info":   PriInfo,
 	"notice": PriNotice,
@@ -84,7 +85,7 @@ func maybeWrapNginxErrorEvent(e Event) Event {
 		m[k] = v
 	}
 
-	return &NginxErrorEvent{wrappedEvent{e}, m}
+	return &NginxErrorEvent{Wrap(e), m}
 }
 
 // popTrailers attempts to parse the trailing fields nginx appends to
@@ -143,5 +144,5 @@ func (e *NginxErrorEvent) Fields() map[string]any {
 
 // Pairs returns ordered key-value pairs for message construction.
 func (e *NginxErrorEvent) Pairs() iter.Seq2[string, any] {
-	return nginxErrorPairs(sortedPairs(e))
+	return nginxErrorPairs(SortedPairs(e))
 }

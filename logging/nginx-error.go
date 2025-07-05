@@ -42,50 +42,51 @@ var nginxErrorPriorityMap = PriorityMap{
 	"emerg":  PriEmerg,
 }
 
-// maybeWrapNginxErrorEvent returns a new NginxErrorEvent if the
-// given event represents an error_log event logged by Nginx. In
-// all other cases the given event is returned unmodified.
-func maybeWrapNginxErrorEvent(e Event) Event {
-	msg := e.Message()
-	if len(msg.Fields()) > 0 {
-		return e // already structured
-	}
-
-	fields := nginxErrorLogParser.ParseString(msg.String())
-	if len(fields) < 2 {
-		return e // no match
-	}
-
-	// Parse trailing fields from the end of fields["message"]
-	// (e.g. ", client: 216.213.58.42, host: "gbenson.net").
-	// Note that it's possible to mess with the quoting and get
-	// e.g. `, host: "gbens"n,net"` though nginx and into the
-	// logs, so we work on a copy and fail early if there's any
-	// weirdness at all.
-	if s, found := fields["message"]; found && s != "" {
-		tmp := maps.Clone(fields)
-		if err := popTrailers(tmp); err != nil {
-			Logger.Warn().
-				Err(err).
-				Str("message", s).
-				Msg("Unexpected trailers")
-		} else {
-			fields = tmp
+// init registers a handler that returns a new NginxErrorEvent if
+// the given event represents an error_log event logged by Nginx.
+func init() {
+	RegisterHandler("nginx-error", func(e Event) Event {
+		msg := e.Message()
+		if len(msg.Fields()) > 0 {
+			return e // already structured
 		}
-	}
 
-	// Convert to map[string]any, dropping the unnamed match (the
-	// entire string the regexp matched, which in this case is the
-	// entire log entry).
-	m := make(map[string]any)
-	for k, v := range fields {
-		if k == "" {
-			continue
+		fields := nginxErrorLogParser.ParseString(msg.String())
+		if len(fields) < 2 {
+			return e // no match
 		}
-		m[k] = v
-	}
 
-	return &NginxErrorEvent{Wrap(e), m}
+		// Parse trailing fields from the end of fields["message"]
+		// (e.g. ", client: 216.213.58.42, host: "gbenson.net").
+		// Note that it's possible to mess with the quoting and get
+		// e.g. `, host: "gbens"n,net"` though nginx and into the
+		// logs, so we work on a copy and fail early if there's any
+		// weirdness at all.
+		if s, found := fields["message"]; found && s != "" {
+			tmp := maps.Clone(fields)
+			if err := popTrailers(tmp); err != nil {
+				Logger.Warn().
+					Err(err).
+					Str("message", s).
+					Msg("Unexpected trailers")
+			} else {
+				fields = tmp
+			}
+		}
+
+		// Convert to map[string]any, dropping the unnamed match (the
+		// entire string the regexp matched, which in this case is the
+		// entire log entry).
+		m := make(map[string]any)
+		for k, v := range fields {
+			if k == "" {
+				continue
+			}
+			m[k] = v
+		}
+
+		return &NginxErrorEvent{Wrap(e), m}
+	})
 }
 
 // popTrailers attempts to parse the trailing fields nginx appends to

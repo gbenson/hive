@@ -28,18 +28,20 @@ type HivePyServiceEvent struct {
 // hiveServiceMQPairs declares which fields to omit from Pairs.
 var hiveServicePairs = OmitPairs(LoggerTagField, "level")
 
-// maybeWrapHiveServiceEvent returns a new HiveServiceEvent if the
-// given event represents a JSON-formatted event logged by a Hive
-// service. In all other cases the given event is returned unmodified.
-func maybeWrapHiveServiceEvent(e Event) Event {
-	switch LoggerTag(e) {
-	case "hive-service-go":
-		return &HiveGoServiceEvent{HiveServiceEvent{Wrap(e)}}
-	case "hive-service-py":
-		return &HivePyServiceEvent{HiveServiceEvent{Wrap(e)}}
-	default:
-		return e // not a Hive service event
-	}
+// init registers a handler that returns a new HiveServiceEvent
+// if the given event represents a JSON-formatted event logged
+// by a Hive service.
+func init() {
+	RegisterHandler("hive-service", func(e Event) Event {
+		switch LoggerTag(e) {
+		case "hive-service-go":
+			return &HiveGoServiceEvent{HiveServiceEvent{Wrap(e)}}
+		case "hive-service-py":
+			return &HivePyServiceEvent{HiveServiceEvent{Wrap(e)}}
+		default:
+			return e // not a Hive service event
+		}
+	})
 }
 
 // Priority returns the syslog severity level of this event.

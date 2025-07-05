@@ -30,19 +30,20 @@ var rabbitMQPriorityMap = PriorityMap{
 	"critical": PriCrit,
 }
 
-// rabbitMQTimeFormat is what you think it is.
+// rabbitMQTimeFormat is exactly what you think it is.
 const rabbitMQTimeFormat = "2006-01-02 15:04:05.999999Z07:00"
 
-// maybeWrapRabbitMQEvent returns a new RabbitMQEvent if the given
-// event represents a JSON-formatted event logged by RabbitMQ. The
-// given event is returned unmodified in all other cases.
-func maybeWrapRabbitMQEvent(e Event) Event {
-	pid := StringField(e, "pid")
-	if len(pid) < 7 || !rabbitMQPIDrx.MatchString(pid) {
-		return e
-	}
+// init registers a handler that returns a new RabbitMQEvent if the
+// given event represents a JSON-formatted event logged by RabbitMQ.
+func init() {
+	RegisterHandler("rabbitmq", func(e Event) Event {
+		pid := StringField(e, "pid")
+		if len(pid) < 7 || !rabbitMQPIDrx.MatchString(pid) {
+			return e
+		}
 
-	return &RabbitMQEvent{Wrap(e)}
+		return &RabbitMQEvent{Wrap(e)}
+	})
 }
 
 // Priority returns the syslog severity level of this event.

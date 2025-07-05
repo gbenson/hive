@@ -29,35 +29,37 @@ type NginxAccessEvent struct {
 	Timestamp    float64 `json:"timestamp"`
 }
 
-// maybeWrapNginxAccessEvent returns a new NginxAccessEvent if the
-// given event represents a JSON-formatted access_log event logged
-// by Nginx.  Otherwise, the given event is returned unmodified.
-func maybeWrapNginxAccessEvent(e Event) Event {
-	if LoggerTag(e) != "nginx" {
-		return e // not a Hive-style Nginx event
-	}
+// init registers a handler that returns a new NginxAccessEvent if the
+// given event represents a Hive-style JSON-formatted access_log event
+// logged by Nginx.
+func init() {
+	RegisterHandler("nginx-access", func(e Event) Event {
+		if LoggerTag(e) != "nginx" {
+			return e // not a Hive-style Nginx event
+		}
 
-	b, err := json.Marshal(e.Message().Fields())
-	if err != nil {
-		// shouldn't be possible without something modifying
-		// what Fields() returns inbetween jsonEvent and us.
-		Logger.Warn().
-			Err(err).
-			Str("original_input", e.Message().String()).
-			Msg("json.Marshal failed")
-		return e
-	}
+		b, err := json.Marshal(e.Message().Fields())
+		if err != nil {
+			// shouldn't be possible without something modifying
+			// what Fields() returns inbetween jsonEvent and us.
+			Logger.Warn().
+				Err(err).
+				Str("original_input", e.Message().String()).
+				Msg("json.Marshal failed")
+			return e
+		}
 
-	r := &NginxAccessEvent{wrappedEvent: Wrap(e)}
-	if err := json.Unmarshal(b, &r); err != nil {
-		Logger.Warn().
-			Err(err).
-			Str("input", string(b)).
-			Msg("json.Unmarshal failed")
-		return e
-	}
+		r := &NginxAccessEvent{wrappedEvent: Wrap(e)}
+		if err := json.Unmarshal(b, &r); err != nil {
+			Logger.Warn().
+				Err(err).
+				Str("input", string(b)).
+				Msg("json.Unmarshal failed")
+			return e
+		}
 
-	return r
+		return r
+	})
 }
 
 // Priority returns the syslog severity level of this event.

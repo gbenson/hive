@@ -1,11 +1,11 @@
-package logging
+package wrappers
 
 import (
 	"encoding/json"
 	"iter"
 
 	. "gbenson.net/hive/logging/event"
-	. "gbenson.net/hive/logging/internal"
+	. "gbenson.net/hive/logging/wrappers/internal"
 )
 
 // NginxAccessEvent represents a JSON-formatted access_log event
@@ -29,11 +29,11 @@ type NginxAccessEvent struct {
 	Timestamp    float64 `json:"timestamp"`
 }
 
-// init registers a handler that returns a new NginxAccessEvent if the
-// given event represents a Hive-style JSON-formatted access_log event
-// logged by Nginx.
+// init registers an event modifier that returns a new NginxAccessEvent
+// if the given event represents a Hive-style JSON-formatted access_log
+// event logged by Nginx.
 func init() {
-	RegisterHandler("nginx-access", func(e Event) Event {
+	registerWrapper("nginx-access", func(e Event) Event {
 		if LoggerTag(e) != "nginx" {
 			return e // not a Hive-style Nginx event
 		}

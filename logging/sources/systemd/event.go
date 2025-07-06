@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 
 	. "gbenson.net/hive/logging/event"
-	. "gbenson.net/hive/logging/internal"
+	. "gbenson.net/hive/logging/sources/internal"
 )
 
 // JournalEntry represents a systemd journal entry plus address fields.

@@ -1,4 +1,4 @@
-package logging
+package wrappers
 
 import (
 	"iter"
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	. "gbenson.net/hive/logging/event"
-	. "gbenson.net/hive/logging/internal"
+	. "gbenson.net/hive/logging/wrappers/internal"
 )
 
 // RabbitMQEvent represents a JSON-formatted event logged by RabbitMQ.
@@ -33,10 +33,10 @@ var rabbitMQPriorityMap = PriorityMap{
 // rabbitMQTimeFormat is exactly what you think it is.
 const rabbitMQTimeFormat = "2006-01-02 15:04:05.999999Z07:00"
 
-// init registers a handler that returns a new RabbitMQEvent if the
-// given event represents a JSON-formatted event logged by RabbitMQ.
+// init registers an event modifier that returns a new RabbitMQEvent if
+// the given event represents a JSON-formatted event logged by RabbitMQ.
 func init() {
-	RegisterHandler("rabbitmq", func(e Event) Event {
+	registerWrapper("rabbitmq", func(e Event) Event {
 		pid := StringField(e, "pid")
 		if len(pid) < 7 || !rabbitMQPIDrx.MatchString(pid) {
 			return e

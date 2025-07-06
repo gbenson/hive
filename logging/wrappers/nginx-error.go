@@ -1,4 +1,4 @@
-package logging
+package wrappers
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	. "gbenson.net/hive/logging/event"
-	. "gbenson.net/hive/logging/internal"
+	. "gbenson.net/hive/logging/wrappers/internal"
 
 	"gbenson.net/hive/logging/internal/rxp"
 	"gbenson.net/hive/logging/internal/rxparser"
@@ -42,10 +42,10 @@ var nginxErrorPriorityMap = PriorityMap{
 	"emerg":  PriEmerg,
 }
 
-// init registers a handler that returns a new NginxErrorEvent if
-// the given event represents an error_log event logged by Nginx.
+// init registers an event modifier that returns a new NginxErrorEvent
+// if the given event represents an error_log event logged by Nginx.
 func init() {
-	RegisterHandler("nginx-error", func(e Event) Event {
+	registerWrapper("nginx-error", func(e Event) Event {
 		msg := e.Message()
 		if len(msg.Fields()) > 0 {
 			return e // already structured

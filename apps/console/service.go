@@ -19,7 +19,7 @@ func (s *Service) Start(
 	ctx context.Context,
 	ch messaging.Channel,
 ) (<-chan error, error) {
-	logging.Logger = logger.Ctx(ctx)
+	logging.SetLogger(logger.Ctx(ctx))
 	return nil, ch.ConsumeExclusive(ctx, systemd.EventsQueue, s)
 }
 

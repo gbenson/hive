@@ -1,10 +1,10 @@
-package logging
+package wrappers
 
 import (
 	"iter"
 
 	. "gbenson.net/hive/logging/event"
-	. "gbenson.net/hive/logging/internal"
+	. "gbenson.net/hive/logging/wrappers/internal"
 )
 
 // HiveServiceEvent represents a JSON-formatted event logged by a
@@ -28,11 +28,11 @@ type HivePyServiceEvent struct {
 // hiveServiceMQPairs declares which fields to omit from Pairs.
 var hiveServicePairs = OmitPairs(LoggerTagField, "level")
 
-// init registers a handler that returns a new HiveServiceEvent
-// if the given event represents a JSON-formatted event logged
-// by a Hive service.
+// init registers an event modifier that returns a new HiveServiceEvent
+// if the given event represents a JSON-formatted log event logged by a
+// Hive service.
 func init() {
-	RegisterHandler("hive-service", func(e Event) Event {
+	registerWrapper("hive-service", func(e Event) Event {
 		switch LoggerTag(e) {
 		case "hive-service-go":
 			return &HiveGoServiceEvent{HiveServiceEvent{Wrap(e)}}

@@ -1,11 +1,11 @@
-package logging
+package wrappers
 
 import (
 	"encoding/json"
 	"iter"
 
 	. "gbenson.net/hive/logging/event"
-	. "gbenson.net/hive/logging/internal"
+	. "gbenson.net/hive/logging/wrappers/internal"
 )
 
 // jsonEvent represents a logged event whose message is a JSON-encoded
@@ -15,11 +15,11 @@ type jsonEvent struct {
 	fields map[string]any
 }
 
-// init registers a handler that returns a new jsonEvent if the given
-// event represents a logged event whose message is a JSON-encoded
-// dictionary.
+// init registers an event modifier that returns a new jsonEvent if
+// the given event represents a logged event whose message is a
+// JSON-encoded dictionary.
 func init() {
-	RegisterHandler("json", func(e Event) Event {
+	registerWrapper("json", func(e Event) Event {
 		msg := e.Message()
 		if len(msg.Fields()) > 0 {
 			return e // already structured

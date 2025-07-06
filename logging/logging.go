@@ -2,14 +2,23 @@
 package logging
 
 import (
-	"gbenson.net/go/logger"
-	"gbenson.net/hive/logging/internal"
+	"gbenson.net/hive/logging/internal/logger"
+	"gbenson.net/hive/logging/internal/modifiers"
+	"gbenson.net/hive/logging/internal/unmarshal"
+	_ "gbenson.net/hive/logging/wrappers"
 )
 
-type wrappedEvent = internal.WrappedEvent
+// An EventModifier returns a new modified event or returns the
+// original event unmodified.
+type EventModifier = modifiers.EventModifier
 
-var disabledLogger = logger.New(&logger.Options{Level: "disabled"})
+// RegisterModifier registers an event modifier.
+var RegisterModifier = modifiers.Register
 
-// Logger is used to report errors that would otherwise be ignored.
-// Be careful to avoid loops if you enable this!
-var Logger = &disabledLogger
+// SetLogger specifies an optional logger for reporting errors that
+// would otherwise be silently ignored.  Be careful to avoid loops
+// when enabling this!
+var SetLogger = logger.SetLogger
+
+// UnmarshalEvent unmarshals a messaging event into a logging event.
+var UnmarshalEvent = unmarshal.UnmarshalEvent

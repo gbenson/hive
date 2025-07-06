@@ -1,4 +1,4 @@
-package logging
+package wrappers
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ func TestBasicNotice(t *testing.T) {
 	me, err := newTestNginxErrorEvent(in)
 	assert.NilError(t, err)
 
-	e, err := UnmarshalEvent(me)
+	e, err := unmarshalEvent(me)
 	assert.NilError(t, err)
 	assert.Equal(t, e.Message().String(), in)
 
@@ -45,7 +45,7 @@ func TestBasicWarning(t *testing.T) {
 	me, err := newTestNginxErrorEvent(in)
 	assert.NilError(t, err)
 
-	e, err := UnmarshalEvent(me)
+	e, err := unmarshalEvent(me)
 	assert.NilError(t, err)
 	assert.Equal(t, e.Message().String(), in)
 
@@ -79,7 +79,7 @@ func TestBasicError(t *testing.T) {
 	me, err := newTestNginxErrorEvent(in)
 	assert.NilError(t, err)
 
-	e, err := UnmarshalEvent(me)
+	e, err := unmarshalEvent(me)
 	assert.NilError(t, err)
 	assert.Equal(t, e.Message().String(), in)
 
@@ -114,7 +114,7 @@ func TestMessyError(t *testing.T) {
 	me, err := newTestNginxErrorEvent(in)
 	assert.NilError(t, err)
 
-	e, err := UnmarshalEvent(me)
+	e, err := unmarshalEvent(me)
 	assert.NilError(t, err)
 	assert.Equal(t, e.Message().String(), in)
 

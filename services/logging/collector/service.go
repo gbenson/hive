@@ -10,7 +10,7 @@ import (
 	"github.com/coreos/go-systemd/v22/sdjournal"
 
 	"gbenson.net/go/logger"
-	"gbenson.net/hive/logging/systemd"
+	"gbenson.net/hive/logging/sources/systemd"
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/util"
 

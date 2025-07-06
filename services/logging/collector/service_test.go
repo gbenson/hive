@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"gbenson.net/hive/logging/systemd"
+	"gbenson.net/hive/logging/sources/systemd"
 	"gbenson.net/hive/messaging"
 	"github.com/coreos/go-systemd/v22/sdjournal"
 	"gotest.tools/v3/assert"

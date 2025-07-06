@@ -2,11 +2,10 @@
 package logging
 
 import (
-	"fmt"
 	"maps"
 
 	. "gbenson.net/hive/logging/event"
-	"gbenson.net/hive/logging/systemd"
+	"gbenson.net/hive/logging/sources"
 	"gbenson.net/hive/messaging"
 )
 
@@ -24,7 +23,7 @@ func RegisterHandler(name string, f EventHandlerFunc) {
 
 // UnmarshalEvent unmarshals a [messaging.Event] into an [Event].
 func UnmarshalEvent(me *messaging.Event) (Event, error) {
-	e, err := unmarshalEvent(me)
+	e, err := sources.UnmarshalEvent(me)
 	if err != nil {
 		return nil, err
 	}
@@ -49,14 +48,4 @@ loop:
 	}
 
 	return e, nil
-}
-
-func unmarshalEvent(e *messaging.Event) (Event, error) {
-	switch e.Type() {
-	case systemd.EventType:
-		return systemd.UnmarshalEvent(e)
-
-	default:
-		return nil, fmt.Errorf("unexpected event type %q", e.Type())
-	}
 }

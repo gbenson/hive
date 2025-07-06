@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"gbenson.net/go/logger"
-	"gbenson.net/hive/logging/systemd"
+	"gbenson.net/hive/logging/sources/systemd"
 	"gbenson.net/hive/messaging"
 )
 

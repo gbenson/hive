@@ -15,7 +15,7 @@ import (
 
 // NginxErrorEvent represents an error_log event logged by Nginx.
 type NginxErrorEvent struct {
-	wrappedEvent
+	WrappedEvent
 	fields map[string]any
 }
 

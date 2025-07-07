@@ -1,4 +1,4 @@
-package internal
+package wrappers
 
 import (
 	"iter"
@@ -13,6 +13,9 @@ type WrappedEvent struct {
 	Wrapped Event
 }
 
+// Wrap constructs a new WrappedEvent, avoiding the go vet "struct
+// literal uses unkeyed fields" error that using `WrappedEvent{e}`
+// will cause if you use that form outside of this package.
 func Wrap(e Event) WrappedEvent {
 	return WrappedEvent{e}
 }

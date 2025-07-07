@@ -11,7 +11,7 @@ import (
 
 // RabbitMQEvent represents a JSON-formatted event logged by RabbitMQ.
 type RabbitMQEvent struct {
-	wrappedEvent
+	WrappedEvent
 }
 
 // rabbitMQPIDrx matches the "pid" field of RabbitMQ structured events.

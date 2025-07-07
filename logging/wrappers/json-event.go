@@ -11,7 +11,7 @@ import (
 // jsonEvent represents a logged event whose message is a JSON-encoded
 // dictionary.
 type jsonEvent struct {
-	wrappedEvent
+	WrappedEvent
 	fields map[string]any
 }
 

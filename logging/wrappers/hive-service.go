@@ -10,7 +10,7 @@ import (
 // HiveServiceEvent represents a JSON-formatted event logged by a
 // Hive service.
 type HiveServiceEvent struct {
-	wrappedEvent
+	WrappedEvent
 }
 
 // HiveGoServiceEvent represents a JSON-formatted event logged by

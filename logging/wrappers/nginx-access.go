@@ -12,7 +12,7 @@ import (
 // logged by Nginx.  This isn't a standard Nginx thing, just how
 // Hive's Nginx containers are configured.
 type NginxAccessEvent struct {
-	wrappedEvent
+	WrappedEvent
 
 	RemoteAddr   string  `json:"remote_addr"`
 	RemoteUser   string  `json:"remote_user,omitempty"`
@@ -49,7 +49,7 @@ func init() {
 			return e
 		}
 
-		r := &NginxAccessEvent{wrappedEvent: Wrap(e)}
+		r := &NginxAccessEvent{WrappedEvent: Wrap(e)}
 		if err := json.Unmarshal(b, &r); err != nil {
 			Logger.Warn().
 				Err(err).

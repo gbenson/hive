@@ -21,3 +21,16 @@ func StringField(e Event, k string) string {
 func Field(e Event, k string) any {
 	return e.Message().Fields()[k]
 }
+
+// PriorityFromHTTPStatus returns an appropriate syslog severity level
+// for an HTTP access log event returning the given HTTP status code.
+func PriorityFromHTTPStatus(code int) Priority {
+	if code < 500 {
+		if code >= 100 {
+			return PriInfo
+		}
+	} else if code < 600 {
+		return PriWarning
+	}
+	return PriErr
+}

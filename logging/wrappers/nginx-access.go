@@ -64,10 +64,7 @@ func init() {
 
 // Priority returns the syslog severity level of this event.
 func (e *NginxAccessEvent) Priority() Priority {
-	if e.StatusCode > 499 {
-		return PriNotice
-	}
-	return PriInfo
+	return PriorityFromHTTPStatus(e.StatusCode)
 }
 
 // Message implements the [Event] interface.

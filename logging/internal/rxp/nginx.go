@@ -1,6 +1,6 @@
 package rxp
 
-const NginxErrorLogTimestamp = `\d{4}/[01]\d/[0-3]\d [012]\d:[0-5]\d:[0-6]\d`
+const NginxErrorLogTimestamp = SlashDate_YYYYmmdd + ` ` + ColonTime_HHMMSS
 
 // https://nginx.org/en/docs/ngx_core_module.html#error_log
 const NginxErrorLogLevel = `debug|info|notice|warn|error|crit|alert|emerg`

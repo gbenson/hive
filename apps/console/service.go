@@ -8,6 +8,8 @@ import (
 	"gbenson.net/hive/logging"
 	"gbenson.net/hive/logging/sources/systemd"
 	"gbenson.net/hive/messaging"
+
+	_ "gbenson.net/hive/apps/console/downgrades"
 )
 
 type Service struct {

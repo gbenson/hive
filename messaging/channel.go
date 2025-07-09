@@ -282,9 +282,5 @@ func MockPublish(ctx context.Context, routingKey string, e any) (*Event, error) 
 		ContentType: ct,
 		Body:        body,
 	}
-	var result Event
-	if err := unmarshalForConsume(&result, &d); err != nil {
-		return nil, err
-	}
-	return &result, nil
+	return unmarshalForConsume(&d)
 }

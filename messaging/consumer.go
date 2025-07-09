@@ -48,8 +48,8 @@ func consume(ctx context.Context, ch Channel, d *amqp.Delivery, c Consumer) {
 		err = logger.NewRecoveredPanicError(pv)
 	}()
 
-	var e Event
-	if err = unmarshalForConsume(&e, d); err != nil {
+	e, err := unmarshalForConsume(d)
+	if err != nil {
 		return
 	}
 
@@ -61,15 +61,15 @@ func consume(ctx context.Context, ch Channel, d *amqp.Delivery, c Consumer) {
 	ctx, cancel := context.WithTimeout(ctx, ConsumeTimeout)
 	defer cancel()
 
-	err = c.Consume(ctx, ch, &e)
+	err = c.Consume(ctx, ch, e)
 }
 
-func unmarshalForConsume(e *Event, d *amqp.Delivery) error {
+func unmarshalForConsume(d *amqp.Delivery) (*Event, error) {
 	if d.ContentType != ApplicationCloudEventsJSON {
-		return fmt.Errorf("unexpected content type %q", d.ContentType)
+		return nil, fmt.Errorf("unexpected content type %q", d.ContentType)
 	}
 
-	return UnmarshalJSONEvent(e, d.Body)
+	return UnmarshalJSONEvent(d.Body)
 }
 
 func ackOrReject(ctx context.Context, d *amqp.Delivery, ok bool) {

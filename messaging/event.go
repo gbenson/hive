@@ -33,19 +33,13 @@ func NewEvent() *Event {
 	return &e
 }
 
-// NewEventFromJSON parses the JSON-encoded data into an [Event].
-func NewEventFromJSON(b []byte) (*Event, error) {
+// UnmarshalJSONEvent parses the JSON-encoded data into an [Event].
+func UnmarshalJSONEvent(b []byte) (*Event, error) {
 	e := NewEvent()
-	if err := UnmarshalJSONEvent(e, b); err != nil {
+	if err := event.ReadJson(e, bytes.NewReader(b)); err != nil {
 		return nil, err
 	}
 	return e, nil
-}
-
-// UnmarshalJSONEvent parses the JSON-encoded data and stores the
-// result in the value pointed to by e.
-func UnmarshalJSONEvent(e *Event, b []byte) error {
-	return event.ReadJson(e, bytes.NewReader(b))
 }
 
 // MarshalEvent returns v as an [Event].

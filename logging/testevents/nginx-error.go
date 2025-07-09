@@ -13,7 +13,7 @@ func NewTestNginxErrorEvent(msg string) (*messaging.Event, error) {
 		return nil, err
 	}
 	s := strings.Replace(nginxErrorEventTemplate, "{{MESSAGE}}", string(b), 1)
-	return messaging.NewEventFromJSON([]byte(s))
+	return messaging.UnmarshalJSONEvent([]byte(s))
 }
 
 const nginxErrorEventTemplate = `{

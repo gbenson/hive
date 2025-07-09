@@ -76,6 +76,8 @@ func UnmarshalEvent(e *Event, v any) error {
 	return &UnsupportedTypeError{reflect.TypeOf(v)}
 }
 
+// EventUnmarshaler is the interface implemented by types that can
+// unmarshal themselves from [Event]s.
 type EventUnmarshaler interface {
 	UnmarshalEvent(*Event) error
 }

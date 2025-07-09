@@ -5,13 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"gbenson.net/hive/messaging/event"
 	"github.com/google/uuid"
 )
 
 func TestEventCompletion(t *testing.T) {
 	start := time.Now()
 
-	e, err := MockPublish(context.TODO(), "incomplete.event.tests", NewEvent())
+	e, err := MockPublish(context.TODO(), "incomplete.event.tests", event.New())
 	expectFatal(t, err, nil)
 
 	// Check ID, source, type and time were populated.

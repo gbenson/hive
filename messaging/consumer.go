@@ -8,6 +8,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	"gbenson.net/go/logger"
+	"gbenson.net/hive/messaging/event"
 	"gbenson.net/hive/util"
 )
 
@@ -69,7 +70,7 @@ func unmarshalForConsume(d *amqp.Delivery) (*Event, error) {
 		return nil, fmt.Errorf("unexpected content type %q", d.ContentType)
 	}
 
-	return UnmarshalJSONEvent(d.Body)
+	return event.UnmarshalJSON(d.Body)
 }
 
 func ackOrReject(ctx context.Context, d *amqp.Delivery, ok bool) {

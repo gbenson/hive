@@ -1,16 +1,14 @@
 package messaging
 
 import (
-	"bytes"
-	"reflect"
 	"strings"
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/gertd/go-pluralize"
 	"github.com/google/uuid"
 
+	"gbenson.net/hive/messaging/event"
 	"gbenson.net/hive/util"
 )
 
@@ -18,7 +16,8 @@ const (
 	ApplicationCloudEventsJSON = cloudevents.ApplicationCloudEventsJSON
 )
 
-type Event = cloudevents.Event
+// Event is the canonical CloudEvent representation of an object.
+type Event = event.Event
 
 // CalculatedEventTypePrefix will be prefixed to CloudEvent "type"
 // attributes calculated from the routing keys they were published to.
@@ -28,62 +27,10 @@ const CalculatedEventTypePrefix = "net.gbenson.hive."
 // CloudEvents created by this service.
 var DefaultEventSource = "https://gbenson.net/hive/services/" + util.ServiceName()
 
+// NewEvent returns a new [Event].
 func NewEvent() *Event {
 	e := cloudevents.NewEvent()
 	return &e
-}
-
-// UnmarshalJSONEvent parses the JSON-encoded data into an [Event].
-func UnmarshalJSONEvent(b []byte) (*Event, error) {
-	e := NewEvent()
-	if err := event.ReadJson(e, bytes.NewReader(b)); err != nil {
-		return nil, err
-	}
-	return e, nil
-}
-
-// MarshalEvent returns v as an [Event].
-func MarshalEvent(v any) (*Event, error) {
-	if e, ok := v.(*Event); ok {
-		return e, nil
-	}
-
-	if em, ok := v.(EventMarshaler); ok {
-		return em.MarshalEvent()
-	}
-
-	return nil, &UnsupportedTypeError{reflect.TypeOf(v)}
-}
-
-// EventMarshaler is the interface implemented by types that can
-// marshal themselves into [Event]s.
-type EventMarshaler interface {
-	MarshalEvent() (*Event, error)
-}
-
-// UnmarshalEvent unmarshals an [Event] into v.
-func UnmarshalEvent(e *Event, v any) error {
-	if um, ok := v.(EventUnmarshaler); ok {
-		return um.UnmarshalEvent(e)
-	}
-
-	return &UnsupportedTypeError{reflect.TypeOf(v)}
-}
-
-// EventUnmarshaler is the interface implemented by types that can
-// unmarshal themselves from [Event]s.
-type EventUnmarshaler interface {
-	UnmarshalEvent(*Event) error
-}
-
-// An UnsupportedTypeError is returned by [MarshalEvent] when
-// attempting to encode an unsupported value type.
-type UnsupportedTypeError struct {
-	Type reflect.Type
-}
-
-func (e *UnsupportedTypeError) Error() string {
-	return "event: unsupported type: " + e.Type.String()
 }
 
 // completeEvent supplies default values for the "id", "source",

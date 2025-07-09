@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"strings"
 
-	"gbenson.net/hive/messaging"
+	messaging_event "gbenson.net/hive/messaging/event"
 )
 
-func NewTestNginxErrorEvent(msg string) (*messaging.Event, error) {
+func NewTestNginxErrorEvent(msg string) (*messaging_event.Event, error) {
 	b, err := json.Marshal(&msg)
 	if err != nil {
 		return nil, err
 	}
 	s := strings.Replace(nginxErrorEventTemplate, "{{MESSAGE}}", string(b), 1)
-	return messaging.UnmarshalJSONEvent([]byte(s))
+	return messaging_event.UnmarshalJSON([]byte(s))
 }
 
 const nginxErrorEventTemplate = `{

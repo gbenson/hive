@@ -3,7 +3,7 @@ package systemd
 import (
 	"time"
 
-	"gbenson.net/hive/messaging"
+	messaging_event "gbenson.net/hive/messaging/event"
 )
 
 // EventsQueue is where log collectors publish system journal entries
@@ -14,9 +14,9 @@ const EventsQueue = "systemd.journal.events"
 // published to EventsQueue.
 const EventType = "net.gbenson.hive.systemd_journal_event"
 
-// MarshalEvent implements the [messaging.EventMarshaler] interface.
-func (entry *JournalEntry) MarshalEvent() (*messaging.Event, error) {
-	event := messaging.NewEvent()
+// MarshalEvent implements the [messaging_event.Marshaler] interface.
+func (entry *JournalEntry) MarshalEvent() (*messaging_event.Event, error) {
+	event := messaging_event.New()
 
 	// Hoist the digest into the envelope.
 	digest := entry.Blake2b256Digest()
@@ -43,17 +43,17 @@ func (entry *JournalEntry) MarshalEvent() (*messaging.Event, error) {
 	return event, nil
 }
 
-// UnmarshalEvent unmarshals a [messaging.Event] into a [JournalEntry].
-func UnmarshalEvent(event *messaging.Event) (*JournalEntry, error) {
+// UnmarshalEvent unmarshals a [messaging_event.Event] into a [JournalEntry].
+func UnmarshalEvent(event *messaging_event.Event) (*JournalEntry, error) {
 	var entry JournalEntry
-	if err := messaging.UnmarshalEvent(event, &entry); err != nil {
+	if err := messaging_event.Unmarshal(event, &entry); err != nil {
 		return nil, err
 	}
 	return &entry, nil
 }
 
-// UnmarshalEvent implements the [messaging.EventUnarshaler] interface.
-func (entry *JournalEntry) UnmarshalEvent(event *messaging.Event) error {
+// UnmarshalEvent implements the [messaging_event.Unarshaler] interface.
+func (entry *JournalEntry) UnmarshalEvent(event *messaging_event.Event) error {
 	if err := event.DataAs(entry); err != nil {
 		return err
 	}

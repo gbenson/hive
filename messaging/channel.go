@@ -11,6 +11,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	"gbenson.net/go/logger"
+	"gbenson.net/hive/messaging/event"
 	hive "gbenson.net/hive/messaging/internal"
 	"gbenson.net/hive/util"
 )
@@ -249,8 +250,8 @@ func (c *channel) PublishEvent(
 	return exchange.Publish(ctx, ch, contentType, messageBody)
 }
 
-func marshalForPublish(event any, routingKey string) (string, []byte, error) {
-	e, err := MarshalEvent(event)
+func marshalForPublish(v any, routingKey string) (string, []byte, error) {
+	e, err := event.Marshal(v)
 	if err != nil {
 		return "", nil, err
 	}

@@ -29,6 +29,17 @@ services:
     profiles:
       - log-vault
 
+  log-spooler:
+    image: gbenson/hive-log-spooler
+    restart: unless-stopped
+    networks:
+      - log-spooler
+      - log-vault
+    secrets:
+      - log-spooler.env
+    profiles:
+      - log-vault
+
   log-vault:
     image: mongo
     restart: unless-stopped
@@ -54,6 +65,8 @@ services:
 networks:
   log-collector-msgbus:
   log-ingester-msgbus:
+  log-spooler:
+    internal: true
   log-vault:
     internal: true
 

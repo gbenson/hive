@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     networks:
       - nginx-ingress
+      - log-spooler
       - mediawiki-fpm
     ports:
       - 443:443/tcp
@@ -17,11 +18,13 @@ services:
     environment:
       - DEFAULT_HOSTNAME
       - SERVICE_HOSTNAME
+      - LOG_SPOOLER_PATH
       - WG_ARTICLE_PATH
       - WG_SCRIPT_PATH
       - WG_RESOURCE_BASE_PATH
       - WG_UPLOAD_PATH
     secrets:
+      - log-spooler.htpasswd
       - mediawiki.htpasswd
     profiles:
       - ingress

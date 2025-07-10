@@ -1,4 +1,6 @@
 #!/bin/sh
 chown 0:0 /run/secrets
 chmod 700 /run/secrets
-cat /run/secrets/mediawiki.htpasswd > /etc/nginx/mediawiki.htpasswd
+for f in /run/secrets/*.htpasswd; do
+  cat $f > /etc/nginx/$(basename $f)
+done

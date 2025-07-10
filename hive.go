@@ -19,13 +19,18 @@ import (
 	"gbenson.net/hive/util"
 )
 
-type Service interface {
+type MessagingService interface {
 	// Start starts the service's goroutines.
 	Start(ctx context.Context, ch messaging.Channel) (<-chan error, error)
 }
 
+type StandaloneService interface {
+	// Start starts the service's goroutines.
+	Start(ctx context.Context) (<-chan error, error)
+}
+
 // Run runs a Hive service.
-func Run(s Service) {
+func Run(s any) {
 	log := logger.New(nil)
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
 		log = log.With().
@@ -36,7 +41,7 @@ func Run(s Service) {
 }
 
 // RunContext runs a Hive service with the given context.
-func RunContext(ctx context.Context, s Service) {
+func RunContext(ctx context.Context, s any) {
 	if ctx == nil {
 		panic("nil context")
 	}
@@ -60,26 +65,32 @@ func RunContext(ctx context.Context, s Service) {
 	log.Info().Msg("Normal exit")
 }
 
-func runContext(ctx context.Context, s Service) error {
+func runContext(ctx context.Context, s any) error {
 	if stdlog.Flags() == stdlog.LstdFlags {
 		stdlog.SetFlags(stdlog.Lshortfile)
 	}
 
 	log := logger.Ctx(ctx)
 
-	// Connect to the message bus.
-	conn, err := messaging.Dial(ctx)
-	if err != nil {
-		return err
-	}
-	defer logger.LoggedClose(log, conn, "message bus connection")
-	closeC := conn.NotifyClose()
+	// Connect to the message bus if required.
+	var ch messaging.Channel
+	var closeC <-chan error
+	if _, ok := s.(MessagingService); ok {
+		conn, err := messaging.Dial(ctx)
+		if err != nil {
+			return err
+		}
+		defer logger.LoggedClose(log, conn, "message bus connection")
+		closeC = conn.NotifyClose()
 
-	ch, err := conn.Channel()
-	if err != nil {
-		return err
+		ch, err = conn.Channel()
+		if err != nil {
+			return err
+		}
+		defer logger.LoggedClose(log, ch, "messaging channel")
+	} else {
+		closeC = make(chan error)
 	}
-	defer logger.LoggedClose(log, ch, "messaging channel")
 
 	// Start the service's goroutines.
 	if c, ok := s.(io.Closer); ok {
@@ -94,7 +105,16 @@ func runContext(ctx context.Context, s Service) error {
 	)
 	defer stop()
 
-	errC, err := s.Start(ctx, ch)
+	var errC <-chan error
+	var err error
+	switch ss := s.(type) {
+	case MessagingService:
+		errC, err = ss.Start(ctx, ch)
+	case StandaloneService:
+		errC, err = ss.Start(ctx)
+	default:
+		err = fmt.Errorf("service: unsupported type: %T", s)
+	}
 	if err != nil {
 		return err
 	}

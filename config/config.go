@@ -45,6 +45,10 @@ func (c *Config) GetString(key string) string {
 	return c.v.GetString(key)
 }
 
+func (c *Config) GetStringMap(key string) map[string]any {
+	return c.v.GetStringMap(key)
+}
+
 func (c *Config) RegisterAlias(alias, key string) {
 	c.v.RegisterAlias(alias, key)
 }

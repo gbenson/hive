@@ -29,7 +29,7 @@ type StandaloneService interface {
 	Start(ctx context.Context) (<-chan error, error)
 }
 
-// Run runs a Hive service.
+// Run runs a Hive service or application.
 func Run(s any) {
 	log := logger.New(nil)
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -40,13 +40,26 @@ func Run(s any) {
 	RunContext(log.WithContext(context.Background()), s)
 }
 
-// RunContext runs a Hive service with the given context.
+// RunContext runs a Hive service or application with the given
+// context.
 func RunContext(ctx context.Context, s any) {
 	if ctx == nil {
 		panic("nil context")
 	}
 	if s == nil {
 		panic("nil service")
+	}
+
+	if stdlog.Flags() == stdlog.LstdFlags {
+		stdlog.SetFlags(stdlog.Lshortfile)
+	}
+
+	if main, ok := s.(func(context.Context) error); ok {
+		if err := main(ctx); err != nil {
+			fmt.Fprintln(os.Stderr, "error:", err)
+			os.Exit(1)
+		}
+		return
 	}
 
 	log := logger.Ctx(ctx).With().
@@ -66,10 +79,6 @@ func RunContext(ctx context.Context, s any) {
 }
 
 func runContext(ctx context.Context, s any) error {
-	if stdlog.Flags() == stdlog.LstdFlags {
-		stdlog.SetFlags(stdlog.Lshortfile)
-	}
-
 	log := logger.Ctx(ctx)
 
 	// Connect to the message bus if required.

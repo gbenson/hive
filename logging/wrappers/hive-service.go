@@ -25,7 +25,7 @@ type HivePyServiceEvent struct {
 	HiveServiceEvent
 }
 
-// hiveServiceMQPairs declares which fields to omit from Pairs.
+// hiveServicePairs declares which fields to omit from Pairs.
 var hiveServicePairs = OmitPairs(LoggerTagField, "level")
 
 // init registers an event modifier that returns a new HiveServiceEvent

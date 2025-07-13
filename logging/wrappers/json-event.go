@@ -8,14 +8,14 @@ import (
 	. "gbenson.net/hive/logging/wrappers/internal"
 )
 
-// jsonEvent represents a logged event whose message is a JSON-encoded
+// JSONEvent represents a logged event whose message is a JSON-encoded
 // dictionary.
-type jsonEvent struct {
+type JSONEvent struct {
 	WrappedEvent
 	fields map[string]any
 }
 
-// init registers an event modifier that returns a new jsonEvent if
+// init registers an event modifier that returns a new JSONEvent if
 // the given event represents a logged event whose message is a
 // JSON-encoded dictionary.
 func init() {
@@ -39,21 +39,21 @@ func init() {
 			return e
 		}
 
-		return &jsonEvent{Wrap(e), m}
+		return &JSONEvent{Wrap(e), m}
 	})
 }
 
 // Message implements the [Event] interface.
-func (e *jsonEvent) Message() Message {
+func (e *JSONEvent) Message() Message {
 	return e
 }
 
 // Fields implements the [Message] interface.
-func (e *jsonEvent) Fields() map[string]any {
+func (e *JSONEvent) Fields() map[string]any {
 	return e.fields
 }
 
 // Pairs implements the [Message] interface.
-func (e *jsonEvent) Pairs() iter.Seq2[string, any] {
+func (e *JSONEvent) Pairs() iter.Seq2[string, any] {
 	return SortedPairs(e)
 }

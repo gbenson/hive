@@ -12,6 +12,6 @@ Log collector service for Hive.
 
 ```sh
 git clone https://github.com/gbenson/hive.git
-gofmt -w . && ./ci/go-vet && ./ci/go-test && \
+make check && \
 LL=debug go run ./services/logging/collector/cmd/hive-log-collector.go
 ```

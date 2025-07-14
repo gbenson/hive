@@ -26,9 +26,7 @@ RUN go mod edit -droprequire maunium.net/go/mautrix
 RUN go mod download
 COPY . ./
 RUN rm -rf services/matrix-connector
-RUN gofmt -w .
-RUN ci/go-vet
-RUN ci/go-test
+RUN make check
 RUN go build -trimpath -ldflags="-s -w" \
   ./services/logging/collector/cmd/hive-$SERVICE.go
 

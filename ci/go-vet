@@ -1,5 +1,0 @@
-#!/bin/bash
-
-for i in $(find -name '*.go'); do
-    dirname $i
-done | sort | uniq | xargs go vet

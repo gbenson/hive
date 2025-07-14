@@ -8,5 +8,5 @@ Live view of Hive's system logs.
 
 ```sh
 git clone https://github.com/gbenson/hive.git
-gofmt -w . && ./ci/go-vet && ./ci/go-test && go run ./apps/console/cmd/hive-console.go
+make check && go run ./apps/console/cmd/hive-console.go
 ```

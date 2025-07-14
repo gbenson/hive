@@ -161,8 +161,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Configuration
-/.config
-
-# Service restart monitoring
-.hive-service-restart.*stamp
+# go coverage output of top-level Makefilw
+/coverage.out
+/coverage.html

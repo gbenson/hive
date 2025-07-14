@@ -9,8 +9,7 @@ RUN go mod download
 COPY . ./
 RUN rm -rf services/matrix-connector services/logging/collector
 RUN go mod tidy
-RUN ci/go-vet
-RUN ci/go-test
+RUN make check
 RUN go build -trimpath -ldflags="-s -w" \
     ./services/logging/ingester/cmd/hive-$SERVICE.go
 RUN mkdir empty

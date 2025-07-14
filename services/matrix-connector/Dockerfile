@@ -26,9 +26,7 @@ RUN go mod edit -droprequire github.com/coreos/go-systemd/v22
 RUN go mod download
 COPY . ./
 RUN rm -rf services/logging/collector
-RUN gofmt -w .
-RUN ci/go-vet
-RUN ci/go-test
+RUN make check
 RUN go build -trimpath -ldflags="-s -w" ./services/$SERVICE/cmd/hive-$SERVICE.go
 
 FROM base AS install

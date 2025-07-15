@@ -18,7 +18,7 @@ services:
     networks:
       - ollama
     volumes:
-      - ollama_models:/ollama/models
+      - hive_ollama_models:/ollama/models
       - ollama_workspace:/root
       - ./models:/root/models
       - $HOME/.ollama:/root/.ollama
@@ -27,11 +27,12 @@ services:
       - OLLAMA_KEEP_ALIVE=24h
       - OLLAMA_MODELS=/ollama/models
     profiles:
-      - disabled
+      - ollama
 
 networks:
   ollama:
 
 volumes:
-  ollama_models:
+  hive_ollama_models:
+    external: true
   ollama_workspace:

@@ -49,6 +49,7 @@ services:
       - ./vault/docker-entrypoint.sh:/docker-entrypoint.sh:ro
       - ./vault/initdb.d:/docker-entrypoint-initdb.d:ro
       - hive_log_vault:/data/db
+      - log_vault_configdb:/data/configdb:ro
     environment:
       - MONGO_INITDB_ROOT_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD
@@ -74,3 +75,4 @@ volumes:
   log_collector:
   hive_log_vault:
     external: true
+  log_vault_configdb:

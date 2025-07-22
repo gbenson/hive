@@ -9,7 +9,7 @@ lint:
 	go vet ./...
 
 test: lint
-	go test -coverprofile=coverage.out ./...
+	@ci/go-test -coverprofile=coverage.out
 
 coverage.html: coverage.out
 	go tool cover -html=$< -o $@

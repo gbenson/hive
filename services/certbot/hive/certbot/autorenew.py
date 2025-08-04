@@ -22,10 +22,10 @@ def main():
 
 
 def _main_loop():
-    sleep_until_next_window()
-    run_system("certbot", "renew")
     run_python("delete_expired.py")
     run_python("update_certdist_roots.py")
+    sleep_until_next_window()
+    run_system("certbot", "renew")
 
 
 def sleep_until_next_window():

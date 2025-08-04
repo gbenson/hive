@@ -17,7 +17,9 @@ services:
       - ./container-setup.sh:/docker-entrypoint.d/90-hive-container-setup.sh:ro
     environment:
       - DEFAULT_HOSTNAME
+      - STAGING_HOSTNAME
       - SERVICE_HOSTNAME
+      - LLM_KILLSWITCH_PATH
       - LOG_SPOOLER_PATH
       - WG_ARTICLE_PATH
       - WG_SCRIPT_PATH

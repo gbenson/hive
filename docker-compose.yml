@@ -14,6 +14,7 @@ include:
   - path: services/nginx-ingress/docker-compose.yml
     env_file:
       - $HOME/.config/hive/hostnames.env
+      - $HOME/.config/hive/llm-killswitch.env
       - $HOME/.config/hive/log-spooler-path.env
       - $HOME/.config/hive/mediawiki-paths.env
 

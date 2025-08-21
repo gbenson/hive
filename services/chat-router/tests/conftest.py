@@ -9,15 +9,20 @@ from hive.chat_router.pattern_graph import Matcher
 class LogDecoder(_LogDecoder):
     @property
     def send_text(self) -> str:
-        send_text_calls = [
-            call
+        published_events = [
+            call.message.event()
             for call in self.call_log
             if (call.method == "publish_request"
-                and call.routing_key == "hive.matrix.send.text.requests")
+                and call.routing_key == "hive.matrix.requests")
         ]
-        assert len(send_text_calls) == 1
-        call = send_text_calls[0]
-        return call.event.data["text"]
+        send_text_events = [
+            event
+            for event in published_events
+            if event.type == "net.gbenson.hive.matrix_send_text_request"
+        ]
+        assert len(send_text_events) == 1
+        event = send_text_events[0]
+        return event.data["text"]
 
 
 @pytest.fixture

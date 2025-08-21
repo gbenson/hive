@@ -6,4 +6,5 @@ pep440-version-utils
 pytest
 pytest-cov
 types-PyYAML
+types-pika
 wheel

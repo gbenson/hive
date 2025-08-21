@@ -56,6 +56,9 @@ jobs:
           python3 -m
           pip install --user dist/*.whl
 
+      - name: Mypy
+        run: mypy --explicit-package-bases hive
+
       - name: Test packages
         run: pytest
         env:

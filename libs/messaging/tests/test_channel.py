@@ -46,7 +46,7 @@ def test_publish_request():
     mock.exchange_declare = MockMethod()
     mock.basic_publish = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.publish_request(
         message={
             "bonjour": "madame",
@@ -86,7 +86,7 @@ def test_consume_requests(channel_kwargs):
     on_message_callback = MockCallback()
     mock.basic_ack = MockMethod()
 
-    channel = Channel(pika=mock, **channel_kwargs)
+    channel = Channel(_pika=mock, **channel_kwargs)
     channel.consume_requests(
         queue="arr.pirates",
         on_message_callback=on_message_callback,
@@ -156,7 +156,7 @@ def test_publish_event():
     mock.exchange_declare = MockMethod()
     mock.basic_publish = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.publish_event(
         message={
             "bonjour": "madame",
@@ -191,7 +191,7 @@ def test_consume_events():
     on_message_callback = MockCallback()
     mock.basic_ack = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.consume_events(
         queue="arr.pirates",
         on_message_callback=on_message_callback,
@@ -261,7 +261,7 @@ def test_publish_with_expiration():
     mock.exchange_declare = MockMethod()
     mock.basic_publish = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.publish_request(
         message={
             "bonjour": "madame",
@@ -304,7 +304,7 @@ def test_named_channel():
     on_message_callback = MockCallback()
     mock.basic_ack = MockMethod()
 
-    channel = Channel(pika=mock, name="Eugene.Goostman")
+    channel = Channel(_pika=mock, name="Eugene.Goostman")
     channel.consume_events(
         queue="arr.pirates",
         on_message_callback=on_message_callback,
@@ -382,7 +382,7 @@ def test_consume_exclusive():
     on_message_callback = MockCallback()
     mock.basic_ack = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.consume_events(
         queue="arr.pirates",
         on_message_callback=on_message_callback,
@@ -438,7 +438,7 @@ def test_publish_topic():
     mock.exchange_declare = MockMethod()
     mock.basic_publish = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.publish_event(
         message={
             "bonjour": "madame",
@@ -474,7 +474,7 @@ def test_consume_topic():
     on_message_callback = MockCallback()
     mock.basic_ack = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.consume_events(
         queue="arr.pirates",
         on_message_callback=on_message_callback,
@@ -546,7 +546,7 @@ def test_publish_cloudevents_event():
     mock.exchange_declare = MockMethod()
     mock.basic_publish = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.publish_event(
         message=CloudEvent(
             id="VeRyUn1qU3Me5sAgEiD",
@@ -592,7 +592,7 @@ def test_tell_user():
     mock.exchange_declare = MockMethod()
     mock.basic_publish = MockMethod()
 
-    channel = Channel(pika=mock)
+    channel = Channel(_pika=mock)
     channel.tell_user("hello world")
 
     assert mock.exchange_declare.call_log == [((), {

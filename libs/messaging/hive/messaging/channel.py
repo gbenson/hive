@@ -1,31 +1,41 @@
+from __future__ import annotations
+
 import json
 import logging
 
 from datetime import datetime, timedelta, timezone
+from dataclasses import KW_ONLY, dataclass
 from functools import cache, cached_property
-from typing import Any, Callable, Literal, Optional
+from typing import Any, Literal, Optional, TYPE_CHECKING
 
 from cloudevents.pydantic import CloudEvent
 from cloudevents.conversion import to_json
 
-from pika import BasicProperties, DeliveryMode
-from pika.channel import Channel as PikaChannel
+from pika import BasicProperties
+from pika.adapters.blocking_connection import BlockingChannel as _PikaChannel
+from pika.delivery_mode import DeliveryMode  # type: ignore
 
 from hive.common import SERVICE_NAME, utc_now
 
 from .message import Message
 from .semantics import Semantics
-from .wrapper import WrappedPikaThing
+
+if TYPE_CHECKING:
+    from .typing import ConsumerTag, OnMessageCallback
 
 logger = logging.getLogger(__name__)
 
 
-class Channel(WrappedPikaThing):
+@dataclass
+class Channel:
     """The primary entry point for interacting with Hive's message bus.
     """
-    def __init__(self, pika: PikaChannel, *, name: str = "", **kwargs):
-        super().__init__(pika)
-        self.name = name
+    _pika: _PikaChannel
+    _: KW_ONLY
+    name: str = ""
+
+    def __hash__(self) -> int:
+        return id(self)
 
     # Messages are:
     #  - PUBLISHED to EXCHANGES
@@ -51,23 +61,23 @@ class Channel(WrappedPikaThing):
     #
     # CONSUME_* methods process to completion or dead-letter the message.
 
-    def publish_request(self, **kwargs):
-        return self._publish(mandatory=True, **kwargs)
+    def publish_request(self, **kwargs: Any) -> None:
+        self._publish(mandatory=True, **kwargs)
 
-    def publish_event(self, **kwargs):
-        return self._publish(**kwargs)
+    def publish_event(self, **kwargs: Any) -> None:
+        self._publish(**kwargs)
 
-    def maybe_publish_event(self, **kwargs):
+    def maybe_publish_event(self, **kwargs: Any) -> None:
         try:
-            return self.publish_event(**kwargs)
+            self.publish_event(**kwargs)
         except Exception:
             logger.warning("EXCEPTION", exc_info=True)
 
-    def consume_requests(self, **kwargs):
-        return self._consume(Semantics.COMPETING_CONSUMERS, **kwargs)
+    def consume_requests(self, **kwargs: Any) -> None:
+        self._consume(Semantics.COMPETING_CONSUMERS, **kwargs)
 
-    def consume_events(self, **kwargs):
-        return self._consume(Semantics.PUBLISH_SUBSCRIBE, **kwargs)
+    def consume_events(self, **kwargs: Any) -> None:
+        self._consume(Semantics.PUBLISH_SUBSCRIBE, **kwargs)
 
     # Lower-level handlers for PUBLISH_* and CONSUME_*
     #  - Everything should go through these
@@ -80,9 +90,9 @@ class Channel(WrappedPikaThing):
             topic: str = "",
             correlation_id: Optional[str] = None,
             mandatory: bool = False,
-            consume_by: Optional[timedelta] = None,
-            **kwargs,
-    ):
+            consume_by: Optional[datetime] = None,
+            **kwargs: Any,
+    ) -> None:
         payload, content_type = self._encapsulate(routing_key, **kwargs)
 
         exchange = self._exchange_for(routing_key, topic)
@@ -99,7 +109,7 @@ class Channel(WrappedPikaThing):
             ttl_ms = round(ttl / timedelta(milliseconds=1))
             properties["expiration"] = str(ttl_ms)
 
-        return self.basic_publish(
+        self._pika.basic_publish(
             exchange=exchange,
             routing_key=routing_key,
             body=payload,
@@ -112,17 +122,17 @@ class Channel(WrappedPikaThing):
             semantics: Semantics,
             *,
             queue: str,
-            on_message_callback: Callable,
+            on_message_callback: OnMessageCallback,
             exclusive: bool = False,
             topic: str = "",
-    ):
+    ) -> ConsumerTag:
         exchange = self._exchange_for(queue, topic)
 
         if semantics is Semantics.PUBLISH_SUBSCRIBE:
             if (prefix := self.consumer_name):
                 queue = f"{prefix}.{queue}"
 
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         if exclusive:
             kwargs["exclusive"] = True
         else:
@@ -135,7 +145,7 @@ class Channel(WrappedPikaThing):
         if topic:
             kwargs["routing_key"] = topic
 
-        self.queue_bind(queue=queue, exchange=exchange, **kwargs)
+        self._pika.queue_bind(queue=queue, exchange=exchange, **kwargs)
 
         return self._basic_consume(queue, on_message_callback)
 
@@ -172,9 +182,9 @@ class Channel(WrappedPikaThing):
             durable=True,
         )
 
-    def _hive_exchange(self, exchange: str, **kwargs) -> str:
+    def _hive_exchange(self, exchange: str, **kwargs: Any) -> str:
         name = f"hive.{exchange}"
-        self.exchange_declare(exchange=name, **kwargs)
+        self._pika.exchange_declare(exchange=name, **kwargs)
         return name
 
     # Queues
@@ -185,8 +195,8 @@ class Channel(WrappedPikaThing):
             *,
             dead_letter_routing_key: Optional[str] = None,
             arguments: Optional[dict[str, str]] = None,
-            **kwargs
-    ):
+            **kwargs: Any
+    ) -> None:
         if dead_letter_routing_key:
             DLX_ARG = "x-dead-letter-exchange"
             if arguments:
@@ -203,7 +213,7 @@ class Channel(WrappedPikaThing):
             )
 
             dead_letter_exchange = self.dead_letter_exchange
-            self.queue_bind(
+            self._pika.queue_bind(
                 queue=dead_letter_queue,
                 exchange=dead_letter_exchange,
                 routing_key=dead_letter_routing_key,
@@ -213,13 +223,14 @@ class Channel(WrappedPikaThing):
 
         if arguments:
             kwargs["arguments"] = arguments
-        return self._pika.queue_declare(
-            queue,
-            **kwargs
-        )
+        self._pika.queue_declare(queue, **kwargs)
 
     @classmethod
-    def _encapsulate(cls, routing_key: str, **kwargs) -> tuple[bytes, str]:
+    def _encapsulate(
+            cls,
+            routing_key: str,
+            **kwargs: Any
+    ) -> tuple[bytes, str]:
         """Prepare messages for transmission.
         """
         message = kwargs.pop("message", None)
@@ -240,7 +251,7 @@ class Channel(WrappedPikaThing):
             source: Optional[str] = None,
             type: Optional[str] = None,
             time: Optional[datetime] = None,
-            **kwargs
+            **kwargs: Any
     ) -> CloudEvent:
         """Prepare messages for transmission.
         """
@@ -259,7 +270,7 @@ class Channel(WrappedPikaThing):
 
     @staticmethod
     def _encapsulate_old(
-            msg: bytes | dict | CloudEvent,
+            msg: bytes | dict[str, Any] | CloudEvent,
             content_type: Optional[str],
     ) -> tuple[bytes, str]:
         """Prepare messages for transmission.
@@ -273,73 +284,74 @@ class Channel(WrappedPikaThing):
         return msg, content_type
 
     @property
-    def prefetch_count(self):
+    def prefetch_count(self) -> Optional[int]:
         return getattr(self, "_prefetch_count", None)
 
     @prefetch_count.setter
-    def prefetch_count(self, value):
+    def prefetch_count(self, value: int) -> None:
         if self.prefetch_count == value:
             return
         if self.prefetch_count is not None:
             raise ValueError(value)
-        self.basic_qos(prefetch_count=value)
+        self._pika.basic_qos(prefetch_count=value)
         self._prefetch_count = value
 
     def _basic_consume(
             self,
             queue: str,
-            on_message_callback: Callable,
-    ):
+            on_message_callback: OnMessageCallback,
+    ) -> ConsumerTag:
         self.prefetch_count = 1  # Receive one message at a time.
 
-        def _wrapped_callback(channel: Channel, message: Message):
+        def _wrapped_callback(channel: Channel, message: Message) -> None:
             delivery_tag = message.method.delivery_tag
+            assert delivery_tag is not None
             try:
-                result = on_message_callback(channel, message)
-                channel.basic_ack(delivery_tag=delivery_tag)
-                return result
+                on_message_callback(channel, message)
+                channel._pika.basic_ack(delivery_tag=delivery_tag)
+
             except Exception as e:
-                channel.basic_reject(delivery_tag=delivery_tag, requeue=False)
+                channel._pika.basic_reject(
+                    delivery_tag=delivery_tag,
+                    requeue=False,
+                )
                 logged = False
                 try:
                     if isinstance(e, NotImplementedError) and e.args:
-                        traceback = e.__traceback__
-                        while (next_tb := traceback.tb_next):
-                            traceback = next_tb
-                        code = traceback.tb_frame.f_code
-                        try:
-                            func = code.co_qualname
-                        except AttributeError:
-                            func = code.co_name  # Python <=3.10
-                        logger.warning("%s:%s:UNHANDLED", func, e)
-                        logged = True
+                        if (traceback := e.__traceback__):
+                            while (next_tb := traceback.tb_next):
+                                traceback = next_tb
+                            code = traceback.tb_frame.f_code
+                            try:
+                                func = code.co_qualname
+                            except AttributeError:
+                                func = code.co_name  # Python <=3.10
+                            logger.warning("%s:%s:UNHANDLED", func, e)
+                            logged = True
 
                 except Exception:
                     logger.exception("NESTED EXCEPTION")
                 if not logged:
                     logger.exception("EXCEPTION")
 
-        return self.basic_consume(
-            queue=queue,
-            on_message_callback=_wrapped_callback,
-        )
+        return self._basic_consume_raw(queue, _wrapped_callback)
 
-    def basic_consume(
+    def _basic_consume_raw(
             self,
             queue: str,
-            on_message_callback,
-            *args,
-            **kwargs
-    ):
-        def _wrapped_callback(channel, *args, **kwargs):
+            on_message_callback: OnMessageCallback,
+    ) -> ConsumerTag:
+        def _wrapped_callback(
+                channel: _PikaChannel,
+                *args: Any,
+                **kwargs: Any,
+        ) -> None:
             assert channel is self._pika
-            return on_message_callback(self, Message(*args, **kwargs))
+            on_message_callback(self, Message(*args, **kwargs))
 
         return self._pika.basic_consume(
             queue=queue,
             on_message_callback=_wrapped_callback,
-            *args,
-            **kwargs
         )
 
     # High-level publish_request wrappers for Matrix chat.
@@ -383,10 +395,10 @@ class Channel(WrappedPikaThing):
     ) -> None:
         """https://pkg.go.dev/maunium.net/go/mautrix#Client.UserTyping
         """
-        timeout = round(timeout.total_seconds() * 1e9) if timeout else 0
+        nanos = round(timeout.total_seconds() * 1e9) if timeout else 0
         self.maybe_publish_matrix_event("user_typing", {
             "sender": sender,
-            "timeout": timeout,
+            "timeout": nanos,
         })
 
     # Low(er)-level publish_request wrappers for Matrix chat.
@@ -407,7 +419,7 @@ class Channel(WrappedPikaThing):
             routing_key="matrix.requests",
         )
 
-    def maybe_publish_matrix_event(self, *args, **kwargs):
+    def maybe_publish_matrix_event(self, *args: Any, **kwargs: Any) -> None:
         try:
             return self.publish_matrix_event(*args, **kwargs)
         except Exception:

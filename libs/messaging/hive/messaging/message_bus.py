@@ -51,7 +51,7 @@ class MessageBus:
             retry_delay: float = 2.0,  # ...    + retry_delay) = 60 seconds
             heartbeat: int = 600,
             blocked_connection_timeout: int = 300,
-            **kwargs
+            **kwargs: Any
     ) -> ConnectionParameters:
         if not host:
             host = self.host or self.config["host"]
@@ -82,7 +82,7 @@ class MessageBus:
             *,
             connection_class: type[Connection] = Connection,
             on_channel_open: Optional[Callable[[Channel], None]] = None,
-            **kwargs
+            **kwargs: Any
     ) -> Connection:
         params = self.connection_params(**kwargs)
         try:
@@ -90,14 +90,14 @@ class MessageBus:
                 BlockingConnection(params),
                 on_channel_open=on_channel_open,
             )
-        except AMQPConnectionError as e:
-            e = getattr(e, "args", [None])[0]
-            e = getattr(e, "exception", None)
-            if isinstance(e, (ConnectionRefusedError, TimeoutError)):
-                raise e
+        except AMQPConnectionError as ex1:
+            ex2 = getattr(ex1, "args", [None])[0]
+            ex3 = getattr(ex2, "exception", None)
+            if isinstance(ex3, (ConnectionRefusedError, TimeoutError)):
+                raise ex3
             raise
 
-    def publisher_connection(self, **kwargs) -> Connection:
+    def publisher_connection(self, **kwargs: Any) -> Connection:
         return self.blocking_connection(
             connection_class=PublisherConnection,
             **kwargs)

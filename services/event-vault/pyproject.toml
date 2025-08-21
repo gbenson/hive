@@ -4,7 +4,7 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Event vault for Hive"
 dependencies = [
-    "hive-common",
+    "hive-common>=0.3.0",
     "hive-messaging>=0.15.1",
     "hive-service>=0.2.0",
 ]

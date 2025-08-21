@@ -1,5 +1,5 @@
 hive-chat>=0.1.4
-hive-common[brotli,httpx,openai,zstd]>=0.2.0
+hive-common[brotli,httpx,zstd]>=0.2.0
 hive-email>=0.0.2
 hive-mediawiki>=0.0.5
 hive-messaging>=0.15.1

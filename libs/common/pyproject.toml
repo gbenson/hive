@@ -21,9 +21,6 @@ httpx = [
     "hishel",
     "httpx[http2]",
 ]
-openai = [
-    "openai",
-]
 zstd = [
     "httpx[zstd]",
 ]

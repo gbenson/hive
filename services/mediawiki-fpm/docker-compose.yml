@@ -46,11 +46,30 @@ services:
     profiles:
       - mediawiki
 
+  mediawiki-backup:
+    image: gbenson/rsync
+    restart: unless-stopped
+    networks:
+      - mediawiki-backup
+    ports:
+      - 2122:22/tcp
+    volumes:
+      - hive_mediawiki_backups:/srv/mediawiki/mariadb:ro
+      - hive_mediawiki_uploads:/srv/mediawiki/uploads:ro
+    secrets:
+      - source: rsync-backup-server-id_ed25519
+        target: ssh_host_ed25519_key
+      - source: rsync-backup-client-id_ed25519.pub
+        target: authorized_keys
+    profiles:
+      - mediawiki
+
 networks:
   mediawiki-fpm:
     internal: true
   mediawiki-mariadb:
     internal: true
+  mediawiki-backup:
 
 volumes:
   hive_mediawiki_mariadb:

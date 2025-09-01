@@ -22,25 +22,7 @@ server {
     server_name $DEFAULT_HOSTNAME;
     ssl_certificate /etc/letsencrypt/live/$DEFAULT_HOSTNAME/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$DEFAULT_HOSTNAME/privkey.pem;
-    server_tokens off;
-    http2 on;
-    root /usr/share/nginx/html;
-    access_log /var/log/nginx/access.log json;
-
-    # Allow only the HTTP methods we require.
-    if ($request_method !~ ^(GET|HEAD)$) {
-        return 405;
-    }
-
-    # Never reference this host in HTTP Referer headers.
-    add_header Referrer-Policy "no-referrer" always;
-
-    # https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html
-    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-
-    # https://owasp.org/www-community/attacks/Clickjacking
-    add_header Content-Security-Policy "frame-ancestors 'none'" always;
-    add_header X-Frame-Options DENY always;
+    include snippets/common-server-setup.conf;
 }
 
 server {
@@ -48,25 +30,7 @@ server {
     server_name www.$SERVICE_HOSTNAME;
     ssl_certificate /etc/letsencrypt/live/www.$SERVICE_HOSTNAME/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/www.$SERVICE_HOSTNAME/privkey.pem;
-    server_tokens off;
-    http2 on;
-    root /usr/share/nginx/html;
-    access_log /var/log/nginx/access.log json;
-
-    # Allow only the HTTP methods we require.
-    if ($request_method !~ ^(GET|HEAD)$) {
-        return 405;
-    }
-
-    # Never reference this host in HTTP Referer headers.
-    add_header Referrer-Policy "no-referrer" always;
-
-    # https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html
-    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-
-    # https://owasp.org/www-community/attacks/Clickjacking
-    add_header Content-Security-Policy "frame-ancestors 'none'" always;
-    add_header X-Frame-Options DENY always;
+    include snippets/common-server-setup.conf;
 
     # Redirect everything to the site without the "www." prefix.
     location / {
@@ -79,25 +43,7 @@ server {
     server_name $SERVICE_HOSTNAME;
     ssl_certificate /etc/letsencrypt/live/$SERVICE_HOSTNAME/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$SERVICE_HOSTNAME/privkey.pem;
-    server_tokens off;
-    http2 on;
-    root /usr/share/nginx/html;
-    access_log /var/log/nginx/access.log json;
-
-    # Allow only the HTTP methods we require.
-    if ($request_method !~ ^(GET|HEAD|POST)$) {
-        return 405;
-    }
-
-    # Never reference this host in HTTP Referer headers.
-    add_header Referrer-Policy "no-referrer" always;
-
-    # https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html
-    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-
-    # https://owasp.org/www-community/attacks/Clickjacking
-    add_header Content-Security-Policy "frame-ancestors 'none'" always;
-    add_header X-Frame-Options DENY always;
+    include snippets/common-server-setup.conf;
 
     # $LOG_SPOOLER_PATH is the URL prefix of the log-spooler service.
     location = /$LOG_SPOOLER_PATH {

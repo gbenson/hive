@@ -14,6 +14,7 @@ services:
       - hive_mediawiki_static:/usr/share/nginx/mediawiki-static:ro
       - hive_mediawiki_uploads:/usr/share/nginx/mediawiki-uploads:ro
       - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./snippets:/etc/nginx/snippets:ro
       - ./container-setup.sh:/docker-entrypoint.d/90-hive-container-setup.sh:ro
     environment:
       - DEFAULT_HOSTNAME

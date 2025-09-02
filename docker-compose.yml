@@ -3,11 +3,7 @@ include:
   - path: services/chat-router/docker-compose.yml
   - path: services/email-receiver/docker-compose.yml
   - path: services/event-vault/docker-compose.yml
-
   - path: services/logging/docker-compose.yml
-    env_file:
-      - $HOME/.config/hive/log-vault.env
-
   - path: services/matrix-connector/docker-compose.yml
   - path: services/mediawiki-fpm/docker-compose.yml
 
@@ -16,6 +12,7 @@ include:
       - $HOME/.config/hive/hostnames.env
       - $HOME/.config/hive/log-spooler-path.env
       - $HOME/.config/hive/mediawiki-paths.env
+      - $HOME/.config/hive/ollama-path.env
 
   - path: services/ollama/docker-compose.yml
 
@@ -58,7 +55,7 @@ secrets:
     file: $HOME/.config/hive/mediawiki.htpasswd
   mediawiki.yml:
     file: $HOME/.config/hive/mediawiki.yml
-  openai.env:
-    file: $HOME/.config/hive/openai.env
+  ollama.htpasswd:
+    file: $HOME/.config/hive/ollama.htpasswd
   rabbitmq.env:
     file: $HOME/.config/hive/rabbitmq.env

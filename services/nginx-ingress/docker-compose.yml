@@ -6,6 +6,7 @@ services:
       - nginx-ingress
       - log-spooler
       - mediawiki-fpm
+      - ollama
     ports:
       - 443:443/tcp
     volumes:
@@ -20,6 +21,7 @@ services:
       - DEFAULT_HOSTNAME
       - SERVICE_HOSTNAME
       - LOG_SPOOLER_PATH
+      - OLLAMA_PATH
       - WG_ARTICLE_PATH
       - WG_SCRIPT_PATH
       - WG_RESOURCE_BASE_PATH
@@ -27,6 +29,7 @@ services:
     secrets:
       - log-spooler.htpasswd
       - mediawiki.htpasswd
+      - ollama.htpasswd
     profiles:
       - ingress
 

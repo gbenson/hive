@@ -45,7 +45,7 @@ jobs:
       - name: Install packages
         run: >-
           python3 -m
-          pip install --user $(echo dist/*.whl)[httpx,brotli,zstd]
+          pip install --user $(echo dist/*.whl)[httpx,brotli,zstd,langchain]
 
       - name: Mypy
         run: mypy --explicit-package-bases hive

@@ -17,13 +17,29 @@ Source = "https://github.com/gbenson/hive"
 brotli = [
     "httpx[brotli]",
 ]
-langchain = [
-    "langchain",
-    "pydantic",
-]
 httpx = [
     "hishel",
     "httpx[http2]",
+]
+langchain = [
+    "hishel",
+    "httpx[http2]",
+    "langchain",
+    "pydantic",
+]
+langchain-ollama = [
+    "hishel",
+    "httpx[http2]",
+    "langchain",
+    "langchain-ollama",
+    "ollama",
+    "pydantic",
+]
+ollama = [
+    "hishel",
+    "httpx[http2]",
+    "ollama",
+    "pydantic",
 ]
 zstd = [
     "httpx[zstd]",

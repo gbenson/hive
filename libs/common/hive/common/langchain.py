@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 from langchain.chat_models import init_chat_model as _init_chat_model
 
-from .endpoint_config import EndpointConfig, read_endpoint_config
+from .ollama import configure_client as configure_ollama_client
 
 
 @wraps(_init_chat_model)
@@ -14,8 +14,7 @@ def init_chat_model(
         **kwargs: Any
 ) -> Any:
     if _is_ollama_model(model, model_provider):
-        if (config := read_endpoint_config("ollama")):
-            kwargs = _configure_ollama_model(config, **kwargs)
+        kwargs = configure_ollama_model(**kwargs)
     return _init_chat_model(model, model_provider=model_provider, **kwargs)
 
 
@@ -25,28 +24,25 @@ def _is_ollama_model(model: str, model_provider: Optional[str]) -> bool:
             else model.startswith("ollama:"))
 
 
-def _configure_ollama_model(
-        config: EndpointConfig,
+def configure_ollama_model(
         *,
         base_url: Optional[str] = None,
         client_kwargs: Optional[dict[str, Any]] = None,
         **kwargs: Any
 ) -> dict[str, Any]:
-    if not base_url:
-        if config.url:
-            base_url = config.url
+    kwargs = configure_ollama_client(
+        host=base_url,
+        auth=client_kwargs.get("auth") if client_kwargs else None,
+        **kwargs
+    )
 
-    if base_url:
+    if (base_url := kwargs.pop("host", None)):
         kwargs["base_url"] = base_url
 
-        if (config.http_auth
-            and base_url == config.url
-            and (not client_kwargs
-                 or "auth" not in client_kwargs)):
-
-            if not client_kwargs:
-                client_kwargs = {}
-            client_kwargs["auth"] = config.http_auth.username_password
+    if (auth := kwargs.pop("auth", None)):
+        if not client_kwargs:
+            client_kwargs = {}
+        client_kwargs["auth"] = auth
 
     if client_kwargs:
         kwargs["client_kwargs"] = client_kwargs

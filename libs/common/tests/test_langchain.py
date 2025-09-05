@@ -8,6 +8,7 @@ from pytest import MonkeyPatch
 
 from hive.common import langchain as langchain_module
 from hive.common.langchain import init_chat_model
+from hive.common.ollama import DEFAULT_TIMEOUT
 from hive.common.testing import test_config_dir  # noqa: F401
 
 
@@ -37,6 +38,7 @@ def test_ollama_provider() -> None:
         model_provider="ollama",
         base_url="https://gbenson.net/ollama",
         client_kwargs={"auth": ("hello", "world")},
+        timeout=DEFAULT_TIMEOUT,
     )
 
 
@@ -53,6 +55,7 @@ def test_ollama_provider_in_model() -> None:
         model_provider=None,
         base_url="https://gbenson.net/ollama",
         client_kwargs={"auth": ("hello", "world")},
+        timeout=DEFAULT_TIMEOUT,
     )
 
 
@@ -76,6 +79,8 @@ def test_no_config(kwargs: dict[str, Any], config_path: Path) -> None:
     """
     config_path.unlink()
     expect_kwargs = {"model_provider": None, **kwargs}
+    if kwargs in OLLAMA_VARIATIONS:
+        expect_kwargs = {"timeout": DEFAULT_TIMEOUT, **expect_kwargs}
     assert _test_init_chat_model(**kwargs) == expect_kwargs
 
 
@@ -94,6 +99,8 @@ def test_no_auth_wrong_base_url(kwargs: dict[str, Any]) -> None:
     """
     kwargs = {"base_url": "https://gbenson.net/pyjama", **kwargs}
     expect_kwargs = {"model_provider": None, **kwargs}
+    if "'ollama" in str(kwargs):
+        expect_kwargs = {"timeout": DEFAULT_TIMEOUT, **expect_kwargs}
     assert _test_init_chat_model(**kwargs) == expect_kwargs
 
 
@@ -115,8 +122,10 @@ def test_no_overwrite_auth(
         kwargs["base_url"] = with_base_url
 
     expect_kwargs = {"model_provider": None, **kwargs}
-    if not with_base_url and "'ollama" in str(kwargs):
-        expect_kwargs["base_url"] = "https://gbenson.net/ollama"
+    if "'ollama" in str(kwargs):
+        expect_kwargs["timeout"] = DEFAULT_TIMEOUT
+        if not with_base_url:
+            expect_kwargs["base_url"] = "https://gbenson.net/ollama"
 
     assert _test_init_chat_model(**kwargs) == expect_kwargs
 

@@ -37,8 +37,10 @@ def test_ollama_provider() -> None:
         model="qwen3:0.6b",
         model_provider="ollama",
         base_url="https://gbenson.net/ollama",
-        client_kwargs={"auth": ("hello", "world")},
-        timeout=DEFAULT_TIMEOUT,
+        client_kwargs=dict(
+            auth=("hello", "world"),
+            timeout=DEFAULT_TIMEOUT,
+        ),
     )
 
 
@@ -54,8 +56,10 @@ def test_ollama_provider_in_model() -> None:
         model="ollama:qwen3:0.6b",
         model_provider=None,
         base_url="https://gbenson.net/ollama",
-        client_kwargs={"auth": ("hello", "world")},
-        timeout=DEFAULT_TIMEOUT,
+        client_kwargs=dict(
+            auth=("hello", "world"),
+            timeout=DEFAULT_TIMEOUT,
+        ),
     )
 
 
@@ -75,12 +79,12 @@ VARIATIONS = NON_OLLAMA_VARIATIONS + OLLAMA_VARIATIONS
 
 @pytest.mark.parametrize("kwargs", VARIATIONS)
 def test_no_config(kwargs: dict[str, Any], config_path: Path) -> None:
-    """Nothing changes if we don't have the config file.
+    """Auth isn't added if we don't have the config file.
     """
     config_path.unlink()
     expect_kwargs = {"model_provider": None, **kwargs}
     if kwargs in OLLAMA_VARIATIONS:
-        expect_kwargs = {"timeout": DEFAULT_TIMEOUT, **expect_kwargs}
+        expect_kwargs["client_kwargs"] = {"timeout": DEFAULT_TIMEOUT}
     assert _test_init_chat_model(**kwargs) == expect_kwargs
 
 
@@ -100,10 +104,15 @@ def test_no_auth_wrong_base_url(kwargs: dict[str, Any]) -> None:
     kwargs = {"base_url": "https://gbenson.net/pyjama", **kwargs}
     expect_kwargs = {"model_provider": None, **kwargs}
     if "'ollama" in str(kwargs):
-        expect_kwargs = {"timeout": DEFAULT_TIMEOUT, **expect_kwargs}
+        expect_kwargs["client_kwargs"] = {"timeout": DEFAULT_TIMEOUT}
     assert _test_init_chat_model(**kwargs) == expect_kwargs
 
 
+@pytest.mark.parametrize(
+    "auth",
+    (None,
+     ("SeKr3T", "p@$$w0rD"),
+     ))
 @pytest.mark.parametrize(
     "with_base_url",
     (None,
@@ -113,17 +122,19 @@ def test_no_auth_wrong_base_url(kwargs: dict[str, Any]) -> None:
 @pytest.mark.parametrize("kwargs", VARIATIONS)
 def test_no_overwrite_auth(
         with_base_url: Optional[str],
+        auth: Any,
         kwargs: dict[str, Any],
 ) -> None:
     """Provided auth is never replaced.
     """
-    kwargs = {"client_kwargs": {"auth": None}, **kwargs}
+    kwargs = {"client_kwargs": {"auth": auth}, **kwargs}
     if with_base_url:
         kwargs["base_url"] = with_base_url
 
     expect_kwargs = {"model_provider": None, **kwargs}
     if "'ollama" in str(kwargs):
-        expect_kwargs["timeout"] = DEFAULT_TIMEOUT
+        expect_kwargs["client_kwargs"] = \
+            {**expect_kwargs["client_kwargs"], "timeout": DEFAULT_TIMEOUT}
         if not with_base_url:
             expect_kwargs["base_url"] = "https://gbenson.net/ollama"
 

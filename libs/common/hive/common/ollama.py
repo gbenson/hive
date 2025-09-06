@@ -29,7 +29,6 @@ def configure_client(
         *,
         config_key: Optional[str] = "ollama",
         host: Optional[str] = None,
-        auth: Any = None,
         timeout: Optional[Timeout] = DEFAULT_TIMEOUT,
         **kwargs: Any
 ) -> dict[str, Any]:
@@ -49,10 +48,7 @@ def configure_client(
     if host:
         kwargs["host"] = host
 
-        if (config.http_auth and host == config.url and not auth):
-            auth = config.http_auth.username_password
-
-    if auth:
-        kwargs["auth"] = auth
+        if (config.http_auth and host == config.url and "auth" not in kwargs):
+            kwargs["auth"] = config.http_auth.username_password
 
     return kwargs

@@ -30,19 +30,18 @@ def configure_ollama_model(
         client_kwargs: Optional[dict[str, Any]] = None,
         **kwargs: Any
 ) -> dict[str, Any]:
-    kwargs = configure_ollama_client(
-        host=base_url,
-        auth=client_kwargs.get("auth") if client_kwargs else None,
-        **kwargs
-    )
+    if not client_kwargs:
+        client_kwargs = dict()
 
-    if (base_url := kwargs.pop("host", None)):
+    if "timeout" in kwargs:
+        if "timeout" in client_kwargs:
+            raise ValueError
+        client_kwargs["timeout"] = kwargs.pop("timeout")
+
+    client_kwargs = configure_ollama_client(host=base_url, **client_kwargs)
+
+    if (base_url := client_kwargs.pop("host", None)):
         kwargs["base_url"] = base_url
-
-    if (auth := kwargs.pop("auth", None)):
-        if not client_kwargs:
-            client_kwargs = {}
-        client_kwargs["auth"] = auth
 
     if client_kwargs:
         kwargs["client_kwargs"] = client_kwargs

@@ -13,6 +13,7 @@ class ReadingListEntry:
     title: Optional[str] = None
     notes: Optional[str] = None
     timestamp: str = field(default_factory=NotImplemented)
+    source: Optional[dict[str, Any]] = None
 
     def __post_init__(self):
         if not self.title:
@@ -47,8 +48,18 @@ class ReadingListEntry:
         kwargs = {}
         if (date := email.get("date")):
             kwargs["timestamp"] = date
+        if (source := email.get("created_from")):
+            kwargs["source"] = source.copy()
 
         return cls(url, title, notes, **kwargs)
+
+    @property
+    def source_matrix_event_id(self) -> Optional[str]:
+        if not (source := self.source):
+            return None
+        if source.get("type") != "net.gbenson.hive.matrix_event":
+            return None
+        return source.get("id")
 
     def as_wikitext(self):
         return format_reading_list_entry(

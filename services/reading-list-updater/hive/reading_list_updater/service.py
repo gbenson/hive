@@ -2,7 +2,6 @@ import logging
 
 from email.utils import format_datetime
 from functools import cached_property
-from typing import Any
 
 from hive.common import httpx
 from hive.mediawiki import HiveWiki
@@ -45,7 +44,7 @@ class Service(HiveService):
         self.wiki.page("Reading list").append(f"* {wikitext}")
 
         try:
-            self.maybe_acknowledge(channel, email_summary)
+            self.maybe_acknowledge(channel, entry)
         except Exception:
             logger.warning("EXCEPTION", exc_info=True)
 
@@ -68,12 +67,12 @@ class Service(HiveService):
 
         maybe_decorate_entry(entry, opengraph_properties(r.text))
 
-    def maybe_acknowledge(self, channel: Channel, summary: dict[str, Any]):
-        if not (source := summary.get("created_from")):
-            return
-        if source.get("type") != "net.gbenson.hive.matrix_event":
-            return
-        if not (event_id := source.get("id")):
+    def maybe_acknowledge(
+            self,
+            channel: Channel,
+            entry: ReadingListEntry,
+    ) -> None:
+        if not (event_id := entry.source_matrix_event_id):
             return
         channel.send_reaction("👍", in_reply_to=event_id)
         channel.set_user_typing(False)

@@ -343,10 +343,17 @@ class Channel(WrappedPikaThing):
 
     # High-level publish_request wrappers for Matrix chat.
 
-    def send_text(self, text: str) -> None:
+    def send_text(
+            self, text: str,
+            *,
+            sender: str = "hive",
+    ) -> None:
         """https://pkg.go.dev/maunium.net/go/mautrix#Client.SendText
         """
-        self.publish_matrix_event("send_text", {"text": text})
+        self.publish_matrix_event("send_text", {
+            "sender": sender,
+            "text": text,
+        })
 
     tell_user = send_text
 
@@ -355,6 +362,7 @@ class Channel(WrappedPikaThing):
             reaction: str,
             *,
             in_reply_to: str | CloudEvent,
+            sender: str = "hive",
     ) -> None:
         """https://pkg.go.dev/maunium.net/go/mautrix#Client.SendReaction
         """
@@ -363,16 +371,22 @@ class Channel(WrappedPikaThing):
         self.publish_matrix_event("send_reaction", {
             "event_id": in_reply_to,
             "reaction": reaction,
+            "sender": sender,
         })
 
     def set_user_typing(
             self,
             timeout: timedelta | Literal[False],
+            *,
+            sender: str = "hive",
     ) -> None:
         """https://pkg.go.dev/maunium.net/go/mautrix#Client.UserTyping
         """
         timeout = round(timeout.total_seconds() * 1e9) if timeout else 0
-        self.maybe_publish_matrix_event("user_typing", {"timeout": timeout})
+        self.maybe_publish_matrix_event("user_typing", {
+            "sender": sender,
+            "timeout": timeout,
+        })
 
     # Low(er)-level publish_request wrappers for Matrix chat.
     #

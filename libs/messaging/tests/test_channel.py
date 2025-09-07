@@ -625,5 +625,8 @@ def test_tell_user():
         "specversion": "1.0",
         "source": "https://gbenson.net/hive/services/pytest",
         "type": "net.gbenson.hive.matrix_send_text_request",
-        "data": {"text": "hello world"},
+        "data": {
+            "sender": "hive",
+            "text": "hello world",
+        },
     }

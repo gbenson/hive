@@ -43,7 +43,10 @@ def test_reading_list_update(mock_channel):
     assert call.method == "publish_request"
     assert call.routing_key == "hive.matrix.requests"
     assert call.event.type == "net.gbenson.hive.matrix_user_typing_request"
-    assert call.event.data == {"timeout": 5_000_000_000}
+    assert call.event.data == {
+        "sender": "hive",
+        "timeout": 5_000_000_000,
+    }
 
     call = mock_channel.call_log[1]
     assert call.method == "publish_request"

@@ -1,0 +1,34 @@
+[project]
+name = "hive-chatbot"
+dynamic = ["version"]
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "Event vault for Hive"
+dependencies = [
+    "hive-common[langchain-ollama]>=0.3.3",
+    "hive-messaging>=0.15.2",
+    "hive-service>=0.2.0",
+]
+
+[project.scripts]
+hive-chatbot = "hive.chatbot:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "hive.chatbot.__version__.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--cov=hive.chatbot"
+log_level="debug"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+    "*/hive/*/__main__.py",
+]
+
+[tool.coverage.report]
+skip_covered = true

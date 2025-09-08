@@ -6,7 +6,7 @@ services:
     networks:
       - message-bus
     volumes:
-      - ./hive/chat_router:/venv/lib/python3.11/site-packages/hive/chat_router:ro
+      - ./hive/chat_router:/usr/lib/hive/chat_router:ro
     secrets:
       - rabbitmq.env
     command:

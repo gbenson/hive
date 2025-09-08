@@ -33,6 +33,8 @@ RUN --mount=type=bind,from=src,target=/src \
   \
   && python3 -m venv /venv \
   && . /venv/bin/activate \
+  && mkdir /usr/lib/hive \
+  && ln -s /usr/lib/hive $VIRTUAL_ENV/lib/python*/site-packages \
   && pip install -r /src/requirements.txt \
   && pip check
 

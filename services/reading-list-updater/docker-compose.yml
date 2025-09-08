@@ -7,7 +7,7 @@ services:
       - reading-list-updater
       - message-bus
     volumes:
-      - ./hive/reading_list_updater:/venv/lib/python3.11/site-packages/hive/reading_list_updater:ro
+      - ./hive/reading_list_updater:/usr/lib/hive/reading_list_updater:ro
     secrets:
       - rabbitmq.env
       - mediawiki.yml

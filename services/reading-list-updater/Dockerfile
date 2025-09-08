@@ -36,6 +36,8 @@ RUN --mount=type=bind,from=wheel,target=/wheel \
   \
   && python3 -m venv /venv \
   && . /venv/bin/activate \
+  && mkdir /usr/lib/hive \
+  && ln -s /usr/lib/hive $VIRTUAL_ENV/lib/python*/site-packages \
   && pip install /wheel/*.whl \
   && pip check
 
@@ -65,7 +67,6 @@ WORKDIR /src
 RUN set -eux \
   \
   && . /venv/bin/activate \
-  && pip freeze | grep hive \
   && pytest --cov hive.reading_list_updater \
   && coverage report > coverage.report
 

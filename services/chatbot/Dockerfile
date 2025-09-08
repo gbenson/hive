@@ -74,5 +74,6 @@ RUN --mount=type=bind,from=test,target=/test \
   grep -q '[^ ][^0]%$' /test/src/coverage.report
 
 USER hive-chatbot:hive-chatbot
+WORKDIR /var/lib/hive-chatbot
 
 ENTRYPOINT ["hive-chatbot"]

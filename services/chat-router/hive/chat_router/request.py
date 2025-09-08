@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 from cloudevents.abstract import CloudEvent
 
-from hive.chat.matrix import RoomMessageEvent
+from .matrix import RoomMessageEvent
 
 
 @dataclass

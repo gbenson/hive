@@ -11,9 +11,8 @@ services:
       - hive_event_vault:/data
     secrets:
       - rabbitmq.env
-    environment:
-      - LOGSPOUT=ignore
     command:
+      - chatbot.requests
       - inbox.emails
       - readinglist.shares
     profiles:

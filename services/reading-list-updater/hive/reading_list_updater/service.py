@@ -68,6 +68,8 @@ class Service(HiveService):
     ) -> None:
         event_data = entry.json()
         del event_data["timestamp"]
+        if (source := event_data.pop("source", None)):
+            event_data["origin"] = source
         event_data["type"] = \
             "application/vnd.net.gbenson.hive.reading-list-update"
 

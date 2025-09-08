@@ -11,6 +11,7 @@ from hive.service import HiveService
 
 from .brain import router
 from .config import Config
+from .llm import LLM
 from .request import Request
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ d = logger.info
 @dataclass
 class Service(HiveService):
     config: Config = field(default_factory=Config.read)
+    llm: LLM = field(default_factory=LLM)
 
     def run(self) -> None:
         with self.blocking_connection() as conn:
@@ -55,8 +57,11 @@ class Service(HiveService):
         role = sender.role
 
         if role == "user" and request.is_reading_list_update_request:
+            # reading-list-updater does the LLM context update for this one.
             self.on_reading_list_update_request(channel, request)
             return
+
+        self.llm.add_to_context(channel, request, role=role)
 
         if role != "user":
             return

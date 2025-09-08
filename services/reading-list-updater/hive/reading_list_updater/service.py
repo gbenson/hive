@@ -1,7 +1,9 @@
 import logging
 
+from datetime import datetime
 from email.utils import format_datetime
 from functools import cached_property
+from typing import Optional
 
 from hive.common import httpx
 from hive.mediawiki import HiveWiki
@@ -25,16 +27,25 @@ class Service(HiveService):
         return HiveWiki()
 
     def on_update_request(self, channel: Channel, message: Message):
+        event_time: Optional[datetime] = None
+
         if message.is_cloudevent:
             event = message.event()
             email_summary = event.data
-            email_summary["date"] = format_datetime(event.time)
+            event_time = event.time
+            email_summary["date"] = format_datetime(event_time)
         else:
             email_summary = message.json()
 
         d("Update request: %r", email_summary)
         entry = ReadingListEntry.from_email_summary(email_summary)
 
+        try:
+            self.maybe_update_llm_context(channel, entry, time=event_time)
+        except Exception:
+            logger.warning("EXCEPTION", exc_info=True)
+
+        wikitext = entry.as_wikitext()
         try:
             self.maybe_decorate_entry(channel, entry)
         except Exception:
@@ -47,6 +58,25 @@ class Service(HiveService):
             self.maybe_acknowledge(channel, entry)
         except Exception:
             logger.warning("EXCEPTION", exc_info=True)
+
+    def maybe_update_llm_context(
+            self,
+            channel: Channel,
+            entry: ReadingListEntry,
+            *,
+            time: Optional[datetime] = None,
+    ) -> None:
+        event_data = entry.json()
+        del event_data["timestamp"]
+        event_data["type"] = \
+            "application/vnd.net.gbenson.hive.reading-list-update"
+
+        channel.publish_request(
+            type="net.gbenson.hive.chatbot_add_to_context_request",
+            data=event_data,
+            time=time,
+            routing_key="chatbot.requests",
+        )
 
     def maybe_decorate_entry(
             self,

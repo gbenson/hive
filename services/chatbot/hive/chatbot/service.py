@@ -9,7 +9,7 @@ from hive.messaging import Channel, Message
 from hive.service import HiveService
 
 logger = logging.getLogger(__name__)
-d = logger.debug
+d = logger.info
 
 REQUEST_TYPE_RE = re.compile(r"net.gbenson.hive.chatbot_(\w+)_request")
 

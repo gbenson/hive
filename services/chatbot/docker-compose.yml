@@ -1,14 +1,20 @@
 services:
   chatbot:
-    image: gbenson/hive-chatbot
+    image: gbenson/hive-service-py
     init: true
     restart: unless-stopped
     networks:
       - "${RABBITMQ_NETWORK:-chatbot-msgbus}"
     extra_hosts:
       - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
+    volumes:
+      - ./hive/chatbot:/usr/lib/hive/chatbot:ro
     secrets:
       - rabbitmq.env
+    command:
+      - /venv/bin/python3
+      - -m
+      - hive.chatbot
     profiles:
       - chatbot
 

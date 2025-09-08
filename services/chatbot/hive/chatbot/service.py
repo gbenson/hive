@@ -32,7 +32,9 @@ class Service(HiveService):
             raise ValueError(event.type)
         request_type = match.group(1)
         handler_name = f"on_{request_type}_request"
-        getattr(self, handler_name)(channel, event)
+        if not (do := getattr(self, handler_name, None)):
+            raise NotImplementedError(request_type)
+        do(channel, event)
 
     def on_generate_response_request(
             self,

@@ -1,3 +1,8 @@
+import logging
+
+from dataclasses import dataclass, field
+from functools import cache
+
 from cloudevents.abstract import CloudEvent
 
 from hive.common.units import SECOND
@@ -5,10 +10,17 @@ from hive.messaging import Channel, Message
 from hive.service import HiveService
 
 from .brain import router
+from .config import Config
 from .request import Request
 
+logger = logging.getLogger(__name__)
+d = logger.info
 
+
+@dataclass
 class Service(HiveService):
+    config: Config = field(default_factory=Config.read)
+
     def run(self) -> None:
         with self.blocking_connection() as conn:
             channel = conn.channel()
@@ -35,11 +47,20 @@ class Service(HiveService):
 
     def on_room_message(self, channel: Channel, event: CloudEvent) -> None:
         request = Request(event)
-        if request.sender.startswith("@hive"):
+
+        sender = self.config.lookup_user(matrix_id=request.sender)
+        if not sender:
+            self.on_unknown_sender(request.sender)
             return
-        if request.is_reading_list_update_request:
+        role = sender.role
+
+        if role == "user" and request.is_reading_list_update_request:
             self.on_reading_list_update_request(channel, request)
             return
+
+        if role != "user":
+            return
+
         router.dispatch(request.text, self, channel)
         channel.maybe_publish_event(
             routing_key="chat.router.rewrites",
@@ -68,3 +89,8 @@ class Service(HiveService):
 
     def on_send_text(self, channel: Channel, text: str) -> None:
         channel.send_text(text)
+
+    @staticmethod
+    @cache
+    def on_unknown_sender(matrix_id: str) -> None:
+        logger.warning("Ignoring event from unknown sender %s", matrix_id)

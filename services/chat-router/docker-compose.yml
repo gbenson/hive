@@ -9,6 +9,7 @@ services:
       - ./hive/chat_router:/usr/lib/hive/chat_router:ro
     secrets:
       - rabbitmq.env
+      - chatbot.yml
     command:
       - /venv/bin/python3
       - -m

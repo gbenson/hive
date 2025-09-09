@@ -3,6 +3,7 @@ name = "hive-chat-router"
 dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Chat message router for Hive"
+requires-python = ">=3.10"  # match..case
 dependencies = [
     "cloudevents[pydantic]",
     "hive-common>=0.1.1",

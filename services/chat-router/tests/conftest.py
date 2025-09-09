@@ -1,9 +1,27 @@
+from pathlib import Path
+from textwrap import dedent
+
 import pytest
 
+from hive.common.testing import test_config_dir  # noqa: F401
 from hive.messaging import Channel
 from hive.messaging.testing import LogDecoder as _LogDecoder, MockChannel
 
 from hive.chat_router.pattern_graph import Matcher
+
+
+@pytest.fixture(autouse=True)
+def test_config(test_config_dir):  # noqa: F811
+    (Path(test_config_dir) / "chatbot.yml").write_text(dedent("""\
+        chatbot:
+          users:
+            user:
+              matrix_id: "@gary:gbenson.net"
+              role: user
+            hive:
+              matrix_id: "@hive:gbenson.net"
+              role: hive
+        """))
 
 
 class LogDecoder(_LogDecoder):

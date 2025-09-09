@@ -34,6 +34,8 @@ secrets:
     file: $HOME/.config/hive/certdist-server.env
   certdist-client-id_ed25519:
     file: $HOME/.config/hive/certdist-id_ed25519
+  chatbot.yml:
+    file: $HOME/.config/hive/chatbot.yml
   email.yml:
     file: $HOME/.config/hive/email.yml
   hostnames.env:

@@ -23,6 +23,7 @@ class Service(HiveService):
     cycle_time: float = 1 * MINUTE
 
     def __post_init__(self):
+        super().__post_init__()
         config = read_config(self.config_key)
         try:
             imap_config = config[self.config_key]["imap"]

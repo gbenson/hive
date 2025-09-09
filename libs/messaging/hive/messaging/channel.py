@@ -218,6 +218,7 @@ class Channel(WrappedPikaThing):
             **kwargs
         )
 
+    @classmethod
     def _encapsulate(cls, routing_key: str, **kwargs) -> tuple[bytes, str]:
         """Prepare messages for transmission.
         """

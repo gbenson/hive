@@ -59,6 +59,8 @@ class Service(ABC):
     @classmethod
     def main(cls, **kwargs):
         service = cls(**kwargs)
+        if not service.version_info:
+            raise RuntimeError("__post_init__ masked?")
         return service.run()
 
     @abstractmethod

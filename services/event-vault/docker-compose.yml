@@ -13,6 +13,7 @@ services:
       - rabbitmq.env
     command:
       - chatbot.requests
+      - llm.chatbot.requests
       - inbox.emails
       - readinglist.shares
     profiles:

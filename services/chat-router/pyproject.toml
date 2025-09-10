@@ -6,7 +6,7 @@ description = "Chat message router for Hive"
 requires-python = ">=3.10"  # match..case
 dependencies = [
     "cloudevents[pydantic]",
-    "hive-common>=0.1.1",
+    "hive-common>=0.3.4",
     "hive-messaging>=0.14.0",
     "hive-service>=0.0.13",
     "pydantic",

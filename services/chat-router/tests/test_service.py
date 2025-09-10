@@ -38,17 +38,18 @@ def test_self_message():
     }))
 
     mock_channel.publish_request.assert_called_once_with(
-        type="net.gbenson.hive.chatbot_add_to_context_request",
-        routing_key="chatbot.requests",
+        type="net.gbenson.hive.llm_chatbot_update_context_request",
+        routing_key="llm.chatbot.requests",
         time=datetime(2025, 9, 9, 22, 4, 35, 575000, tzinfo=timezone.utc),
         data={
-            "role": "hive",
-            "type": "text/plain",
-            "content": "salop",
-            "origin": {
-                "type": "net.gbenson.hive.matrix_event",
-                "room_id": "!RoBDTr33Tfqa27zzGK:matrix.org",
-                "event_id": "$fkvamdneqjwKqIg6rkO8bpRxhF6Mmr3GJC1fFKI7wwQ",
+            "context_id": "63960e88-32d5-4bf6-b951-2b045529e487",
+            "message": {
+                "id": "5bdd0f8d-340e-4bea-abb3-adf96de62d94",
+                "role": "hive",
+                "content": {
+                    "type": "text",
+                    "text": "salop",
+                },
             },
         },
     )

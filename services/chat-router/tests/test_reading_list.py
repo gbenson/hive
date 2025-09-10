@@ -37,9 +37,15 @@ def test_reading_list_update(mock_channel):
         body=message_json,
     ))
 
-    assert len(mock_channel.call_log) == 2
+    assert len(mock_channel.call_log) == 3
 
     call = mock_channel.call_log[0]
+    assert call.method == "publish_request"
+    assert call.routing_key == "hive.llm.chatbot.requests"
+    assert call.event.type == \
+        "net.gbenson.hive.llm_chatbot_update_context_request"
+
+    call = mock_channel.call_log[1]
     assert call.method == "publish_request"
     assert call.routing_key == "hive.matrix.requests"
     assert call.event.type == "net.gbenson.hive.matrix_user_typing_request"
@@ -48,7 +54,7 @@ def test_reading_list_update(mock_channel):
         "timeout": 5_000_000_000,
     }
 
-    call = mock_channel.call_log[1]
+    call = mock_channel.call_log[2]
     assert call.method == "publish_request"
     assert call.routing_key == "hive.readinglist.update.requests"
     assert call.event.type == "net.gbenson.hive.readinglist_update_request"

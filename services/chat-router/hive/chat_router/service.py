@@ -56,12 +56,13 @@ class Service(HiveService):
             return
         role = sender.role
 
+        self.llm.update_context(channel, request, role=role)
+
         if role == "user" and request.is_reading_list_update_request:
-            # reading-list-updater does the LLM context update for this one.
+            # Note that reading-list-updater will send extra
+            # LLM context updates to add detail to this one.
             self.on_reading_list_update_request(channel, request)
             return
-
-        self.llm.add_to_context(channel, request, role=role)
 
         if role != "user":
             return

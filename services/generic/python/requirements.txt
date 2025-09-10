@@ -1,4 +1,4 @@
-hive-common[brotli,httpx,zstd,langchain-ollama]>=0.3.3
+hive-common[brotli,httpx,zstd,langchain-ollama]>=0.3.4
 hive-email>=0.0.2
 hive-mediawiki>=0.0.5
 hive-messaging>=0.15.3

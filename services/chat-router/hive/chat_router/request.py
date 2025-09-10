@@ -18,8 +18,8 @@ class Request:
         """A summary of the initiating event, for correlation etc.
         """
         return {
-            "id": self.event.id,
-            "source": self.event.source,
+            "event_id": self.event_id,
+            "room_id": self.room_id,
             "type": self.event.type,
         }
 
@@ -28,6 +28,18 @@ class Request:
         """Matrix "m.room.message".
         """
         return RoomMessageEvent.model_validate(self.event.data)
+
+    @property
+    def room_id(self) -> str:
+        """The ID of the room associated with this event.
+        """
+        return self.message.room_id
+
+    @property
+    def event_id(self) -> str:
+        """The globally unique identifier for this event.
+        """
+        return self.message.event_id
 
     @property
     def sender(self) -> str:

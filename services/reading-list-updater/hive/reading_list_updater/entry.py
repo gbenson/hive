@@ -59,7 +59,7 @@ class ReadingListEntry:
             return None
         if source.get("type") != "net.gbenson.hive.matrix_event":
             return None
-        return source.get("id")
+        return source.get("event_id")
 
     def as_wikitext(self):
         return format_reading_list_entry(

@@ -15,9 +15,8 @@ def email_summary() -> dict[str, Any]:
         ),
         "content_type": "text/plain",
         "created_from": {
-            "id": "$7hXAz0FDCNCVUT9fCsK5ILHdfDRGqdvo4WP9BfEHs6I",
-            "source": "https://gbenson.net/hive/services/matrix-connector",
             "type": "net.gbenson.hive.matrix_event",
+            "event_id": "$7hXAz0FDCNCVUT9fCsK5ILHdfDRGqdvo4WP9BfEHs6I",
         },
         "date": "Sat, 06 Sep 2025 21:15:05 +0000",
     }

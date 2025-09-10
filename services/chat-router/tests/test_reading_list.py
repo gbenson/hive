@@ -56,8 +56,8 @@ def test_reading_list_update(mock_channel):
         "body": expect_body,
         "content_type": "text/plain",
         "created_from": {
-            "id": "$Iv2XkxkQio3aU3CMcyss7eHWekMcqzpDEB15VZv-SlN",
-            "source": "https://gbenson.net/hive/services/matrix-connector",
+            "event_id": "$Iv2XkxkQio3aU3CMcyss7eHWekMcqzpDEB15VZv-SlN",
+            "room_id": "!RoBDTr33Tfqa27zzGK:matrix.org",
             "type": "net.gbenson.hive.matrix_event"
         },
     }

@@ -46,9 +46,9 @@ def test_self_message():
             "type": "text/plain",
             "content": "salop",
             "origin": {
-                "id": "66e925ce-f0a1-4304-b4d5-43030c02bc8c",
-                "source": "https://gbenson.net/hive/services/pytest",
                 "type": "net.gbenson.hive.matrix_event",
+                "room_id": "!RoBDTr33Tfqa27zzGK:matrix.org",
+                "event_id": "$fkvamdneqjwKqIg6rkO8bpRxhF6Mmr3GJC1fFKI7wwQ",
             },
         },
     )

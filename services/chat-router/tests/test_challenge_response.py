@@ -3,6 +3,8 @@ import pytest
 from hive.chat_router.brain import router
 from hive.chat_router.service import Service
 
+from .util import make_test_request
+
 
 @pytest.mark.parametrize(
     "challenge,want_response",
@@ -32,5 +34,5 @@ from hive.chat_router.service import Service
      ("Heilo", "hi"),
      ))
 def test_responses(mock_channel, challenge, want_response):
-    router.dispatch(challenge, Service(), mock_channel)
+    router.dispatch(make_test_request(challenge), Service(), mock_channel)
     assert mock_channel.expect.send_text == want_response

@@ -9,6 +9,7 @@ from threading import Lock, local as ThreadLocal
 from typing import Any
 
 from .pattern_graph import Handler, PatternGraph, Span
+from .request import Request
 from .tokenizer import Token, tokenize
 
 logger = logging.getLogger(__name__)
@@ -37,16 +38,22 @@ class Router:
             raise ValueError
         self._graph.add_route(tokens, handler)
 
-    def dispatch(self, text: str, receiver: Any, *args, **kwargs) -> None:
+    def dispatch(
+            self,
+            request: Request,
+            receiver: Any,
+            *args: Any,
+            **kwargs: Any
+    ) -> None:
         """Dispatch a request to the best matching handler.
         """
         self.request.receiver = receiver
         self.request.args = args
         self.request.kwargs = kwargs
-        self.request.text = text
+        self.request.text = request.text
         self.request.tokens = None
         self.request.match = None
-        self._dispatch(tokenize(text))
+        self._dispatch(tokenize(request.text))
 
     def _dispatch(self, tokens: Iterable[Token]) -> None:
         tokens = tuple(tokens)

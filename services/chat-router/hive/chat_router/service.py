@@ -66,7 +66,7 @@ class Service(HiveService):
         if role != "user":
             return
 
-        router.dispatch(request.text, self, channel)
+        router.dispatch(request, self, channel)
 
     def on_reading_list_update_request(
             self,

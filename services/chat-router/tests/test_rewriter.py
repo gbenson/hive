@@ -3,6 +3,8 @@ import pytest
 from hive.chat_router.brain import router
 from hive.chat_router.service import Service
 
+from .util import make_test_request
+
 
 @pytest.mark.parametrize(
     "user_input,want_rewrite",
@@ -284,7 +286,7 @@ from hive.chat_router.service import Service
      ))
 def test_rewriter(mock_channel, user_input, want_rewrite, no_spellcheck):
     try:
-        router.dispatch(user_input, Service(), mock_channel)
+        router.dispatch(make_test_request(user_input), Service(), mock_channel)
     except NotImplementedError:
         pass
     assert router.request.text == user_input

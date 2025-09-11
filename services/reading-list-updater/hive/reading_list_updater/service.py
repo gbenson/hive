@@ -3,9 +3,9 @@ import logging
 from datetime import datetime
 from email.utils import format_datetime
 from functools import cached_property
-from typing import Optional
+from typing import Any, Optional
 
-from hive.common import httpx
+from hive.common import blake2b_digest_uuid, httpx
 from hive.mediawiki import HiveWiki
 from hive.messaging import Channel, Message
 from hive.service import HiveService
@@ -40,16 +40,25 @@ class Service(HiveService):
         d("Update request: %r", email_summary)
         entry = ReadingListEntry.from_email_summary(email_summary)
 
-        try:
-            self.maybe_update_llm_context(channel, entry, time=event_time)
-        except Exception:
-            logger.warning("EXCEPTION", exc_info=True)
+        if event_time:
+            self.maybe_update_llm_context(
+                channel,
+                (undecorated_json := entry.json()),
+                time=event_time,
+            )
 
-        wikitext = entry.as_wikitext()
         try:
             self.maybe_decorate_entry(channel, entry)
         except Exception:
             logger.warning("EXCEPTION", exc_info=True)
+
+        if event_time:
+            if (decorated_json := entry.json()) != undecorated_json:
+                self.maybe_update_llm_context(
+                    channel,
+                    decorated_json,
+                    time=event_time,
+                )
 
         wikitext = entry.as_wikitext()
         self.wiki.page("Reading list").append(f"* {wikitext}")
@@ -59,25 +68,40 @@ class Service(HiveService):
         except Exception:
             logger.warning("EXCEPTION", exc_info=True)
 
-    def maybe_update_llm_context(
+    def maybe_update_llm_context(self, *args: Any, **kwargs: Any) -> None:
+        try:
+            self._maybe_update_llm_context(*args, **kwargs)
+        except Exception:
+            logger.warning("EXCEPTION", exc_info=True)
+
+    def _maybe_update_llm_context(
             self,
             channel: Channel,
-            entry: ReadingListEntry,
+            entry: dict[str, Any],
             *,
-            time: Optional[datetime] = None,
+            time: datetime,
     ) -> None:
-        event_data = entry.json()
-        del event_data["timestamp"]
-        if (source := event_data.pop("source", None)):
-            event_data["origin"] = source
-        event_data["type"] = \
-            "application/vnd.net.gbenson.hive.reading-list-update"
+        if not (source := entry.pop("source", None)):
+            return  # not from a matrix event
+        if source.get("type") != "net.gbenson.hive.matrix_event":
+            return  # ditto
+        del entry["timestamp"]
 
         channel.publish_request(
-            type="net.gbenson.hive.chatbot_add_to_context_request",
-            data=event_data,
+            routing_key="llm.chatbot.requests",
+            type="net.gbenson.hive.llm_chatbot_update_context_request",
             time=time,
-            routing_key="chatbot.requests",
+            data={
+                "context_id": str(blake2b_digest_uuid(source["room_id"])),
+                "message": {
+                    "id": str(blake2b_digest_uuid(source["event_id"])),
+                    "role": "user",
+                    "content": {
+                        "type": "reading_list_update",
+                        "reading_list_update": entry,
+                    },
+                },
+            },
         )
 
     def maybe_decorate_entry(

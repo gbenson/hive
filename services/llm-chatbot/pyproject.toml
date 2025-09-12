@@ -1,8 +1,8 @@
 [project]
-name = "hive-chatbot"
+name = "hive-llm-chatbot"
 dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
-description = "Event vault for Hive"
+description = "LLM chatbot for Hive"
 dependencies = [
     "hive-common[langchain-ollama]>=0.3.3",
     "hive-messaging>=0.15.2",
@@ -10,17 +10,17 @@ dependencies = [
 ]
 
 [project.scripts]
-hive-chatbot = "hive.chatbot:main"
+hive-llm-chatbot = "hive.llm_chatbot:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "hive.chatbot.__version__.__version__"}
+version = {attr = "hive.llm_chatbot.__version__.__version__"}
 
 [tool.pytest.ini_options]
-addopts = "--cov=hive.chatbot"
+addopts = "--cov=hive.llm_chatbot"
 log_level="debug"
 
 [tool.coverage.run]

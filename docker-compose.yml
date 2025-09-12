@@ -1,9 +1,9 @@
 include:
   - path: services/certbot/docker-compose.yml
-  - path: services/chatbot/docker-compose.yml
   - path: services/chat-router/docker-compose.yml
   - path: services/email-receiver/docker-compose.yml
   - path: services/event-vault/docker-compose.yml
+  - path: services/llm-chatbot/docker-compose.yml
   - path: services/logging/docker-compose.yml
   - path: services/matrix-connector/docker-compose.yml
   - path: services/mediawiki-fpm/docker-compose.yml

@@ -41,39 +41,39 @@ RUN --mount=type=bind,from=wheel,target=/wheel \
   && pip install /wheel/*.whl \
   && pip check
 
-RUN ln -s ../../venv/bin/hive-chatbot /usr/bin
+RUN ln -s ../../venv/bin/hive-llm-chatbot /usr/bin
 
 RUN set -eux \
   \
-  && addgroup --system --gid 471 hive-chatbot \
+  && addgroup --system --gid 471 hive-llm-chatbot \
   && adduser --system --uid 471 --gid 471 \
-       --home /var/lib/hive-chatbot --disabled-password hive-chatbot \
+       --home /var/lib/hive-llm-chatbot --disabled-password hive-llm-chatbot \
   && rm -f /run/adduser \
-  && install -d -oroot -ghive-chatbot -m710 /run/secrets
+  && install -d -oroot -ghive-llm-chatbot -m710 /run/secrets
 
 FROM install AS test
 RUN set -eux \
   \
-  && install -d -ohive-chatbot -ghive-chatbot /src \
+  && install -d -ohive-llm-chatbot -ghive-llm-chatbot /src \
   && /venv/bin/pip install \
        pep440-version-utils \
        pytest-cov
 COPY tests /src/tests
 
-USER hive-chatbot:hive-chatbot
+USER hive-llm-chatbot:hive-llm-chatbot
 WORKDIR /src
 
 RUN set -eux \
   \
   && . /venv/bin/activate \
-  && pytest --cov hive.chatbot \
+  && pytest --cov hive.llm_chatbot \
   && coverage report > coverage.report
 
 FROM install AS dist
 RUN --mount=type=bind,from=test,target=/test \
   grep -q '[^ ][^0]%$' /test/src/coverage.report
 
-USER hive-chatbot:hive-chatbot
-WORKDIR /var/lib/hive-chatbot
+USER hive-llm-chatbot:hive-llm-chatbot
+WORKDIR /var/lib/hive-llm-chatbot
 
-ENTRYPOINT ["hive-chatbot"]
+ENTRYPOINT ["hive-llm-chatbot"]

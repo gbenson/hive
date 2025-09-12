@@ -11,7 +11,7 @@ from hive.service import HiveService
 logger = logging.getLogger(__name__)
 d = logger.info
 
-REQUEST_TYPE_RE = re.compile(r"net.gbenson.hive.chatbot_(\w+)_request")
+REQUEST_TYPE_RE = re.compile(r"net.gbenson.hive.llm_chatbot_(\w+)_request")
 
 
 @dataclass
@@ -20,7 +20,7 @@ class Service(HiveService):
         with self.blocking_connection() as conn:
             channel = conn.channel()
             channel.consume_events(
-                queue="chatbot.requests",
+                queue="llm.chatbot.requests",
                 on_message_callback=self.on_request,
             )
             channel.start_consuming()
@@ -41,4 +41,4 @@ class Service(HiveService):
             channel: Channel,
             event: CloudEvent,
     ) -> None:
-        channel.send_text("idk what that is", sender="chatbot")
+        channel.send_text("idk what that is", sender="hive")

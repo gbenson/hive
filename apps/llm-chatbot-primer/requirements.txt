@@ -1,0 +1,6 @@
+-r ../../requirements.txt
+-e ../../libs/common
+-e ../../libs/messaging
+-e ../../libs/service
+-e ../../services/chat-router
+-e ../../services/reading-list-updater

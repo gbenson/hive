@@ -1,0 +1,33 @@
+[project]
+name = "hive-llm-chatbot-primer"
+version = "0.0.0"
+authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
+description = "LLM chatbot database primer for Hive"
+dependencies = [
+    "hive-chat-router",
+    "hive-common",
+    "hive-messaging",
+    "hive-reading-list-updater",
+    "hive-service",
+]
+
+[project.scripts]
+llm-chatbot-primer = "primer:main"
+llm-chatbot-filler = "filler:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+addopts = "--cov=primer"
+log_level="debug"
+
+[tool.coverage.run]
+omit = [
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+skip_covered = true

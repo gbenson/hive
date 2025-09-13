@@ -1,21 +1,29 @@
 import logging
 import re
 
-from dataclasses import dataclass
-
-from cloudevents.abstract import CloudEvent
+from dataclasses import dataclass, field
+from inspect import get_annotations
 
 from hive.messaging import Channel, Message
 from hive.service import HiveService
 
+from .database import Database
+from .schema import (
+    BaseRequest,
+    GenerateResponseRequest,
+    UpdateContextRequest,
+)
+
 logger = logging.getLogger(__name__)
 d = logger.info
 
-REQUEST_TYPE_RE = re.compile(r"net.gbenson.hive.llm_chatbot_(\w+)_request")
+REQUEST_KIND_RE = re.compile(r"net.gbenson.hive.llm_chatbot_(\w+)_request")
 
 
 @dataclass
 class Service(HiveService):
+    database: Database = field(default_factory=Database)
+
     def run(self):
         with self.blocking_connection() as conn:
             channel = conn.channel()
@@ -27,18 +35,43 @@ class Service(HiveService):
 
     def on_request(self, channel: Channel, message: Message):
         event = message.event()
-        d("Received: %s", message.body.decode("utf-8"))  # XXX
-        if not (match := REQUEST_TYPE_RE.fullmatch(event.type)):
-            raise ValueError(event.type)
-        request_type = match.group(1)
-        handler_name = f"on_{request_type}_request"
-        if not (do := getattr(self, handler_name, None)):
-            raise NotImplementedError(request_type)
-        do(channel, event)
+        d("Received: %s", message.body.decode("utf-8"))
 
-    def on_generate_response_request(
+        # Get the request handler.
+        if not (match := REQUEST_KIND_RE.fullmatch(event.type)):
+            raise ValueError(event.type)
+        request_kind = match.group(1)
+        if not (handle_request := getattr(self, f"on_{request_kind}", None)):
+            raise NotImplementedError(request_kind)
+
+        # Get the request class.
+        handler_annotations = get_annotations(handle_request)
+        request_class_candidates = [
+            param_type
+            for param_name, param_type in handler_annotations.items()
+            if issubclass(param_type, BaseRequest)
+        ]
+        if len(request_class_candidates) != 1:
+            raise TypeError(handler_annotations)
+        request_class = request_class_candidates[0]
+
+        # Validate and handle the request.
+        handle_request(channel, request_class.from_cloudevent(event))
+
+    def on_update_context(
             self,
             channel: Channel,
-            event: CloudEvent,
+            request: UpdateContextRequest,
     ) -> None:
+        self.database.update_context(request.context_id, request.message)
+
+    def on_generate_response(
+            self,
+            channel: Channel,
+            request: GenerateResponseRequest,
+    ) -> None:
+        # XXX check the timestamp before hitting the LLM!
+        # XXX then send a user_typing
+        model_input = self.database.get_messages(request.context_id)
+        d("Responding to: %s", model_input)
         channel.send_text("idk what that is", sender="hive")

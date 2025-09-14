@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     networks:
       - "${RABBITMQ_NETWORK:-llm-chatbot-msgbus}"
+      - llm-chatbot-valkey
     extra_hosts:
       - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
     volumes:
@@ -18,5 +19,26 @@ services:
     profiles:
       - llm-chatbot
 
+  llm-chatbot-valkey:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    networks:
+      llm-chatbot-valkey:
+         aliases:
+           - valkey
+    volumes:
+      - llm_chatbot_valkey:/data
+    command:
+      - valkey-server
+      - --save 60 1
+      - --loglevel warning
+    profiles:
+      - llm-chatbot
+
 networks:
   llm-chatbot-msgbus:
+  llm-chatbot-valkey:
+    internal: true
+
+volumes:
+  llm_chatbot_valkey:

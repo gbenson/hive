@@ -1,8 +1,12 @@
+import json
+
 from datetime import datetime
 from typing import Any, Literal, TypeAlias, TypeVar
 
 from cloudevents.abstract import CloudEvent
 from pydantic import BaseModel, Field, UUID4
+
+from .util import flatten_dict
 
 T = TypeVar("T", bound="BaseRequest")
 
@@ -23,6 +27,10 @@ class BaseMessage(BaseModel):
 
 class Message(BaseMessage):
     time: datetime
+
+    def as_key_value_pairs(self) -> dict[str, Any]:
+        src = json.loads(self.model_dump_json())
+        return dict(flatten_dict(src))
 
 
 class BaseRequest(BaseModel):

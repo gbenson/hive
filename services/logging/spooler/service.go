@@ -35,8 +35,8 @@ func (s *Service) Start(ctx context.Context) (<-chan error, error) {
 
 	s.server = &http.Server{
 		Addr:         ":5125",
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Minute,
 		Handler:      s,
 		BaseContext: func(ln net.Listener) context.Context {
 			s.log.Debug().

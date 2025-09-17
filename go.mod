@@ -3,6 +3,7 @@ module gbenson.net/hive
 go 1.24.4
 
 require (
+	gbenson.net/go/dfmt v1.0.1
 	gbenson.net/go/logger v1.3.0
 	github.com/cloudevents/sdk-go/v2 v2.16.1
 	github.com/coreos/go-systemd/v22 v22.5.0

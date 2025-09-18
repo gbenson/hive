@@ -109,7 +109,7 @@ class Service(HiveService):
             channel: Channel,
             entry: ReadingListEntry,
     ):
-        r = httpx.get(entry.url)
+        r = httpx.get(entry.url, follow_redirects=True)
         r.raise_for_status()
 
         if not r.extensions.get("from_cache"):

@@ -1,0 +1,28 @@
+== BEFORE ==
+
+127.0.0.1:6379> memory usage ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log
+(integer) 24007
+127.0.0.1:6379> xinfo stream ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log
+ 1) "length"
+ 2) (integer) 38
+ 3) "radix-tree-keys"
+ 4) (integer) 6
+ 5) "radix-tree-nodes"
+ 6) (integer) 15
+ 7) "last-generated-id"
+ 8) "1758231110079-0"
+
+
+== AFTER ==
+
+127.0.0.1:6379> memory usage ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log
+(integer) 674822
+127.0.0.1:6379> xinfo stream ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log
+ 1) "length"
+ 2) (integer) 1395
+ 3) "radix-tree-keys"
+ 4) (integer) 171
+ 5) "radix-tree-nodes"
+ 6) (integer) 391
+ 7) "last-generated-id"
+ 8) "1758236995850-0"

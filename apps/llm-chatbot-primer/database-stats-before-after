@@ -26,3 +26,35 @@
  6) (integer) 391
  7) "last-generated-id"
  8) "1758236995850-0"
+
+
+== TRIM PRE-PRIME ENTRIES ==
+
+>>> time.strftime("%d-%m-%Y %H:%M:%S", time.localtime(1758231110.079))
+'18-09-2025 22:31:50'
+
+>>> time.strftime("%d-%m-%Y %H:%M:%S", time.localtime(1758236995.850))
+'19-09-2025 00:09:55'
+
+127.0.0.1:6379> xlen ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log
+(integer) 1395
+127.0.0.1:6379> xtrim ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log minid 1758231110079-1
+(integer) 38
+127.0.0.1:6379> xlen ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log
+(integer) 1357
+
+>>> 1395-38
+1357
+
+127.0.0.1:6379> xinfo stream ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log
+ 1) "length"
+ 2) (integer) 1357
+ 3) "radix-tree-keys"
+ 4) (integer) 166
+ 5) "radix-tree-nodes"
+ 6) (integer) 380
+ 7) "last-generated-id"
+ 8) "1758236995850-0"
+
+127.0.0.1:6379> memory usage ctx:f5379245-11b3-48bb-ab88-5df9bb781fd0:log
+(integer) 688936

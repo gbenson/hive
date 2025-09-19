@@ -27,7 +27,7 @@ services:
          aliases:
            - valkey
     volumes:
-      - llm_chatbot_valkey:/data
+      - hive_chatbot_valkey:/data
     command:
       - valkey-server
       - --save 60 1
@@ -41,4 +41,5 @@ networks:
     internal: true
 
 volumes:
-  llm_chatbot_valkey:
+  hive_chatbot_valkey:
+    external: true

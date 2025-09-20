@@ -79,6 +79,9 @@ class Channel:
     def consume_events(self, **kwargs: Any) -> None:
         self._consume(Semantics.PUBLISH_SUBSCRIBE, **kwargs)
 
+    def start_consuming(self) -> None:
+        self._pika.start_consuming()
+
     # Lower-level handlers for PUBLISH_* and CONSUME_*
     #  - Everything should go through these
     #  - XXX merge _consume into *basic_consume*?

@@ -4,15 +4,15 @@ import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from importlib import import_module
-from typing import Callable, Optional
+from typing import Any, Optional
 
 from hive.common import ArgumentParser
 from hive.messaging import (
-    Channel,
     Connection,
     blocking_connection,
     publisher_connection,
 )
+from hive.messaging.typing import ConnectionFactory, OnChannelOpenCallback
 
 from .logging import maybe_enable_json_logging
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Service(ABC):
     argument_parser: Optional[ArgumentParser] = None
-    on_channel_open: Optional[Callable[[Channel], None]] = None
+    on_channel_open: Optional[OnChannelOpenCallback] = None
     unparsed_arguments: Optional[list[str]] = None
     version_info: Optional[str] = None
 
@@ -30,7 +30,7 @@ class Service(ABC):
         parser = ArgumentParser()
         return parser
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.argument_parser:
             self.argument_parser = self.make_argument_parser()
         maybe_enable_json_logging()
@@ -49,7 +49,7 @@ class Service(ABC):
 
     def _init_version_info(self) -> str:
         version_module = import_module("..__version__", type(self).__module__)
-        service_package = version_module.__package__
+        service_package = version_module.__package__ or ""
         service_version = version_module.__version__
         service_name = service_package.replace(".", "-").replace("_", "-")
         if service_version == "0.0.0":
@@ -57,22 +57,26 @@ class Service(ABC):
         return f"{service_name} version {service_version}"
 
     @classmethod
-    def main(cls, **kwargs):
+    def main(cls, **kwargs: Any) -> None:
         service = cls(**kwargs)
         if not service.version_info:
             raise RuntimeError("__post_init__ masked?")
-        return service.run()
+        service.run()
 
     @abstractmethod
-    def run(self):
+    def run(self) -> None:
         raise NotImplementedError
 
-    def blocking_connection(self, **kwargs) -> Connection:
+    def blocking_connection(self, **kwargs: Any) -> Connection:
         return self._connect(blocking_connection, kwargs)
 
-    def publisher_connection(self, **kwargs) -> Connection:
+    def publisher_connection(self, **kwargs: Any) -> Connection:
         return self._connect(publisher_connection, kwargs)
 
-    def _connect(self, connect, kwargs) -> Connection:
+    def _connect(
+            self,
+            connect: ConnectionFactory,
+            kwargs: Any
+    ) -> Connection:
         on_channel_open = kwargs.pop("on_channel_open", self.on_channel_open)
         return connect(on_channel_open=on_channel_open, **kwargs)

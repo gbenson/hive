@@ -6,7 +6,7 @@ from logging import Formatter, StreamHandler
 from pythonjsonlogger.json import JsonFormatter as JSONFormatter
 
 
-def maybe_enable_json_logging():
+def maybe_enable_json_logging() -> None:
     """Enable JSON logging if things look default and we don't have a tty.
     """
     if sys.stderr.isatty():

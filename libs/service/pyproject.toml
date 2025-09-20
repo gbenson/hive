@@ -8,7 +8,7 @@ license = "MIT"
 dependencies = [
     "cloudevents[pydantic]",
     "hive-common>=0.2.0",
-    "hive-messaging>=0.12.5",
+    "hive-messaging>=0.16.1",
     "python-json-logger",
 ]
 
@@ -22,6 +22,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
 version = {attr = "hive.service.__version__.__version__"}
+
+[tool.mypy]
+mypy_path = "../common:../messaging"
+warn_unused_configs = true
+strict = true
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.service"

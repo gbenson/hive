@@ -6,6 +6,7 @@ check: test
 
 lint:
 	flake8
+	mypy --explicit-package-bases hive
 
 test: lint
 	pytest

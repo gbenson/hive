@@ -1,16 +1,21 @@
+from __future__ import annotations
+
 from dataclasses import KW_ONLY, dataclass
-from typing import Any, Callable, Optional, Self
+from typing import Any, Optional, Self, TYPE_CHECKING
 
 from pika import BlockingConnection as _PikaConnection
 
 from .channel import Channel
+
+if TYPE_CHECKING:
+    from .typing import OnChannelOpenCallback
 
 
 @dataclass
 class Connection:
     _pika: _PikaConnection
     _: KW_ONLY
-    on_channel_open: Optional[Callable[[Channel], None]] = None
+    on_channel_open: Optional[OnChannelOpenCallback] = None
 
     def __enter__(self) -> Self:
         return self

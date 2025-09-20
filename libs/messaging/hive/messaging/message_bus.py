@@ -3,7 +3,7 @@ import ssl
 
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from pika import (
     BlockingConnection,
@@ -15,9 +15,9 @@ from pika.exceptions import AMQPConnectionError
 
 from hive.common import read_config
 
-from .channel import Channel
 from .connection import Connection
 from .publisher import PublisherConnection
+from .typing import OnChannelOpenCallback
 
 
 @dataclass
@@ -81,7 +81,7 @@ class MessageBus:
             self,
             *,
             connection_class: type[Connection] = Connection,
-            on_channel_open: Optional[Callable[[Channel], None]] = None,
+            on_channel_open: Optional[OnChannelOpenCallback] = None,
             **kwargs: Any
     ) -> Connection:
         params = self.connection_params(**kwargs)

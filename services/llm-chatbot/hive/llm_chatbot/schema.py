@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from typing import Any, Literal, TypeAlias, TypeVar
 
-from cloudevents.abstract import CloudEvent
+from cloudevents.pydantic import CloudEvent
 from pydantic import BaseModel, Field, UUID4
 
 from .util import flatten_dict
@@ -39,7 +39,10 @@ class BaseRequest(BaseModel):
 
     @classmethod
     def from_cloudevent(cls: type[T], event: CloudEvent) -> T:
-        request = event.data.copy()
+        request = event.data
+        if not isinstance(request, dict):
+            raise TypeError(request)
+        request = request.copy()
         if "time" in request:
             raise ValueError(request)  # pragma: no cover
         request["time"] = event.time

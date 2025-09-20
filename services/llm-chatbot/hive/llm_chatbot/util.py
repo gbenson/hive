@@ -6,7 +6,7 @@ def flatten_dict(
         src: Mapping[str, Any],
         sep: str = ".",
         prefix: str = "",
-) -> Iterator[str, Any]:
+) -> Iterator[tuple[str, Any]]:
     for key, value in src.items():
         if isinstance(value, str):
             yield f"{prefix}{key}", value

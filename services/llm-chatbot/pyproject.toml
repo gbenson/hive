@@ -20,6 +20,11 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.dynamic]
 version = {attr = "hive.llm_chatbot.__version__.__version__"}
 
+[tool.mypy]
+mypy_path = "../../libs/common:../../libs/messaging:../../libs/service"
+warn_unused_configs = true
+strict = true
+
 [tool.pytest.ini_options]
 addopts = "--cov=hive.llm_chatbot"
 log_level="debug"

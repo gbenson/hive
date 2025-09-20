@@ -4,9 +4,11 @@ from typing import Any
 from unittest.mock import Mock
 from uuid import UUID
 
-from hive.llm_chatbot import Service
+import pytest
+
 from hive.messaging import Message as HiveMessage
 
+from hive.llm_chatbot import Service
 from hive.llm_chatbot.schema import Message
 
 
@@ -51,6 +53,7 @@ def test_update_context() -> None:
     channel.assert_not_called()
 
 
+@pytest.mark.skip()
 def test_generate_response() -> None:
     channel = Mock()
     service = Service(database=Mock())

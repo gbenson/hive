@@ -24,7 +24,7 @@ REQUEST_KIND_RE = re.compile(r"net.gbenson.hive.llm_chatbot_(\w+)_request")
 class Service(HiveService):
     database: Database = field(default_factory=Database)
 
-    def run(self):
+    def run(self) -> None:
         with self.blocking_connection() as conn:
             channel = conn.channel()
             channel.consume_events(
@@ -33,7 +33,7 @@ class Service(HiveService):
             )
             channel.start_consuming()
 
-    def on_request(self, channel: Channel, message: Message):
+    def on_request(self, channel: Channel, message: Message) -> None:
         event = message.event()
         d("Received: %s", message.body.decode("utf-8"))
 
@@ -72,6 +72,6 @@ class Service(HiveService):
     ) -> None:
         # XXX check the timestamp before hitting the LLM!
         # XXX then send a user_typing
-        model_input = self.database.get_messages(request.context_id)
-        d("Responding to: %s", model_input)
+        # model_input = self.database.get_messages(request.context_id)
+        # d("Responding to: %s", model_input)
         channel.send_text("idk what that is", sender="hive")

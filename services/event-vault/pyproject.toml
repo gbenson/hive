@@ -5,8 +5,8 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "Event vault for Hive"
 dependencies = [
     "hive-common>=0.3.0",
-    "hive-messaging>=0.15.1",
-    "hive-service>=0.2.0",
+    "hive-messaging>=0.16.2",
+    "hive-service>=0.2.3",
 ]
 
 [project.scripts]
@@ -18,6 +18,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
 version = {attr = "hive.event_vault.__version__.__version__"}
+
+[tool.mypy]
+mypy_path = "../../libs/common:../../libs/messaging:../../libs/service"
+warn_unused_configs = true
+strict = true
 
 [tool.pytest.ini_options]
 addopts = "--cov=hive.event_vault"

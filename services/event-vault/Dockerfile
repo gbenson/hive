@@ -11,6 +11,8 @@ RUN --mount=type=tmpfs,target=/var/cache \
   && apt-get -y update \
   && apt-get -y upgrade --no-install-recommends \
   && apt-get -y install --no-install-recommends \
+       jq \
+       less \
        python3 \
        python3-venv \
   && rm -f /var/lib/dpkg/*-old

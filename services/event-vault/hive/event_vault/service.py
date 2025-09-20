@@ -30,14 +30,14 @@ class Service(HiveService):
         )
         return parser
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         if not self.queues:
             self.queues.extend(self.args.queues)
         if not self.queues:
             raise ValueError
 
-    def run(self):
+    def run(self) -> None:
         with self.blocking_connection() as conn:
             channel = conn.channel()
             for queue in self.queues:
@@ -54,9 +54,14 @@ class Service(HiveService):
         "message/rfc822": ".eml",
     }
 
-    def on_message(self, queue: str, channel: Channel, message: Message):
+    def on_message(
+            self,
+            queue: str,
+            channel: Channel,
+            message: Message,
+    ) -> None:
         dirpath = self.topdir / queue / date.today().strftime("%Y%m%d")
-        extension = self.EXTENSIONS.get(message.content_type, "")
+        extension = self.EXTENSIONS.get(message.content_type or "", "")
         path = dirpath / f"{uuid4()}{extension}"
         dirpath.mkdir(parents=True, exist_ok=True)
         bytes_written = path.write_bytes(message.body)

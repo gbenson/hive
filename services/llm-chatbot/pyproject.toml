@@ -4,14 +4,14 @@ dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "LLM chatbot for Hive"
 dependencies = [
-    "hive-common[langchain-ollama]>=0.3.3",
+    "hive-common[langchain-ollama]>=0.3.6",
     "hive-messaging>=0.15.2",
-    "hive-service>=0.2.0",
+    "hive-service>=0.2.4",
     "valkey~=6.1",
 ]
 
 [project.scripts]
-hive-llm-chatbot = "hive.llm_chatbot:main"
+llm-chatbot-listener = "hive.llm_chatbot.listener:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

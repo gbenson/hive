@@ -1,20 +1,34 @@
-from dataclasses import dataclass, field
-from functools import partial
+from typing import Any, Literal, TypeAlias, TypeVar
 
+from pydantic import UUID4
 from valkey import Valkey
 
-from .schema import ContextID, Message
+from hive.common import dynamic_cast
 
-_valkey_factory = partial(Valkey.from_url, "valkey://valkey")
+T = TypeVar("T", bound="Database")
 
 
-@dataclass
-class Database:
-    _vk: Valkey = field(default_factory=_valkey_factory)
+ContextID: TypeAlias = UUID4
+MessageID: TypeAlias = UUID4
+Role: TypeAlias = Literal["hive", "user"]
 
-    def update_context(self, context_id: ContextID, message: Message) -> None:
-        """Append the updated fields to the context's command stream.
-        """
-        fields = {"cmd": "update", **message.as_key_value_pairs()}
-        _ = fields.pop("content.type", None)
-        self._vk.xadd(f"ctx:{context_id}:log", fields)
+
+class Database(Valkey):
+    @classmethod
+    def connect(
+            cls: type[T],
+            url: str = "valkey://valkey",
+            *,
+            decode_responses: bool = True,
+            **kwargs: Any
+    ) -> T:
+        client = cls.from_url(url, decode_responses=True, **kwargs)
+        return dynamic_cast(cls, client)
+
+
+__all__ = [
+    "ContextID",
+    "Database",
+    "MessageID",
+    "Role",
+]

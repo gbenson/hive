@@ -75,5 +75,3 @@ RUN --mount=type=bind,from=test,target=/test \
 
 USER hive-llm-chatbot:hive-llm-chatbot
 WORKDIR /var/lib/hive-llm-chatbot
-
-ENTRYPOINT ["hive-llm-chatbot"]

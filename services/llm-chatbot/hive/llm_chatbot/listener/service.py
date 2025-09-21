@@ -7,7 +7,7 @@ from inspect import get_annotations
 from hive.messaging import Channel, Message
 from hive.service import HiveService
 
-from .database import Database
+from ..database import Database
 from .schema import (
     BaseRequest,
     GenerateResponseRequest,
@@ -22,7 +22,7 @@ REQUEST_KIND_RE = re.compile(r"net.gbenson.hive.llm_chatbot_(\w+)_request")
 
 @dataclass
 class Service(HiveService):
-    database: Database = field(default_factory=Database)
+    db: Database = field(default_factory=Database.connect)
 
     def run(self) -> None:
         with self.blocking_connection() as conn:
@@ -63,15 +63,11 @@ class Service(HiveService):
             channel: Channel,
             request: UpdateContextRequest,
     ) -> None:
-        self.database.update_context(request.context_id, request.message)
+        self.db.xadd("journal", request.as_key_value_pairs())
 
     def on_generate_response(
             self,
             channel: Channel,
             request: GenerateResponseRequest,
     ) -> None:
-        # XXX check the timestamp before hitting the LLM!
-        # XXX then send a user_typing
-        # model_input = self.database.get_messages(request.context_id)
-        # d("Responding to: %s", model_input)
-        channel.send_text("idk what that is", sender="hive")
+        self.db.xadd("requests", request.as_key_value_pairs())

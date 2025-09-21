@@ -1,5 +1,5 @@
 services:
-  llm-chatbot:
+  llm-chatbot-listener:
     image: gbenson/hive-service-py
     init: true
     restart: unless-stopped
@@ -15,7 +15,7 @@ services:
     command:
       - /venv/bin/python3
       - -m
-      - hive.llm_chatbot
+      - hive.llm_chatbot.listener
     profiles:
       - llm-chatbot
 

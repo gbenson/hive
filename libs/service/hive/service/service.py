@@ -2,6 +2,7 @@ import logging
 import sys
 
 from abc import ABC, abstractmethod
+from contextlib import suppress
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Any, Optional
@@ -48,9 +49,16 @@ class Service(ABC):
         logger.info("Starting %s", self.version_info)
 
     def _init_version_info(self) -> str:
-        version_module = import_module("..__version__", type(self).__module__)
-        service_package = version_module.__package__ or ""
-        service_version = version_module.__version__
+        service_version = "0.0.0"
+        service_package = type(self).__module__.removesuffix(".service")
+        for prefix in (".", ".."):
+            with suppress(Exception):
+                version_module = import_module(
+                    "{prefix}__version__",
+                    service_package,
+                )
+                service_version = version_module.__version__
+                break
         service_name = service_package.replace(".", "-").replace("_", "-")
         if service_version == "0.0.0":
             return service_name

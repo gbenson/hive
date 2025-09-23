@@ -5,6 +5,7 @@ from typing import Any
 from hive.common import blake2b_digest_uuid
 from hive.messaging import Channel
 
+from .brain import router
 from .request import Request
 
 
@@ -21,6 +22,7 @@ def _publish_request(
 
 
 _update_context = partial(_publish_request, type="update_context")
+_request_response = partial(_publish_request, type="generate_response")
 
 
 @dataclass
@@ -45,5 +47,16 @@ class LLM:
                         "text": request.text,
                     },
                 },
+            },
+        )
+
+    def request_response(self, channel: Channel) -> None:
+        request = router.current_request
+        _request_response(
+            channel,
+            time=request.time,
+            data={
+                "context_id": str(blake2b_digest_uuid(request.room_id)),
+                "message_id": str(blake2b_digest_uuid(request.event_id)),
             },
         )

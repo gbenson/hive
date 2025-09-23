@@ -31,6 +31,11 @@ class Brain(Router):
         """
         self.add_route(pattern, self.send_text(response))
 
+    def request_llm_response(self) -> Handler:
+        """Return a handler that requests an LLM response.
+        """
+        return self.receive("on_request_llm_response")
+
     def send_text(self, text: str) -> Handler:
         """Return a handler that sends the given text.
         """
@@ -45,6 +50,7 @@ receive = router.receive
 
 add_canned_response = router.add_canned_response
 send_text = router.send_text
+request_llm_response = router.request_llm_response
 
 
 def route(

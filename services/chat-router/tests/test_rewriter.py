@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 
 from hive.chat_router.brain import router
@@ -285,8 +287,9 @@ from .util import make_test_request
       "say ping"),
      ))
 def test_rewriter(mock_channel, user_input, want_rewrite, no_spellcheck):
+    service = Service(llm=Mock())
     try:
-        router.dispatch(make_test_request(user_input), Service(), mock_channel)
+        router.dispatch(make_test_request(user_input), service, mock_channel)
     except NotImplementedError:
         pass
     assert router.request.text == user_input

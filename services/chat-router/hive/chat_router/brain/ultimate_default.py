@@ -1,3 +1,3 @@
-from . import add_canned_response
+from . import add_route, request_llm_response
 
-add_canned_response("*", "idk what that is")
+add_route("*", request_llm_response())

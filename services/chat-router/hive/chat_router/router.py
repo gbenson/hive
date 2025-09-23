@@ -18,6 +18,7 @@ d = logger.info
 
 @dataclass
 class Router:
+
     """Routers match tokenized user input against a list of patterns,
     calling the handler for the pattern that most closely matches the
     input.
@@ -47,6 +48,7 @@ class Router:
     ) -> None:
         """Dispatch a request to the best matching handler.
         """
+        self.request.current_request = request
         self.request.receiver = receiver
         self.request.args = args
         self.request.kwargs = kwargs
@@ -54,6 +56,13 @@ class Router:
         self.request.tokens = None
         self.request.match = None
         self._dispatch(tokenize(request.text))
+        del self.request.current_request
+
+    @property
+    def current_request(self) -> Request:
+        """The :class:`Request` that was passed to :method:`dispatch`.
+        """
+        return self.request.current_request
 
     def _dispatch(self, tokens: Iterable[Token]) -> None:
         tokens = tuple(tokens)

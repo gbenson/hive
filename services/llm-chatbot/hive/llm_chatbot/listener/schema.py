@@ -62,6 +62,7 @@ class MessageRequest(BaseRequest):
 
 class GenerateResponseRequest(BaseRequest):
     action: Literal["generate_response"] = "generate_response"
+    message_id: MessageID
 
 
 class UpdateContextRequest(MessageRequest):

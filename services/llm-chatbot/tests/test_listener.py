@@ -51,7 +51,10 @@ def test_generate_response() -> None:
         "source": "https://gbenson.net/hive/services/chat-router",
         "type": "net.gbenson.hive.llm_chatbot_generate_response_request",
         "time": "2025-09-12T22:45:26.683000Z",
-        "data": {"context_id": "63960e88-32d5-4bf6-b951-2b045529e487"},
+        "data": {
+            "context_id": "63960e88-32d5-4bf6-b951-2b045529e487",
+            "message_id": "50937a35-3b37-4007-8aa8-99f67415f42b",
+        },
     }))
 
     service.db.xadd.assert_called_once_with(
@@ -59,6 +62,7 @@ def test_generate_response() -> None:
         {
             "action": "generate_response",
             "context_id": "63960e88-32d5-4bf6-b951-2b045529e487",
+            "message_id": "50937a35-3b37-4007-8aa8-99f67415f42b",
             "time": "2025-09-12T22:45:26.683Z",
         }
     )

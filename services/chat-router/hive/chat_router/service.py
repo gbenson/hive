@@ -85,6 +85,9 @@ class Service(HiveService):
             },
         )
 
+    def on_request_llm_response(self, channel: Channel) -> None:
+        self.llm.request_response(channel)
+
     def on_send_text(self, channel: Channel, text: str) -> None:
         channel.send_text(text)
 

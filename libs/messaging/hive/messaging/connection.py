@@ -17,6 +17,9 @@ class Connection:
     _: KW_ONLY
     on_channel_open: Optional[OnChannelOpenCallback] = None
 
+    def __hash__(self) -> int:
+        return id(self)
+
     def __enter__(self) -> Self:
         return self
 

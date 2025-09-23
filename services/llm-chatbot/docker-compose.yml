@@ -19,6 +19,21 @@ services:
     profiles:
       - llm-chatbot
 
+  llm-chatbot-modeler:
+    image: gbenson/hive-service-py
+    init: true
+    restart: unless-stopped
+    networks:
+      - llm-chatbot-valkey
+    volumes:
+      - ./hive/llm_chatbot:/usr/lib/hive/llm_chatbot:ro
+    command:
+      - /venv/bin/python3
+      - -m
+      - hive.llm_chatbot.modeler
+    profiles:
+      - llm-chatbot
+
   llm-chatbot-valkey:
     image: valkey/valkey:8
     restart: unless-stopped

@@ -21,6 +21,8 @@ class Message(BaseModel):
 
 
 class BaseRequest(BaseModel):
+    """Base class for "net.gbenson.hive.llm_chatbot_*_request" CloudEvents.
+    """
     context_id: ContextID
     time: datetime
 

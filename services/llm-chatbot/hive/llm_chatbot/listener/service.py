@@ -1,13 +1,11 @@
 import logging
 import re
 
-from dataclasses import dataclass, field
 from inspect import get_annotations
 
 from hive.messaging import Channel, Message
-from hive.service import HiveService
 
-from ..database import Database
+from ..service import BaseService
 from .schema import (
     BaseRequest,
     GenerateResponseRequest,
@@ -20,9 +18,9 @@ d = logger.info
 REQUEST_KIND_RE = re.compile(r"net.gbenson.hive.llm_chatbot_(\w+)_request")
 
 
-@dataclass
-class Service(HiveService):
-    db: Database = field(default_factory=Database.connect)
+class Service(BaseService):
+    """The listener service marshals incoming requests into the database.
+    """
 
     def run(self) -> None:
         with self.blocking_connection() as conn:
@@ -63,11 +61,11 @@ class Service(HiveService):
             channel: Channel,
             request: UpdateContextRequest,
     ) -> None:
-        self.db.xadd("journal", request.as_key_value_pairs())
+        self.db.xadd(self.streams.journal, request.as_key_value_pairs())
 
     def on_generate_response(
             self,
             channel: Channel,
             request: GenerateResponseRequest,
     ) -> None:
-        self.db.xadd("requests", request.as_key_value_pairs())
+        self.db.xadd(self.streams.requests, request.as_key_value_pairs())

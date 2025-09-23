@@ -3,6 +3,7 @@ name = "hive-llm-chatbot"
 dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "LLM chatbot for Hive"
+requires-python = ">=3.10"  # match..case
 dependencies = [
     "hive-common[langchain-ollama]>=0.3.6",
     "hive-messaging>=0.15.2",
@@ -12,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 llm-chatbot-listener = "hive.llm_chatbot.listener:main"
+llm-chatbot-modeler = "hive.llm_chatbot.modeler:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

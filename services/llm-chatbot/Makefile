@@ -1,8 +1,10 @@
 all: build
 
-.PHONY: build check lint test venv
+.PHONY: build check lint setup test venv
 
 check: test
+
+setup: venv
 
 VENV ?= .venv
 PIP ?= $(VENV)/bin/pip

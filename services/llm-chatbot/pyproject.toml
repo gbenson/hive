@@ -8,12 +8,14 @@ dependencies = [
     "hive-common[langchain-ollama]>=0.3.6",
     "hive-messaging>=0.15.2",
     "hive-service>=0.2.4",
+    "typing-extensions",
     "valkey~=6.1",
 ]
 
 [project.scripts]
 llm-chatbot-listener = "hive.llm_chatbot.listener:main"
 llm-chatbot-modeler = "hive.llm_chatbot.modeler:main"
+llm-chatbot-responder = "hive.llm_chatbot.responder:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

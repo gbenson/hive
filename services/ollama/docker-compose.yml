@@ -17,6 +17,7 @@ services:
     restart: unless-stopped
     networks:
       - ollama
+      - ollama-connector
     volumes:
       - hive_ollama_models:/ollama/models
       - ollama_workspace:/root

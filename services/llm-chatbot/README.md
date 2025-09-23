@@ -13,7 +13,7 @@ LLM chatbot for Hive
 ```sh
 git clone https://github.com/gbenson/hive.git
 cd hive/services/llm-chatbot
-make venv
+make setup
 . .venv/bin/activate
 make check
 ```

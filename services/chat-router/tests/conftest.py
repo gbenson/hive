@@ -45,7 +45,10 @@ class LogDecoder(_LogDecoder):
 
 @pytest.fixture
 def mock_channel():
-    return Channel(MockChannel(LogDecoder))
+    mock_channel = MockChannel(LogDecoder)
+    channel = Channel(mock_channel)
+    channel.call_log = mock_channel.call_log
+    return channel
 
 
 @pytest.fixture

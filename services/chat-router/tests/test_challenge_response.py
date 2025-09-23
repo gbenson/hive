@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 
 from hive.chat_router.brain import router
@@ -33,6 +35,7 @@ from .util import make_test_request
      ("sallop!", "bonjour"),
      ("Heilo", "hi"),
      ))
-def test_responses(mock_channel, challenge, want_response):
+def test_responses(challenge, want_response):
+    mock_channel = Mock()
     router.dispatch(make_test_request(challenge), Service(), mock_channel)
-    assert mock_channel.expect.send_text == want_response
+    mock_channel.send_text.assert_called_once_with(want_response)

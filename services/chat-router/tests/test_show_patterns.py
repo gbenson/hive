@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 
 from hive.chat_router.brain import router
@@ -15,6 +17,8 @@ from .util import make_test_request
      "what's your paterns?",
      "whats ur patterns?",
      ))
-def test_patterns(mock_channel, user_input):
+def test_patterns(user_input):
+    mock_channel = Mock()
     router.dispatch(make_test_request(user_input), Service(), mock_channel)
-    assert mock_channel.expect.send_text.startswith("$:\n  *: <")
+    mock_channel.send_text.assert_called_once()
+    assert mock_channel.send_text.call_args.args[0].startswith("$:\n  *: <")

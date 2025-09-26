@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 from langchain.chat_models import init_chat_model as _init_chat_model
 
-from .ollama import configure_client as configure_ollama_client
+from hive.common.ollama import configure_client as configure_ollama_client
 
 
 @wraps(_init_chat_model)

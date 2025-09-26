@@ -7,9 +7,10 @@ import yaml
 from pytest import MonkeyPatch
 
 from hive.common import langchain as langchain_module
-from hive.common.langchain import init_chat_model
 from hive.common.ollama import DEFAULT_TIMEOUT
 from hive.common.testing import test_config_dir  # noqa: F401
+
+from hive.langchain import init_chat_model
 
 
 def test_no_provider() -> None:

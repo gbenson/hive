@@ -1,34 +1,23 @@
 [project]
-name = "hive-common"
+name = "hive-langchain"
 dynamic = ["version"]
 authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
-description = "Common code for Hive libraries and services"
+description = "LangChain for Hive"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-    "PyYAML",
+    "hive-common>=0.3.6",
+    "langchain",
 ]
 
 [project.urls]
-Homepage = "https://github.com/gbenson/hive/tree/main/libs/common"
+Homepage = "https://github.com/gbenson/hive/tree/main/libs/langchain"
 Source = "https://github.com/gbenson/hive"
 
 [project.optional-dependencies]
-brotli = [
-    "httpx[brotli]",
-]
-httpx = [
-    "hishel",
-    "httpx[http2]",
-]
 ollama = [
-    "hishel",
-    "httpx[http2]",
-    "ollama",
-    "pydantic",
-]
-zstd = [
-    "httpx[zstd]",
+    "hive-common[ollama]",
+    "langchain-ollama",
 ]
 
 [build-system]
@@ -36,14 +25,15 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "hive.common.__version__.__version__"}
+version = {attr = "hive.langchain.__version__.__version__"}
 
 [tool.mypy]
+mypy_path = "../common"
 warn_unused_configs = true
 strict = true
 
 [tool.pytest.ini_options]
-addopts = "--cov=hive.common"
+addopts = "--cov=hive.langchain"
 log_level="debug"
 
 [tool.coverage.run]

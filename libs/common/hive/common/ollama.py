@@ -38,12 +38,10 @@ def configure_client(
     if not config_key:
         return kwargs
 
-    if not (config := read_endpoint_config(config_key)):
-        return kwargs
+    config = read_endpoint_config(config_key)
 
     if not host:
-        if config.url:
-            host = config.url
+        host = config.url if config.url else "ollama"
 
     if host:
         kwargs["host"] = host

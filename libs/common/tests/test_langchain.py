@@ -87,6 +87,7 @@ def test_no_config(kwargs: dict[str, Any], config_path: Path) -> None:
     config_path.unlink()
     expect_kwargs = {"model_provider": None, **kwargs}
     if kwargs in OLLAMA_VARIATIONS:
+        expect_kwargs["base_url"] = "ollama"
         expect_kwargs["client_kwargs"] = {"timeout": DEFAULT_TIMEOUT}
     assert _test_init_chat_model(**kwargs) == expect_kwargs
 

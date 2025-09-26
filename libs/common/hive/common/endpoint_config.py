@@ -21,11 +21,11 @@ class EndpointConfig(BaseModel):
     http_auth: Optional[Auth] = None
 
     @classmethod
-    def read(cls: type[T], config_key: str) -> Optional[T]:
+    def read(cls: type[T], config_key: str) -> T:
         try:
             config_dict = _read_config(config_key)[config_key]
         except KeyError:
-            return None
+            config_dict = {}
         return cls.model_validate(config_dict)
 
 

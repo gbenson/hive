@@ -2,6 +2,7 @@ from functools import wraps
 from typing import Any, Optional
 
 from langchain.chat_models import init_chat_model as _init_chat_model
+from langchain_core.language_models import BaseChatModel
 
 from .ollama import configure_client as configure_ollama_client
 
@@ -12,10 +13,13 @@ def init_chat_model(
         *,
         model_provider: Optional[str] = None,
         **kwargs: Any
-) -> Any:
+) -> BaseChatModel:
     if _is_ollama_model(model, model_provider):
         kwargs = configure_ollama_model(**kwargs)
-    return _init_chat_model(model, model_provider=model_provider, **kwargs)
+    result = _init_chat_model(model, model_provider=model_provider, **kwargs)
+    if not isinstance(result, BaseChatModel):
+        raise TypeError(type(result).__name__)
+    return result
 
 
 def _is_ollama_model(model: str, model_provider: Optional[str]) -> bool:

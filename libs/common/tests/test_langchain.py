@@ -1,10 +1,13 @@
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import Any, Optional
 
 import pytest
 import yaml
 
 from pytest import MonkeyPatch
+
+from langchain_core.language_models import BaseChatModel
+from langchain_core.outputs import ChatResult
 
 from hive.common import langchain as langchain_module
 from hive.common.langchain import init_chat_model
@@ -148,6 +151,22 @@ def config_path(test_config_dir: str | Path) -> Path:  # noqa: F811
     return Path(test_config_dir) / "ollama.yml"
 
 
+class MockChatModel(BaseChatModel):
+    def __init__(self, model: str, **kwargs: Any):
+        self._mock_chat_model_kwargs = {"model": model, **kwargs}
+
+    @property
+    def _llm_type(self) -> str:
+        raise NotImplementedError
+
+    def _generate(
+            self,
+            *args: Any,
+            **kwargs: Any
+    ) -> ChatResult:
+        raise NotImplementedError
+
+
 @pytest.fixture(autouse=True)
 def common_setup(config_path: Path, monkeypatch: MonkeyPatch) -> None:
     config_path.write_text(yaml.dump({
@@ -162,9 +181,11 @@ def common_setup(config_path: Path, monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setattr(
         langchain_module,
         "_init_chat_model",
-        lambda model, **kwargs: {"model": model, **kwargs},
+        MockChatModel,
     )
 
 
 def _test_init_chat_model(*args: Any, **kwargs: Any) -> dict[str, Any]:
-    return cast(dict[str, Any], init_chat_model(*args, **kwargs))
+    model = init_chat_model(*args, **kwargs)
+    assert isinstance(model, MockChatModel)
+    return model._mock_chat_model_kwargs

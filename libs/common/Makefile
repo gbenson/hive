@@ -1,8 +1,21 @@
 all: build
 
-.PHONY: build check lint test
+.PHONY: build check lint setup test venv
 
 check: test
+
+setup: venv
+
+VENV ?= .venv
+PIP ?= $(VENV)/bin/pip
+
+$(VENV):
+	python3 -m venv $@
+
+venv: $(VENV)
+	$(PIP) install --upgrade pip
+	$(PIP) install -r requirements.txt
+	$(PIP) install -e .[langchain-ollama]
 
 lint:
 	flake8

@@ -9,10 +9,11 @@ from pytest import MonkeyPatch
 from langchain_core.language_models import BaseChatModel
 from langchain_core.outputs import ChatResult
 
-from hive.common import langchain as langchain_module
-from hive.common.langchain import init_chat_model
+from hive.langchain import chat_models
 from hive.common.ollama import DEFAULT_TIMEOUT
 from hive.common.testing import test_config_dir  # noqa: F401
+
+from hive.langchain import init_chat_model
 
 
 def test_no_provider() -> None:
@@ -180,7 +181,7 @@ def common_setup(config_path: Path, monkeypatch: MonkeyPatch) -> None:
         },
     }))
     monkeypatch.setattr(
-        langchain_module,
+        chat_models,
         "_init_chat_model",
         MockChatModel,
     )

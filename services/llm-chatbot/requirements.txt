@@ -2,3 +2,4 @@
 -e ../../libs/common
 -e ../../libs/messaging
 -e ../../libs/service
+-e ../../libs/langchain

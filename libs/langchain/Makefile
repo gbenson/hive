@@ -15,7 +15,7 @@ $(VENV):
 venv: $(VENV)
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
-	$(PIP) install -e .[httpx,ollama]
+	$(PIP) install -e .[ollama]
 
 lint:
 	flake8

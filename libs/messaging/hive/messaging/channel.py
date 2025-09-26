@@ -326,7 +326,7 @@ class Channel:
                                 traceback = next_tb
                             code = traceback.tb_frame.f_code
                             try:
-                                func = code.co_qualname
+                                func = getattr(code, "co_qualname")
                             except AttributeError:
                                 func = code.co_name  # Python <=3.10
                             logger.warning("%s:%s:UNHANDLED", func, e)

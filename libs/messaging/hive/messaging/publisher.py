@@ -2,7 +2,8 @@ import logging
 
 from dataclasses import dataclass, field
 from threading import Event, Thread
-from typing import Any, Protocol, Self, cast
+from typing import Any, Protocol, cast
+from typing_extensions import Self
 
 from hive.common.typing import AnyCallable
 from hive.common.units import SECOND

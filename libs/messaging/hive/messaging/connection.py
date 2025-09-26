@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import KW_ONLY, dataclass
-from typing import Any, Optional, Self, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
+from typing_extensions import Self
 
 from pika import BlockingConnection as _PikaConnection
 

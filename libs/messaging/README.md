@@ -19,10 +19,7 @@ pip install hive-messaging
 ```sh
 git clone https://github.com/gbenson/hive.git
 cd hive/libs/messaging
-python3 -m venv .venv
+make setup
 . .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .
 make check
 ```

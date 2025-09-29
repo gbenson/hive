@@ -15,6 +15,8 @@ from pika import BasicProperties
 from pika.adapters.blocking_connection import BlockingChannel as _PikaChannel
 from pika.delivery_mode import DeliveryMode  # type: ignore
 
+from pydantic import BaseModel
+
 from hive.common import SERVICE_NAME, utc_now
 
 from .message import Message
@@ -269,6 +271,8 @@ class Channel:
             )
         if not time:
             time = utc_now()
+        if isinstance((data := kwargs.get("data")), BaseModel):
+            kwargs["data"] = json.loads(data.model_dump_json())
         return CloudEvent(source=source, type=type, time=time, **kwargs)
 
     @staticmethod

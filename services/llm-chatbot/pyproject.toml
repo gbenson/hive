@@ -6,7 +6,7 @@ description = "LLM chatbot for Hive"
 requires-python = ">=3.10"  # match..case
 dependencies = [
     "hive-common[langchain-ollama]>=0.3.6",
-    "hive-messaging>=0.15.2",
+    "hive-messaging>=0.16.4",
     "hive-service>=0.2.4",
     "typing-extensions",
     "valkey~=6.1",

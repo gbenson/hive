@@ -19,7 +19,7 @@ from ..database import ContextID
 from ..service import BaseService
 from .response_manager import ResponseManager
 from .schema import Message, Request
-from .util import tokens_to_sentences
+from .util import record_interaction, tokens_to_sentences
 
 logger = logging.getLogger(__name__)
 d = logger.info
@@ -197,6 +197,7 @@ class Service(BaseService):
         with ResponseManager() as rm:
             chain: Runnable[LanguageModelInput, str] = (
                 self.llm
+                | record_interaction(rm._channel, model_input=message.text)
                 | StrOutputParser()
                 | tokens_to_sentences
             )

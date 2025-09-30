@@ -6,8 +6,8 @@ from hive.common import utc_now
 from hive.common.units import MILLISECOND
 
 from hive.llm_chatbot.responder import Service
+from hive.llm_chatbot.responder.runnables import tokens_to_sentences
 from hive.llm_chatbot.responder.schema import Message, Request
-from hive.llm_chatbot.responder.util import tokens_to_sentences
 
 
 def test_default_stream_consumer_group() -> None:

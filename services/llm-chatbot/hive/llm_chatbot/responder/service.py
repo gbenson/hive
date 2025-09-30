@@ -18,8 +18,8 @@ from langchain_core.language_models import BaseChatModel, LanguageModelInput
 from ..database import ContextID
 from ..service import BaseService
 from .response_manager import ResponseManager
+from .runnables import record_interaction, tokens_to_sentences
 from .schema import Message, Request
-from .util import record_interaction, tokens_to_sentences
 
 logger = logging.getLogger(__name__)
 d = logger.info

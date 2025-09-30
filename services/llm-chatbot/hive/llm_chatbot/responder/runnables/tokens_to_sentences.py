@@ -2,7 +2,7 @@ import re
 
 from collections.abc import Iterator
 
-SEP = re.compile(r"((?:(?<=\D)\.(?=\D))|\n)", re.DOTALL)
+SEP = re.compile(r"((?:(?:(?<=\D)\.(?=\D))|\n)\s*)", re.DOTALL)
 
 
 def tokens_to_sentences(input: Iterator[str]) -> Iterator[str]:
@@ -13,8 +13,10 @@ def tokens_to_sentences(input: Iterator[str]) -> Iterator[str]:
         if len(splits) == 1:
             continue
         assert len(splits) == 3
-        buf = splits.pop()
-        if (sentence := "".join(splits[:2]).strip()):
-            yield sentence
-    if (sentence := buf.strip()):
+        before, sep, after = splits
+        if not any(c.isalpha() for c in after):
+            continue
+        yield before + sep
+        buf = after
+    if (sentence := buf):
         yield sentence

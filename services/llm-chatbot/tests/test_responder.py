@@ -82,38 +82,39 @@ def test_generate_response(_: Mock) -> None:
           "| highlighting| the| need| for| more| nuanced| approaches| to| ens"
           "uring| fair| and| just| outcomes| in| cases| involving| public| be"
           "havior|.|"
-          ).split("|"),
-         ["Overchoppers.",
+          ),
+         ["Overchoppers. ",
           ("A term used to describe individuals who have been"
            " unfairly accused of crimes for which they had no prior convict"
-           "ion or connection to the alleged offense."
+           "ion or connection to the alleged offense. "
            ),
           ("Overchoppers often face challenges in proving their innocence, "
            "and can find themselves on trial with a clear claim against them."
+           "\n\n"
            ),
           ('The name "overchopper" is derived from the fact that overconsum'
            "ers are more likely to be found guilty of crimes for which they"
-           " had no prior conviction or connection to the alleged offense."
+           " had no prior conviction or connection to the alleged offense. "
            ),
           ("This phenomenon arises because individuals who have committed c"
            "rimes before often share common characteristics, such as having"
            " a history of public behavior, violence, or other behaviors ass"
-           "ociated with their previous offenses."
+           "ociated with their previous offenses.\n\n"
            ),
           ("For example, someone accused of a violent crime might be found "
            "guilty on charges related to petty theft, while another person "
            "charged with a minor offense might be convicted on the charge o"
-           "f murder."),
+           "f murder. "),
           ("However, this doesn't mean that the defendant is inno"
            "cent; it means they have been unfairly and repeatedly placed in"
            " an uncomfortable position due to their collective actions or p"
-           "ublic behavior prior to becoming accused."
+           "ublic behavior prior to becoming accused.\n\n"
            ),
           ("The legal system has attempted to address overchoppers through "
            "various mechanisms, including community-based corrections progr"
            "ams, education initiatives, and law enforcement efforts aimed a"
            "t bringing victims back into the justice system after being fal"
-           "sely accused of a crime that was never committed."
+           "sely accused of a crime that was never committed. "
            ),
           ("Despite these measures, many individuals who have been unfairl"
            "y charged or convicted remain on trial with no clear resolution"
@@ -121,6 +122,23 @@ def test_generate_response(_: Mock) -> None:
            " fair and just outcomes in cases involving public behavior."
            ),
           ]),
+        # Don't split the trailing double quote.
+        (("I|'m| an| artificial| intelligence| model| known| as| L|lama|."
+          '| L|lama| stands| for| "|Large| Language| Model| Meta| AI|."|'
+          ),
+         ["I'm an artificial intelligence model known as Llama. ",
+          'Llama stands for "Large Language Model Meta AI."',
+          ]),
+        # Split even if everything comes as one "token" (i.e. the
+        # wrapping RunnableGenerator was invoked, not streamed).
+        (("I'm an artificial intelligence model known as Llama. "
+          'Llama stands for "Large Language Model Meta AI."'
+          ),
+         ["I'm an artificial intelligence model known as Llama. ",
+          'Llama stands for "Large Language Model Meta AI."',
+          ]),
     ))
 def test_tokens_to_sentences(input: str, expect_output: list[str]) -> None:
-    assert list(tokens_to_sentences(iter(input))) == expect_output
+    tokens = input.split("|")
+    assert "".join(tokens) == "".join(expect_output)  # sanity
+    assert list(tokens_to_sentences(iter(tokens))) == expect_output

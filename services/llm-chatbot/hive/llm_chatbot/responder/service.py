@@ -202,4 +202,4 @@ class Service(BaseService):
                 | tokens_to_sentences
             )
             for sentence in chain.stream(message.text):
-                rm.send_text(sentence)
+                rm.send_text(sentence.strip())

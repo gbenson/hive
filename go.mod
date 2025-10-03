@@ -5,6 +5,7 @@ go 1.25.1
 require (
 	gbenson.net/go/dfmt v1.0.1
 	gbenson.net/go/logger v1.3.1
+	github.com/JohannesKaufmann/html-to-markdown/v2 v2.4.0
 	github.com/cloudevents/sdk-go/v2 v2.16.2
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gertd/go-pluralize v0.2.1
@@ -13,7 +14,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.21.0
 	go.mongodb.org/mongo-driver/v2 v2.2.2
-	golang.org/x/crypto v0.36.0
+	golang.org/x/crypto v0.41.0
 	golang.org/x/term v0.35.0
 	gotest.tools/v3 v3.5.2
 	maunium.net/go/mautrix v0.23.2
@@ -21,6 +22,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/JohannesKaufmann/dom v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
@@ -52,6 +54,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
+	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect

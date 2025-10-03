@@ -1,14 +1,10 @@
 // Package chat defines Matrix chat events for Hive services.
 package chat
 
-// Note: Everything regarding chat on the Python side is now almost
-// entirely handled by methods on messaging.Channel.  All that's in
-// Python hive-chat now, IIRC, other than transition-supporting code
-// that's almost certainly no-longer used is some shims for calling
-// chat functions without an open channel, in v2.py and util.py, and
-// even those might not be used.  TL;dr don't build up this package
-// without seeing if somewhere else is a better fit for what you're
-// adding.
+// Note: Everything regarding chat on the Python side is now handled
+// by methods on messaging.Channel; there is no Python hive-chat any
+// more, so don't build up this package without considering whether
+// somewhere else is a better fit for what you're adding.
 
 import (
 	"fmt"
@@ -18,7 +14,8 @@ import (
 )
 
 type SendTextRequest struct {
-	Text string `json:"text"`
+	Text string `json:"text,omitempty"`
+	HTML string `json:"html,omitempty"`
 }
 
 type SendReactionRequest struct {
@@ -29,14 +26,6 @@ type SendReactionRequest struct {
 type UserTypingRequest struct {
 	Timeout time.Duration `json:"timeout"`
 }
-
-/*
-func (m *SendTextRequest) MarshalEvent() (*messaging.Event, error) {
-	e := messaging.NewEvent()
-	e.SetData("application/json", m)
-	return e, nil
-}
-*/
 
 func (m *SendTextRequest) UnmarshalEvent(e *messaging.Event) error {
 	if e.Type() != "net.gbenson.hive.matrix_send_text_request" {
@@ -58,10 +47,3 @@ func (m *UserTypingRequest) UnmarshalEvent(e *messaging.Event) error {
 	}
 	return e.DataAs(m)
 }
-
-/*
-func TellUser(ctx context.Context, ch messaging.Channel, s string) error {
-	r := SendTextRequest{s}
-	return ch.PublishEvent(ctx, SendTextRequestsQueue, &r)
-}
-*/

@@ -12,6 +12,8 @@ import (
 	"gbenson.net/hive/messaging"
 	"gbenson.net/hive/messaging/matrix"
 
+	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
+
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 )
@@ -151,18 +153,68 @@ func (s *Service) consumeSendTextRequest(
 		return err
 	}
 
-	if r.Text == "" {
+	if r.HTML == "" {
+		return s.sendText(ctx, r.Text)
+	} else if r.Text != "" {
+		return s.sendHTML(ctx, r.Text, r.HTML)
+	}
+
+	markdown, err := htmltomarkdown.ConvertString(r.HTML)
+	if err != nil {
+		logger.Ctx(ctx).Warn().
+			Err(err).
+			Str("html", r.HTML).
+			Msg("")
+
+		// Send the HTML as text, to get the message through.
+		return s.sendText(ctx, r.HTML)
+	}
+
+	return s.sendHTML(ctx, markdown, r.HTML)
+}
+
+func (s *Service) sendText(ctx context.Context, text string) error {
+	if text == "" {
 		return ErrBadRequest
 	}
 
-	resp, err := s.Client.SendText(ctx, s.RoomID, r.Text)
+	resp, err := s.Client.SendText(ctx, s.RoomID, text)
 	if err != nil {
 		return err
 	}
 
 	logger.Ctx(ctx).Info().
 		Str("event_id", resp.EventID.String()).
-		Str("text", r.Text).
+		Str("text", text).
+		Msg("Sent")
+
+	return nil
+}
+
+func (s *Service) sendHTML(ctx context.Context, text, html string) error {
+	if text == "" && html == "" {
+		return ErrBadRequest
+	}
+
+	resp, err := s.Client.SendMessageEvent(
+		ctx,
+		s.RoomID,
+		event.EventMessage,
+		&event.MessageEventContent{
+			MsgType:       event.MsgText,
+			Body:          text,
+			Format:        event.FormatHTML,
+			FormattedBody: html,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	logger.Ctx(ctx).Info().
+		Str("event_id", resp.EventID.String()).
+		Str("text", text).
+		Str("html", html).
 		Msg("Sent")
 
 	return nil

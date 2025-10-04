@@ -17,11 +17,18 @@ from .request import Request
 logger = logging.getLogger(__name__)
 d = logger.info
 
+# First word of request => queue to forward this request to.
+FORWARDABLE_COMMAND_ROUTES = {
+    "ollama": "llm.chatbot.ollama.commands",
+}
+
 
 @dataclass
 class Service(HiveService):
     config: Config = field(default_factory=Config.read)
     llm: LLM = field(default_factory=LLM)
+    forwardable_command_routes: dict[str, str] = \
+        field(default_factory=FORWARDABLE_COMMAND_ROUTES.copy)
 
     def run(self) -> None:
         with self.blocking_connection() as conn:
@@ -58,16 +65,38 @@ class Service(HiveService):
 
         self.llm.update_context(channel, request, role=role)
 
-        if role == "user" and request.is_reading_list_update_request:
+        if role != "user":
+            return
+
+        if self.is_forwardable_command(request):
+            self.on_forwardable_command(channel, request)
+            return
+
+        if request.is_reading_list_update_request:
             # Note that reading-list-updater will send extra
             # LLM context updates to add detail to this one.
             self.on_reading_list_update_request(channel, request)
             return
 
-        if role != "user":
-            return
-
         router.dispatch(request, self, channel)
+
+    def is_forwardable_command(self, request: Request) -> bool:
+        return request.first_word in self.forwardable_command_routes
+
+    def on_forwardable_command(
+            self,
+            channel: Channel,
+            request: Request,
+    ) -> None:
+        channel.set_user_typing(5 * SECOND)
+        channel.publish_request(
+            routing_key=self.forwardable_command_routes[request.first_word],
+            time=request.time,
+            data={
+                "command": request.text,
+                "created_from": request.origin,
+            },
+        )
 
     def on_reading_list_update_request(
             self,

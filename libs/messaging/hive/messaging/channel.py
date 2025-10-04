@@ -364,15 +364,21 @@ class Channel:
     # High-level publish_request wrappers for Matrix chat.
 
     def send_text(
-            self, text: str,
+            self,
+            text: str = "",
             *,
+            html: str = "",
             sender: str = "hive",
     ) -> None:
         """https://pkg.go.dev/maunium.net/go/mautrix#Client.SendText
         """
+        if not text and not html:
+            raise ValueError
+
         self.publish_matrix_event("send_text", {
             "sender": sender,
             "text": text,
+            "html": html,
         })
 
     tell_user = send_text
@@ -386,8 +392,15 @@ class Channel:
     ) -> None:
         """https://pkg.go.dev/maunium.net/go/mautrix#Client.SendReaction
         """
+        if not reaction:
+            raise ValueError
+
         if isinstance(in_reply_to, CloudEvent):
             in_reply_to = in_reply_to.id
+
+        if not in_reply_to:
+            raise ValueError
+
         self.publish_matrix_event("send_reaction", {
             "event_id": in_reply_to,
             "reaction": reaction,
@@ -422,7 +435,7 @@ class Channel:
     ) -> None:
         self.publish_request(
             type=f"net.gbenson.hive.matrix_{event_type}_request",
-            data=event_data,
+            data={k: v for k, v in event_data.items() if v or v == 0},
             routing_key="matrix.requests",
         )
 

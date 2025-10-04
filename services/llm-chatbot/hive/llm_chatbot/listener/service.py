@@ -47,7 +47,7 @@ class Service(BaseService):
         request_class_candidates = [
             param_type
             for param_name, param_type in handler_annotations.items()
-            if issubclass(param_type, BaseRequest)
+            if param_name != "return" and issubclass(param_type, BaseRequest)
         ]
         if len(request_class_candidates) != 1:
             raise TypeError(handler_annotations)

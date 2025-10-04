@@ -1,4 +1,26 @@
 services:
+  llm-chatbot-controller:
+    image: gbenson/hive-service-py
+    init: true
+    restart: unless-stopped
+    networks:
+      - "${OLLAMA_NETWORK:-llm-chatbot-ollama}"
+      - "${RABBITMQ_NETWORK:-llm-chatbot-msgbus}"
+      - llm-chatbot-valkey
+    extra_hosts:
+      - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
+      - "${OLLAMA_HOST_IP:-ollama-connector=127.0.2.1}"
+    volumes:
+      - ./hive/llm_chatbot:/usr/lib/hive/llm_chatbot:ro
+    secrets:
+      - rabbitmq.env
+    command:
+      - /venv/bin/python3
+      - -m
+      - hive.llm_chatbot.controller
+    profiles:
+      - llm-chatbot
+
   llm-chatbot-listener:
     image: gbenson/hive-service-py
     init: true

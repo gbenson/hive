@@ -69,10 +69,18 @@ class Service(BaseService):
             msgid = dynamic_cast(str, msgid)
 
         msg_key = f"msg:{msgid}"
+        values = message.model_dump()
         self.db.hset(msg_key, mapping={
             field: str(value)
-            for field, value in message.model_dump().items()
+            for field, value in values.items()
         })
+
+        # Apply any commands.
+        context_id = action.context_id
+        if (model := values.get("content.use_model_command")):
+            self.db.set(f"ctx:{context_id}:model", model)
+            d("ctx:%s: using model: %s", context_id, model)
+
         if not is_insert:
             return
 
@@ -80,6 +88,5 @@ class Service(BaseService):
         self.db.set(msgid_key, msgid)
 
         # Add the message to the context.
-        context_id = action.context_id
         ctx_messages_key = f"ctx:{context_id}:msgs"
         self.db.zadd(ctx_messages_key, {str(msgid): action.monotonic_id})

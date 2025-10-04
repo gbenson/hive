@@ -1,7 +1,7 @@
 import logging
 import time
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import timedelta
 from functools import partial
 from typing import Any
@@ -13,7 +13,7 @@ from hive.common import dynamic_cast, utc_now
 from hive.common.langchain import init_chat_model
 from hive.common.units import MILLISECOND, SECOND
 
-from langchain_core.language_models import BaseChatModel, LanguageModelInput
+from langchain_core.language_models import LanguageModelInput
 
 from ..database import ContextID
 from ..service import BaseService
@@ -32,12 +32,7 @@ class Service(BaseService):
     max_request_age: timedelta = 30 * SECOND
     tick: timedelta = 500 * MILLISECOND
     tock: timedelta = 30 * SECOND
-    llm: BaseChatModel = field(
-        default_factory=partial(
-            init_chat_model,
-            model="ollama:smollm2:360m",
-        ),
-    )
+    default_model: str = "ollama:smollm2:360m"
 
     @property
     def _tick_ms(self) -> int:
@@ -152,7 +147,7 @@ class Service(BaseService):
 
             # If the message matches the request then we're golden.
             if message.id == request.message_id:
-                self._generate_response(message)
+                self._generate_response(request.context_id, message)
                 return
 
             # If the message is newer then the request got stale.
@@ -189,14 +184,24 @@ class Service(BaseService):
         d("Sleeping for %s seconds", seconds)
         time.sleep(seconds)
 
-    def _generate_response(self, message: Message) -> None:
+    def _generate_response(
+            self,
+            context_id: ContextID,
+            message: Message,
+    ) -> None:
         if message.role != "user":
             raise ValueError(message.role)
 
         d("Generating response for: %s", message)
         with ResponseManager() as rm:
+            model_key = f"ctx:{context_id}:model"
+            model = dynamic_cast(
+                str,
+                self.db.get(model_key) or self.default_model
+            )
+
             chain: Runnable[LanguageModelInput, str] = (
-                self.llm
+                init_chat_model(model)
                 | record_interaction(rm._channel, model_input=message.text)
                 | StrOutputParser()
                 | tokens_to_sentences

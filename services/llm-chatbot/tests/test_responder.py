@@ -1,4 +1,5 @@
 from unittest.mock import Mock, patch
+from uuid import UUID
 
 import pytest
 
@@ -11,7 +12,7 @@ from hive.llm_chatbot.responder.schema import Message, Request
 
 
 def test_default_stream_consumer_group() -> None:
-    service = Service(db=None, llm=None)
+    service = Service(db=None)
     assert service.consumer == "hive-llm-chatbot"
     assert service.consumer_group == "responder-service"
 
@@ -30,7 +31,6 @@ def test_generate_response(_: Mock) -> None:
                 "content.text": "what are overchoppers?",
             }),
         ),
-        llm=Mock(return_value="xox"),
     )
     service.on_request(Request.model_validate({
         "id": "1758756783269-0",
@@ -40,6 +40,7 @@ def test_generate_response(_: Mock) -> None:
         "time": timestamp,
     }))
     service._generate_response.assert_called_once_with(
+        UUID("f5379245-11b3-48bb-ab88-5df9bb781fd0"),
         Message.model_validate({
             "id": "fd1b8ee8-bc84-44e7-b5c4-1274c68349ec",
             "time": timestamp,

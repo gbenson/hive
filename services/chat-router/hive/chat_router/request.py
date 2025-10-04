@@ -66,11 +66,17 @@ class Request:
         return result
 
     @cached_property
+    def first_word(self) -> str:
+        """Return the first (space-delimited) word of this request.
+        """
+        return self.text.split(maxsplit=1)[0]
+
+    @cached_property
     def is_reading_list_update_request(self) -> bool:
         """Is this a reading list update request?
         """
         try:
-            url = urlparse(self.text.split(maxsplit=1)[0])
+            url = urlparse(self.first_word)
         except Exception:
             return False
         return url.scheme in {"http", "https"}

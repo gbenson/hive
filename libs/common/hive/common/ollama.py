@@ -41,7 +41,7 @@ def configure_client(
     config = read_endpoint_config(config_key)
 
     if not host:
-        host = config.url if config.url else "ollama"
+        host = config.url if config.url else "http://ollama:11434"
 
     if host:
         kwargs["host"] = host

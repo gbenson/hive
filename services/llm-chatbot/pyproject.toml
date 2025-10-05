@@ -5,7 +5,7 @@ authors = [{ name = "Gary Benson", email = "gary@gbenson.net" }]
 description = "LLM chatbot for Hive"
 requires-python = ">=3.10"  # match..case
 dependencies = [
-    "hive-common[langchain-ollama]>=0.3.6",
+    "hive-common[langchain-ollama]>=0.4.1",
     "hive-messaging>=0.16.4",
     "hive-service>=0.2.4",
     "typing-extensions",

@@ -1,3 +1,6 @@
+import logging
+
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Optional
 
@@ -6,6 +9,7 @@ import yaml
 
 from pytest import MonkeyPatch
 
+from langchain.chat_models import init_chat_model as _init_chat_model
 from langchain_core.language_models import BaseChatModel
 from langchain_core.outputs import ChatResult
 
@@ -14,11 +18,13 @@ from hive.common.langchain import init_chat_model
 from hive.common.ollama import DEFAULT_TIMEOUT
 from hive.common.testing import test_config_dir  # noqa: F401
 
+logger = logging.getLogger(__name__)
+d = logger.debug
+
 
 def test_no_provider() -> None:
     assert _test_init_chat_model("gpt-4.1-nano") == dict(
         model="gpt-4.1-nano",
-        model_provider=None,
     )
 
 
@@ -50,14 +56,12 @@ def test_ollama_provider() -> None:
 def test_non_ollama_provider_in_model() -> None:
     assert _test_init_chat_model("openai:gpt-4.1-nano") == dict(
         model="openai:gpt-4.1-nano",
-        model_provider=None,
     )
 
 
 def test_ollama_provider_in_model() -> None:
     assert _test_init_chat_model("ollama:qwen3:0.6b") == dict(
         model="ollama:qwen3:0.6b",
-        model_provider=None,
         base_url="https://gbenson.net/ollama",
         client_kwargs=dict(
             auth=("hello", "world"),
@@ -81,15 +85,31 @@ VARIATIONS = NON_OLLAMA_VARIATIONS + OLLAMA_VARIATIONS
 
 
 @pytest.mark.parametrize("kwargs", VARIATIONS)
-def test_no_config(kwargs: dict[str, Any], config_path: Path) -> None:
+def test_no_config(
+        kwargs: dict[str, Any],
+        config_path: Path,
+        monkeypatch: MonkeyPatch,
+) -> None:
     """Auth isn't added if we don't have the config file.
     """
     config_path.unlink()
-    expect_kwargs = {"model_provider": None, **kwargs}
+    expect_kwargs = kwargs.copy()
     if kwargs in OLLAMA_VARIATIONS:
-        expect_kwargs["base_url"] = "ollama"
+        expect_kwargs["base_url"] = "http://ollama:11434"
         expect_kwargs["client_kwargs"] = {"timeout": DEFAULT_TIMEOUT}
     assert _test_init_chat_model(**kwargs) == expect_kwargs
+    if kwargs not in OLLAMA_VARIATIONS:
+        return
+
+    # Test Ollama variations pass the base URL correctly.
+    d("expect_kwargs: %s", expect_kwargs)
+    langchain_chat_model = _init_chat_model(**expect_kwargs)
+    d("langchain_chat_model: %r", langchain_chat_model)
+    ollama_client = langchain_chat_model._client
+    d("ollama_client: %s", ollama_client)
+    httpx_client = ollama_client._client
+    d("httpx_client: %s", httpx_client)
+    assert str(httpx_client._base_url) == "http://ollama:11434"
 
 
 @pytest.mark.parametrize("kwargs", NON_OLLAMA_VARIATIONS)
@@ -97,8 +117,7 @@ def test_no_auth_wrong_provider(kwargs: dict[str, Any]) -> None:
     """Auth isn't added to non-ollama models even with our base_url.
     """
     kwargs = {"base_url": "https://gbenson.net/ollama", **kwargs}
-    expect_kwargs = {"model_provider": None, **kwargs}
-    assert _test_init_chat_model(**kwargs) == expect_kwargs
+    assert _test_init_chat_model(**kwargs) == kwargs
 
 
 @pytest.mark.parametrize("kwargs", VARIATIONS)
@@ -106,7 +125,7 @@ def test_no_auth_wrong_base_url(kwargs: dict[str, Any]) -> None:
     """Auth isn't added if the base_url isn't ours.
     """
     kwargs = {"base_url": "https://gbenson.net/pyjama", **kwargs}
-    expect_kwargs = {"model_provider": None, **kwargs}
+    expect_kwargs = kwargs.copy()
     if "'ollama" in str(kwargs):
         expect_kwargs["client_kwargs"] = {"timeout": DEFAULT_TIMEOUT}
     assert _test_init_chat_model(**kwargs) == expect_kwargs
@@ -135,7 +154,7 @@ def test_no_overwrite_auth(
     if with_base_url:
         kwargs["base_url"] = with_base_url
 
-    expect_kwargs = {"model_provider": None, **kwargs}
+    expect_kwargs = deepcopy(kwargs)
     if "'ollama" in str(kwargs):
         expect_kwargs["client_kwargs"] = \
             {**expect_kwargs["client_kwargs"], "timeout": DEFAULT_TIMEOUT}

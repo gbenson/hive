@@ -7,9 +7,9 @@ from cloudevents.pydantic import CloudEvent
 from pydantic import BaseModel
 
 from hive.common import dynamic_cast
+from hive.common.dictutil import flatten, update_noreplace
 
 from ..database import ContextID, MessageID, Role
-from .dictutils import flatten, update_noreplace
 
 T = TypeVar("T", bound="BaseRequest")
 

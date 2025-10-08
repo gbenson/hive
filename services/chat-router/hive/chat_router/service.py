@@ -2,6 +2,7 @@ import logging
 
 from dataclasses import dataclass, field
 from functools import cache
+from typing import Optional
 
 from cloudevents.abstract import CloudEvent
 
@@ -81,22 +82,27 @@ class Service(HiveService):
         router.dispatch(request, self, channel)
 
     def is_forwardable_command(self, request: Request) -> bool:
-        return request.first_word in self.forwardable_command_routes
+        return self._forwardable_command_route(request) is not None
 
     def on_forwardable_command(
             self,
             channel: Channel,
             request: Request,
     ) -> None:
+        if not (routing_key := self._forwardable_command_route(request)):
+            raise KeyError(request.first_word)
         channel.set_user_typing(5 * SECOND)
         channel.publish_request(
-            routing_key=self.forwardable_command_routes[request.first_word],
+            routing_key=routing_key,
             time=request.time,
             data={
                 "command": request.text,
                 "created_from": request.origin,
             },
         )
+
+    def _forwardable_command_route(self, request: Request) -> Optional[str]:
+        return self.forwardable_command_routes.get(request.first_word.lower())
 
     def on_reading_list_update_request(
             self,

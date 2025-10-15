@@ -8,7 +8,7 @@ from humanize import naturalsize, naturaltime
 
 from ollama import ListResponse
 
-from hive.common import blake2b_digest_uuid, dynamic_cast
+from hive.common import blake2b_digest_uuid
 from hive.common.ollama import Client
 from hive.messaging import Channel
 
@@ -80,9 +80,9 @@ class ResponseManager:
     def client(self) -> Client:
         return Client()
 
-    @property
+    @cached_property
     def models(self) -> Sequence[Model]:
-        return dynamic_cast(list, self.client.list()["models"])
+        return self.client.models
 
     def on_list_command(self, args: Sequence[str]) -> None:
         if len(args) != 2:

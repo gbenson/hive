@@ -1,5 +1,5 @@
-from ..tokenizer import Token
-from . import rewrite, route
+# from ..tokenizer import Token
+from . import rewrite  # ,route
 
 for word in ("choose", "pick", "select"):
     rewrite(f"{word} _", "random *")
@@ -12,14 +12,14 @@ rewrite("generate random *", "random *")
 rewrite("generate * random *", "random * *")
 
 
-@route(patterns=(
-    "random * name",
-    "random * names",
-))
-def random_name(*args: Token) -> None:
-    raise NotImplementedError("name")
+# @route(patterns=(
+#     "random * name",
+#     "random * names",
+# ))
+# def random_name(*args: Token) -> None:
+#     raise NotImplementedError("name")
 
 
-@route(pattern="random *")
-def random_word(*args: Token) -> None:
-    raise NotImplementedError("word")
+# @route(pattern="random *")
+# def random_word(*args: Token) -> None:
+#     raise NotImplementedError("word")

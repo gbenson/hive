@@ -46,11 +46,44 @@ services:
     profiles:
       - mediawiki
 
+  mediawiki-uploads-backup:
+    image: gbenson/hive-borg-backup
+    restart: unless-stopped
+    networks:
+      - mediawiki-uploads-backup
+    volumes:
+      - hive_mediawiki_uploads:/srv/mediawiki/uploads:ro
+    environment:
+      - HIVE_BORG_REPO=/mediawiki/uploads
+      - HIVE_DAILY_BACKUP_TIME=4:05am
+    secrets:
+      - source: backup-server.env
+      - source: mediawiki-uploads-backup-client-id_ed25519
+        target: id_ed25519
+      - source: mediawiki-uploads-backup-passphrase
+        target: backup-passphrase
+    command: >-
+      borg create
+      --verbose
+      --filter AME
+      --list
+      --stats
+      --show-rc
+      --compression auto,zstd,22
+      --exclude lost+found
+      --exclude lockdir
+      --exclude temp
+      ::'{now}'
+      .
+    profiles:
+      - mediawiki
+
 networks:
   mediawiki-fpm:
     internal: true
   mediawiki-mariadb:
     internal: true
+  mediawiki-uploads-backup:
 
 volumes:
   hive_mediawiki_mariadb:

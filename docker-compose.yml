@@ -24,6 +24,8 @@ include:
   - path: services/reading-list-updater/docker-compose.yml
 
 secrets:
+  backup-server.env:
+    file: $HOME/.config/hive/backup-server.env
   certdist-config.json:
     file: $HOME/.config/hive/certdist-config.json
   certdist-mono-server-id_ed25519:
@@ -58,6 +60,10 @@ secrets:
     file: $HOME/.config/hive/mediawiki.htpasswd
   mediawiki.yml:
     file: $HOME/.config/hive/mediawiki.yml
+  mediawiki-uploads-backup-client-id_ed25519:
+    file: $HOME/.config/hive/mediawiki-uploads-backup-client-id_ed25519
+  mediawiki-uploads-backup-passphrase:
+    file: $HOME/.config/hive/mediawiki-uploads-backup-passphrase
   ollama.htpasswd:
     file: $HOME/.config/hive/ollama.htpasswd
   rabbitmq.env:

@@ -3,6 +3,7 @@ include:
   - path: services/chat-router/docker-compose.yml
   - path: services/email-receiver/docker-compose.yml
   - path: services/event-vault/docker-compose.yml
+  - path: services/git/docker-compose.yml
   - path: services/llm-chatbot/docker-compose.yml
   - path: services/logging/docker-compose.yml
   - path: services/matrix-connector/docker-compose.yml
@@ -40,6 +41,10 @@ secrets:
     file: $HOME/.config/hive/chatbot.yml
   email.yml:
     file: $HOME/.config/hive/email.yml
+  git-backup-client-id_ed25519:
+    file: $HOME/.config/hive/git-backup-client-id_ed25519
+  git-backup-passphrase:
+    file: $HOME/.config/hive/git-backup-passphrase
   hostnames.env:
     file: $HOME/.config/hive/hostnames.env
   log-ingester.env:

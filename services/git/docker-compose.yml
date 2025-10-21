@@ -1,0 +1,36 @@
+services:
+  git-backup:
+    image: gbenson/hive-borg-backup
+    restart: unless-stopped
+    networks:
+      - git-backup
+    volumes:
+      - hive_git_backup:/srv/git:ro
+    environment:
+      - HIVE_BORG_REPO=/git
+      - HIVE_DAILY_BACKUP_TIME=4:15am
+    secrets:
+      - source: backup-server.env
+      - source: git-backup-client-id_ed25519
+        target: id_ed25519
+      - source: git-backup-passphrase
+        target: backup-passphrase
+    command: >-
+      borg create
+      --verbose
+      --filter AME
+      --list
+      --stats
+      --show-rc
+      --compression auto,zstd,22
+      ::'{now}'
+      .
+    profiles:
+      - git-backup
+
+networks:
+  git-backup:
+
+volumes:
+  hive_git_backup:
+    external: true

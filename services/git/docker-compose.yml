@@ -1,6 +1,7 @@
 services:
   git-backup:
     image: gbenson/hive-borg-backup
+    init: true
     restart: unless-stopped
     networks:
       - git-backup

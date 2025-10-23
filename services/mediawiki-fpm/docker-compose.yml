@@ -32,6 +32,7 @@ services:
 
   mediawiki-mariadb-backup:
     image: mariadb
+    init: true
     restart: unless-stopped
     networks:
       - mediawiki-mariadb
@@ -48,6 +49,7 @@ services:
 
   mediawiki-uploads-backup:
     image: gbenson/hive-borg-backup
+    init: true
     restart: unless-stopped
     networks:
       - mediawiki-uploads-backup

@@ -10,6 +10,9 @@ gid=$uid
 addgroup --system --gid $gid $user
 adduser --system --uid $uid --gid $gid --home $home --shell /bin/bash --disabled-password $user
 
+# Ensure the volume shared with the backup container is writable.
+chown $uid:$gid /var/lib/mysql
+
 # Put MariaDB credentials where mariadb-dump will find them.
 . /run/secrets/mediawiki-mariadb.env
 chown 0:0 /run/secrets

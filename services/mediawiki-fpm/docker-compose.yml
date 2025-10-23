@@ -30,7 +30,7 @@ services:
     profiles:
       - mediawiki
 
-  mediawiki-mariadb-backup:
+  mediawiki-mariadb-snapshotter:
     image: mariadb
     init: true
     restart: unless-stopped
@@ -38,12 +38,41 @@ services:
       - mediawiki-mariadb
     volumes:
       # Piggyback /var/lib/mysql to avoid an anonymous volume.
-      - hive_mediawiki_backups:/var/lib/mysql
+      - mediawiki_snapshots:/var/lib/mysql
       - ./backup/docker-entrypoint.sh:/docker-entrypoint.sh:ro
       - ./backup/mariadb-backup.sh:/mariadb-backup.sh:ro
     secrets:
       - mediawiki-mariadb.env
     entrypoint: /docker-entrypoint.sh
+    profiles:
+      - mediawiki
+
+  mediawiki-mariadb-backup:
+    image: gbenson/hive-borg-backup
+    init: true
+    restart: unless-stopped
+    networks:
+      - mediawiki-mariadb-backup
+    volumes:
+      - mediawiki_snapshots:/srv/mediawiki/database:ro
+    environment:
+      - HIVE_BORG_REPO=/mediawiki/database
+      - HIVE_DAILY_BACKUP_TIME=4:15am
+    secrets:
+      - source: backup-server.env
+      - source: mediawiki-database-backup-client-id_ed25519
+        target: id_ed25519
+      - source: mediawiki-database-backup-passphrase
+        target: backup-passphrase
+    command: >-
+      borg create
+      --verbose
+      --filter AME
+      --stats
+      --show-rc
+      --compression auto,zstd,22
+      ::'{now}'
+      snapshot.sql
     profiles:
       - mediawiki
 
@@ -84,6 +113,7 @@ networks:
     internal: true
   mediawiki-mariadb:
     internal: true
+  mediawiki-mariadb-backup:
   mediawiki-uploads-backup:
 
 volumes:
@@ -93,5 +123,4 @@ volumes:
     external: true
   hive_mediawiki_uploads:
     external: true
-  hive_mediawiki_backups:
-    external: true
+  mediawiki_snapshots:

@@ -65,6 +65,10 @@ secrets:
     file: $HOME/.config/hive/mediawiki.htpasswd
   mediawiki.yml:
     file: $HOME/.config/hive/mediawiki.yml
+  mediawiki-database-backup-client-id_ed25519:
+    file: $HOME/.config/hive/mediawiki-database-backup-client-id_ed25519
+  mediawiki-database-backup-passphrase:
+    file: $HOME/.config/hive/mediawiki-database-backup-passphrase
   mediawiki-uploads-backup-client-id_ed25519:
     file: $HOME/.config/hive/mediawiki-uploads-backup-client-id_ed25519
   mediawiki-uploads-backup-passphrase:

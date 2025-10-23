@@ -6,7 +6,6 @@ services:
     networks:
       - "${OLLAMA_NETWORK:-llm-chatbot-ollama}"
       - "${RABBITMQ_NETWORK:-llm-chatbot-msgbus}"
-      - llm-chatbot-valkey
     extra_hosts:
       - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
       - "${OLLAMA_HOST_IP:-ollama-connector=127.0.2.1}"

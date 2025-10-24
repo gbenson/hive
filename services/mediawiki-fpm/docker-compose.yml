@@ -68,7 +68,6 @@ services:
       borg create
       --verbose
       --filter AME
-      --list
       --stats
       --show-rc
       --compression auto,zstd,22

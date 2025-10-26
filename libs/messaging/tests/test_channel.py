@@ -1,4 +1,5 @@
 import json
+import re
 import time
 
 from datetime import datetime, timedelta, timezone
@@ -397,21 +398,26 @@ def test_consume_exclusive():
     assert mock.basic_qos.call_log == [((), {
         "prefetch_count": 1,
     })]
+    assert len(mock.queue_declare.call_log) == 1
+    assert len(mock.queue_declare.call_log[0]) == 2
+    assert len(mock.queue_declare.call_log[0][0]) == 1
+    got_queue = mock.queue_declare.call_log[0][0][0]
+    assert re.fullmatch(r"pytest\.arr\.pirates-[A-Z2-7]{8}", got_queue)
     assert mock.queue_declare.call_log == [((
-        "pytest.arr.pirates",
+        got_queue,
     ), {
         "exclusive": True,
     })]
     assert mock.queue_bind.call_log == [((), {
         "exchange": "hive.arr.pirates",
-        "queue": "pytest.arr.pirates",
+        "queue": got_queue,
     })]
 
     assert len(mock.basic_consume.call_log) == 1
     assert len(mock.basic_consume.call_log[0]) == 2
     got_callback = mock.basic_consume.call_log[0][1]["on_message_callback"]
     assert mock.basic_consume.call_log == [((), {
-        "queue": "pytest.arr.pirates",
+        "queue": got_queue,
         "on_message_callback": got_callback,
     })]
     assert on_message_callback.call_log == []

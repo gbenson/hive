@@ -1,8 +1,8 @@
 hive-common[brotli,httpx,zstd,langchain-ollama]>=0.4.3
 hive-email>=0.0.2
 hive-mediawiki>=0.0.5
-hive-messaging>=0.16.4
-hive-service>=0.2.1
+hive-messaging>=0.16.6
+hive-service>=0.2.4
 
 beautifulsoup4
 html2text

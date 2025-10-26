@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 import logging
 
+from base64 import b32encode
 from datetime import datetime, timedelta, timezone
 from dataclasses import KW_ONLY, dataclass
 from functools import cache, cached_property
+from secrets import token_bytes
 from typing import Any, Literal, Optional, TYPE_CHECKING
 
 from cloudevents.pydantic import CloudEvent
@@ -136,6 +138,9 @@ class Channel:
         if semantics is Semantics.PUBLISH_SUBSCRIBE:
             if (prefix := self.consumer_name):
                 queue = f"{prefix}.{queue}"
+            if exclusive:
+                suffix = b32encode(token_bytes(5)).decode("ascii")
+                queue = f"{queue}-{suffix}"
 
         kwargs: dict[str, Any] = {}
         if exclusive:

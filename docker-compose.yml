@@ -1,6 +1,7 @@
 include:
   - path: services/certbot/docker-compose.yml
   - path: services/chat-router/docker-compose.yml
+  - path: services/dns/docker-compose.yml
   - path: services/email-receiver/docker-compose.yml
   - path: services/event-vault/docker-compose.yml
   - path: services/git/docker-compose.yml

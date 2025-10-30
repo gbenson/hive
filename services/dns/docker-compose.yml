@@ -1,0 +1,16 @@
+services:
+  coredns:
+    image: coredns/coredns
+    restart: unless-stopped
+    networks:
+     - coredns
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+    volumes:
+      - ./Corefile:/Corefile:ro
+    profiles:
+      - coredns
+
+networks:
+  coredns:

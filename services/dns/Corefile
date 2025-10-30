@@ -1,0 +1,43 @@
+# From <https://coredns.io/plugins/forward/>:
+#  - When [the forward plugin] detects an error a health check is performed.
+#  - The health check uses the same protocol as specified in TO.
+#  - Health checks use a recursive DNS query (default: `. IN NS`)
+#  - Any response that is not a network error (REFUSED, NOTIMPL, SERVFAIL,
+#    etc) is taken as a healthy upstream.
+#  - This check runs in a loop, performing each check at a [configurable]
+#    interval [default=0.5s] for as long as the upstream reports unhealthy
+#    [or until `max_fails` is reached (default: 2)].
+#  - Once healthy we stop health checking (until the next error).
+#  - If *all* upstreams are down it assumes health checking as a mechanism
+#    has failed and will try to connect to a random upstream (which may or
+#    may not work).
+#  - Multiple upstreams are randomized [the default, but configurable by
+#    `policy`?] on first use.
+#  - When a healthy proxy returns an error during the exchange the next
+#    upstream in the list is tried.
+. {
+    forward . 127.0.0.1:5301 127.0.0.1:5308 127.0.0.1:5309
+    errors
+    cache 30
+}
+
+.:5301 {
+    forward . tls://1.1.1.1 tls://1.0.0.1 {
+        tls_servername cloudflare-dns.com
+        health_check 5s
+    }
+}
+
+.:5308 {
+    forward . tls://8.8.8.8 tls://8.8.4.4 {
+        tls_servername dns.google
+        health_check 5s
+    }
+}
+
+.:5309 {
+    forward . tls://9.9.9.9 {
+       tls_servername dns.quad9.net
+       health_check 5s
+    }
+}

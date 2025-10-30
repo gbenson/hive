@@ -3,7 +3,8 @@ services:
     image: coredns/coredns
     restart: unless-stopped
     networks:
-     - coredns
+      - coredns
+      - dnstap-collector
     ports:
       - 53:53/tcp
       - 53:53/udp
@@ -12,5 +13,21 @@ services:
     profiles:
       - coredns
 
+  dnstap-collector:
+    image: gbenson/hive-dnstap-collector
+    restart: unless-stopped
+    networks:
+      - dnstap-collector
+      - "${RABBITMQ_NETWORK:-dnstap-collector-msgbus}"
+    extra_hosts:
+      - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
+    secrets:
+      - rabbitmq.env
+    profiles:
+      - coredns
+
 networks:
   coredns:
+  dnstap-collector:
+    internal: true
+  dnstap-collector-msgbus:

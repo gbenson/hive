@@ -8,6 +8,7 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.4.0
 	github.com/cloudevents/sdk-go/v2 v2.16.2
 	github.com/coreos/go-systemd/v22 v22.5.0
+	github.com/dnstap/golang-dnstap v0.4.0
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/google/uuid v1.6.0
 	github.com/rabbitmq/amqp091-go v1.10.0
@@ -16,6 +17,7 @@ require (
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	golang.org/x/crypto v0.41.0
 	golang.org/x/term v0.35.0
+	google.golang.org/protobuf v1.36.5
 	gotest.tools/v3 v3.5.2
 	maunium.net/go/mautrix v0.23.2
 )
@@ -23,6 +25,7 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/JohannesKaufmann/dom v0.2.0 // indirect
+	github.com/farsightsec/golang-framestream v0.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
@@ -32,6 +35,7 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.24 // indirect
+	github.com/miekg/dns v1.1.31 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect

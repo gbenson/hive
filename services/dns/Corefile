@@ -1,3 +1,5 @@
+import zones/Corefile
+
 # From <https://coredns.io/plugins/forward/>:
 #  - When [the forward plugin] detects an error a health check is performed.
 #  - The health check uses the same protocol as specified in TO.

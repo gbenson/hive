@@ -10,6 +10,7 @@ services:
       - 53:53/udp
     volumes:
       - ./Corefile:/Corefile:ro
+      - hive_coredns_config:/zones:ro
     profiles:
       - coredns
 
@@ -31,3 +32,7 @@ networks:
   dnstap-collector:
     internal: true
   dnstap-collector-msgbus:
+
+volumes:
+  hive_coredns_config:
+    external: true

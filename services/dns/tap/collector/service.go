@@ -76,6 +76,10 @@ func (d *dnstapLogger) Printf(format string, v ...interface{}) {
 	d.log.Info().Msg(fmt.Sprintf(format, v...))
 }
 
+type Dnstap struct {
+	dnstap.Dnstap
+}
+
 func (s *Service) onData(
 	ctx context.Context,
 	ch messaging.Channel,
@@ -85,25 +89,47 @@ func (s *Service) onData(
 		return err
 	}
 
-	var dt dnstap.Dnstap
+	var dt Dnstap
 	if err := proto.Unmarshal(frame, &dt); err != nil {
 		return err
 	}
 
-	b, ok := dnstap.JSONFormat(&dt)
+	return ch.PublishEvent(ctx, "dnstap.events", &dt)
+}
+
+func (dt *Dnstap) MarshalEvent() (*messaging.Event, error) {
+	b, ok := dnstap.JSONFormat(&dt.Dnstap)
 	if !ok {
-		return errors.New("dnstap.JSONFormat failed")
+		return nil, errors.New("dnstap.JSONFormat failed")
 	}
 
-	s.log.Debug().RawJSON("frame", b).Msg("Received")
-
-	var v interface{}
+	var v map[string]any
 	if err := json.Unmarshal(b, &v); err != nil {
-		return err
+		return nil, err
 	}
+
+	dt.fixupJSONDnstap(v)
 
 	event := messaging.NewEvent()
 	event.SetData("application/json", v)
 
-	return ch.PublishEvent(ctx, "dnstap.events", event)
+	return event, nil
+}
+
+func (dt *Dnstap) fixupJSONDnstap(v map[string]any) {
+	if vm, ok := v["message"].(map[string]any); ok {
+		dt.fixupJSONMessage(vm)
+	}
+}
+
+func (dt *Dnstap) fixupJSONMessage(vm map[string]any) {
+	dm := dt.Message
+
+	if dm.QueryMessage != nil {
+		vm["query_message"] = dm.QueryMessage
+	}
+
+	if dm.ResponseMessage != nil {
+		vm["response_message"] = dm.ResponseMessage
+	}
 }

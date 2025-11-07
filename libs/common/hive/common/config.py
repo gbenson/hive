@@ -10,11 +10,14 @@ from .xdg import user_config_dir
 
 class Reader:
     def __init__(self, subdirs: Iterable[str] = ("hive",)):
-        self.search_path = [
+        self.search_path: list[str] = []
+        if (dirname := os.environ.get("CREDENTIALS_DIRECTORY")):
+            self.search_path.append(dirname)
+        self.search_path.extend(
             os.path.join(dirname, *subdirs)
             for dirname in (user_config_dir(), "/etc")
             if dirname
-        ]
+        )
         self.search_path.append("/run/secrets")
         self.search_exts = [
             "",

@@ -15,6 +15,10 @@ type Config struct {
 func New(name string) *Config {
 	v := viper.New()
 
+	if dir := os.Getenv("CREDENTIALS_DIRECTORY"); dir != "" {
+		v.AddConfigPath(dir)
+	}
+
 	if dir, err := os.UserConfigDir(); err == nil {
 		v.AddConfigPath(filepath.Join(dir, "hive"))
 	}

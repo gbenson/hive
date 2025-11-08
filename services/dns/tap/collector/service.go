@@ -12,6 +12,7 @@ import (
 	"github.com/dnstap/golang-dnstap"
 	"google.golang.org/protobuf/proto"
 
+	"gbenson.net/go/arp"
 	"gbenson.net/go/logger"
 	"gbenson.net/hive/messaging"
 )
@@ -131,5 +132,11 @@ func (dt *Dnstap) fixupJSONMessage(vm map[string]any) {
 
 	if dm.ResponseMessage != nil {
 		vm["response_message"] = dm.ResponseMessage
+	}
+
+	if dm.QueryAddress != nil {
+		if hw, _ := arp.LookupMAC(net.IP(dm.QueryAddress)); hw != nil {
+			vm["query_hwaddr"] = hw.String()
+		}
 	}
 }

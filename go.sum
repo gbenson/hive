@@ -1,5 +1,7 @@
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
+gbenson.net/go/arp v1.0.0 h1:mTde5wFoymBTKN/4ADaiLisarZYSqjz6rhUA8e7pcNE=
+gbenson.net/go/arp v1.0.0/go.mod h1:8hIFSOKsVDIu/fkIDmJktw9r3KTCMNyTU8Za1ftrJYk=
 gbenson.net/go/dfmt v1.0.1 h1:yxrsPL0BgS0fr2D/LemRN4flFh9nH4wYPXMn9VpLXf0=
 gbenson.net/go/dfmt v1.0.1/go.mod h1:nWI/dKM5wiTc/PJ+Bi1EDixujD8tXfz6R2HIjLh6qTc=
 gbenson.net/go/logger v1.3.1 h1:QGhhm3vxt5qWG+LB4tS1hESZ1xBkNCYbYysMJiS4wNU=

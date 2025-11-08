@@ -3,6 +3,7 @@ module gbenson.net/hive
 go 1.25.1
 
 require (
+	gbenson.net/go/arp v1.0.0
 	gbenson.net/go/dfmt v1.0.1
 	gbenson.net/go/logger v1.3.1
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.4.0

@@ -4,6 +4,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -39,6 +40,14 @@ func (c *Config) Read() error {
 	} else {
 		return err
 	}
+}
+
+func (c *Config) GetBool(key string) bool {
+	return c.v.GetBool(key)
+}
+
+func (c *Config) GetDuration(key string) time.Duration {
+	return c.v.GetDuration(key)
 }
 
 func (c *Config) GetInt(key string) int {

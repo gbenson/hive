@@ -26,8 +26,22 @@ services:
     profiles:
       - coredns
 
+  dnstap-integrator:
+    image: gbenson/hive-dnstap-integrator
+    restart: unless-stopped
+    networks:
+      - "${RABBITMQ_NETWORK:-dnstap-integrator-msgbus}"
+    extra_hosts:
+      - "${RABBITMQ_HOST_IP:-message-bus=127.0.1.1}"
+    secrets:
+      - rabbitmq.env
+      - dnstap.yml
+    profiles:
+      - rabbitmq
+
 networks:
   coredns:
   dnstap-collector:
     internal: true
   dnstap-collector-msgbus:
+  dnstap-integrator-msgbus:

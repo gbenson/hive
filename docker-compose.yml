@@ -40,6 +40,8 @@ secrets:
     file: $HOME/.config/hive/certdist-id_ed25519
   chatbot.yml:
     file: $HOME/.config/hive/chatbot.yml
+  dnstap.yml:
+    file: $HOME/.config/hive/dnstap.yml
   email.yml:
     file: $HOME/.config/hive/email.yml
   git-backup-client-id_ed25519:

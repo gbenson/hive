@@ -14,7 +14,7 @@ type Formatter struct {
 }
 
 func (f *Formatter) Format(e Event) string {
-	var b builder
+	var b Builder
 
 	b.WriteTime(e.Time())
 	b.WriteSpace()

@@ -1,0 +1,56 @@
+services:
+  container-registry:
+    image: registry:3
+    restart: unless-stopped
+    networks:
+      - container-registry
+    volumes:
+      - hive_container_registry:/var/lib/registry
+    environment:
+      - REGISTRY_LOG_LEVEL=info
+      - OTEL_TRACES_EXPORTER=none
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM="Authorization required"
+      - REGISTRY_AUTH_HTPASSWD_PATH=/run/secrets/container-registry.htpasswd
+    secrets:
+      - container-registry.htpasswd
+    profiles:
+      - container-registry
+
+  container-registry-backup:
+    image: gbenson/hive-borg-backup
+    init: true
+    restart: unless-stopped
+    networks:
+      - container-registry-backup
+    volumes:
+      - hive_container_registry:/srv/container-registry:ro
+    environment:
+      - HIVE_BORG_REPO=/container-registry
+      - HIVE_DAILY_BACKUP_TIME=4:25am
+    secrets:
+      - source: backup-server.env
+      - source: container-registry-backup-client-id_ed25519
+        target: id_ed25519
+      - source: container-registry-backup-passphrase
+        target: backup-passphrase
+    command: >-
+      borg create
+      --verbose
+      --filter AME
+      --stats
+      --show-rc
+      --compression auto,zstd,22
+      ::'{now}'
+      .
+    profiles:
+      - container-registry
+
+networks:
+  container-registry:
+    internal: true
+  container-registry-backup:
+
+volumes:
+  hive_container_registry:
+    external: true

@@ -1,6 +1,7 @@
 include:
   - path: services/certbot/docker-compose.yml
   - path: services/chat-router/docker-compose.yml
+  - path: services/container-registry/docker-compose.yml
   - path: services/dns/docker-compose.yml
   - path: services/email-receiver/docker-compose.yml
   - path: services/event-vault/docker-compose.yml
@@ -40,6 +41,12 @@ secrets:
     file: $HOME/.config/hive/certdist-id_ed25519
   chatbot.yml:
     file: $HOME/.config/hive/chatbot.yml
+  container-registry-backup-client-id_ed25519:
+    file: $HOME/.config/hive/container-registry-backup-client-id_ed25519
+  container-registry-backup-passphrase:
+    file: $HOME/.config/hive/container-registry-backup-passphrase
+  container-registry.htpasswd:
+    file: $HOME/.config/hive/container-registry.htpasswd
   dnstap.yml:
     file: $HOME/.config/hive/dnstap.yml
   email.yml:

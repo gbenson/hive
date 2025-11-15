@@ -7,6 +7,7 @@ services:
       - log-spooler
       - mediawiki-fpm
       - ollama-connector
+      - container-registry
     ports:
       - 443:443/tcp
     volumes:
@@ -27,6 +28,7 @@ services:
       - WG_RESOURCE_BASE_PATH
       - WG_UPLOAD_PATH
     secrets:
+      - container-registry.htpasswd
       - log-spooler.htpasswd
       - mediawiki.htpasswd
       - ollama.htpasswd

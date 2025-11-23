@@ -1,8 +1,9 @@
-FROM mediawiki:1.39.12-fpm
+FROM mediawiki:1.43.5-fpm
 
-ARG MOBILE_FRONTEND=extensions/MobileFrontend-REL1_39-3da6863.tar.gz
-ARG SCRIBUNTO=extensions/Scribunto-REL1_39-5880845.tar.gz
-ARG TEMPLATE_STYLES=extensions/TemplateStyles-REL1_39-aecb12f.tar.gz
+# https://www.mediawiki.org/wiki/Special:ExtensionDistributor?extdistname=Scribunto&extdistversion=REL1_43
+ARG MOBILE_FRONTEND=extensions/MobileFrontend-REL1_43-148ff5d.tar.gz
+ARG SCRIBUNTO=extensions/Scribunto-REL1_43-74f7d10.tar.gz
+ARG TEMPLATE_STYLES=extensions/TemplateStyles-REL1_43-adea53c.tar.gz
 
 # File ownership and permissions under /var/www/html are a mess!
 # The obvious solution is:

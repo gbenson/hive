@@ -6,6 +6,7 @@ services:
       - mediawiki-fpm
       - mediawiki-mariadb
     volumes:
+      - ./php.ini:/usr/local/etc/php/conf.d/hive.ini:ro
       - ./LocalSettings.php:/etc/mediawiki/LocalSettings.php.template:ro
       - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
       - hive_mediawiki_static:/usr/share/nginx/mediawiki-static

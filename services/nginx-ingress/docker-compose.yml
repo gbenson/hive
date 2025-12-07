@@ -4,7 +4,6 @@ services:
     restart: unless-stopped
     networks:
       - nginx-ingress
-      - log-spooler
       - mediawiki-fpm
       - ollama-connector
       - container-registry
@@ -21,7 +20,6 @@ services:
     environment:
       - DEFAULT_HOSTNAME
       - SERVICE_HOSTNAME
-      - LOG_SPOOLER_PATH
       - OLLAMA_PATH
       - WG_ARTICLE_PATH
       - WG_SCRIPT_PATH
@@ -29,7 +27,6 @@ services:
       - WG_UPLOAD_PATH
     secrets:
       - container-registry.htpasswd
-      - log-spooler.htpasswd
       - mediawiki.htpasswd
       - ollama.htpasswd
     profiles:

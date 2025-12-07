@@ -14,7 +14,6 @@ include:
   - path: services/nginx-ingress/docker-compose.yml
     env_file:
       - $HOME/.config/hive/hostnames.env
-      - $HOME/.config/hive/log-spooler-path.env
       - $HOME/.config/hive/mediawiki-paths.env
       - $HOME/.config/hive/ollama-path.env
 
@@ -59,10 +58,6 @@ secrets:
     file: $HOME/.config/hive/hostnames.env
   log-ingester.env:
     file: $HOME/.config/hive/log-ingester.env
-  log-spooler.env:
-    file: $HOME/.config/hive/log-spooler.env
-  log-spooler.htpasswd:
-    file: $HOME/.config/hive/log-spooler.htpasswd
   matrix.yml:
     file: $HOME/.config/hive/matrix.yml
   mediawiki-mariadb.env:

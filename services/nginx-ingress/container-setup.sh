@@ -8,7 +8,7 @@ for f in /run/secrets/*.env; do
   entrypoint_log "$self: Sourcing $f"
   . $f
   for v in $(sed 's/#.*//; /^[[:space:]]*$/d; s/^\([A-Z][A-Z0-9_]*[A-Z0-9]\)=.*/\1/' $f); do
-    export $v
+    echo $v | grep -q ^API_GATEWAY || export $v
   done
 done
 entrypoint_log "$self: Result:"

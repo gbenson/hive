@@ -17,6 +17,7 @@ services:
       - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./snippets:/etc/nginx/snippets:ro
       - ./container-setup.sh:/docker-entrypoint.d/00-hive-container-setup.envsh:ro
+      - ./api-gateway-setup.sh:/docker-entrypoint.d/90-hive-api-gateway-setup.sh:ro
     secrets:
       - container-registry.htpasswd
       - hostnames.env

@@ -10,13 +10,7 @@ include:
   - path: services/logging/docker-compose.yml
   - path: services/matrix-connector/docker-compose.yml
   - path: services/mediawiki-fpm/docker-compose.yml
-
   - path: services/nginx-ingress/docker-compose.yml
-    env_file:
-      - $HOME/.config/hive/hostnames.env
-      - $HOME/.config/hive/mediawiki-paths.env
-      - $HOME/.config/hive/ollama-path.env
-
   - path: services/ollama/docker-compose.yml
 
   - path: services/rabbitmq/docker-compose.yml
@@ -80,5 +74,7 @@ secrets:
     file: $HOME/.config/hive/mediawiki-uploads-backup-passphrase
   ollama.htpasswd:
     file: $HOME/.config/hive/ollama.htpasswd
+  ollama-path.env:
+    file: $HOME/.config/hive/ollama-path.env
   rabbitmq.env:
     file: $HOME/.config/hive/rabbitmq.env

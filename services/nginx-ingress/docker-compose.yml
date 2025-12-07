@@ -16,19 +16,14 @@ services:
       - hive_mediawiki_uploads:/usr/share/nginx/mediawiki-uploads:ro
       - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./snippets:/etc/nginx/snippets:ro
-      - ./container-setup.sh:/docker-entrypoint.d/90-hive-container-setup.sh:ro
-    environment:
-      - DEFAULT_HOSTNAME
-      - SERVICE_HOSTNAME
-      - OLLAMA_PATH
-      - WG_ARTICLE_PATH
-      - WG_SCRIPT_PATH
-      - WG_RESOURCE_BASE_PATH
-      - WG_UPLOAD_PATH
+      - ./container-setup.sh:/docker-entrypoint.d/00-hive-container-setup.envsh:ro
     secrets:
       - container-registry.htpasswd
+      - hostnames.env
       - mediawiki.htpasswd
+      - mediawiki-paths.env
       - ollama.htpasswd
+      - ollama-path.env
     profiles:
       - ingress
 

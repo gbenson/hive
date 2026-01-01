@@ -112,7 +112,7 @@ class Service(HiveService):
         r = httpx.get(entry.url, follow_redirects=True)
         r.raise_for_status()
 
-        if not r.extensions.get("from_cache"):
+        if not r.extensions.get("from_cache") and len(r.text) < (16<<20):
             channel.maybe_publish_event(
                 message={
                     "request_url": str(entry.url),

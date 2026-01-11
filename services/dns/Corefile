@@ -19,7 +19,7 @@
     forward . 127.0.0.1:5301 127.0.0.1:5308 127.0.0.1:5309
     errors
     cache 30
-    dnstap tcp://dnstap-collector:6000 full
+    #dnstap tcp://dnstap-collector:6000 full
 }
 
 .:5301 {

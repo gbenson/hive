@@ -24,7 +24,7 @@ services:
     secrets:
       - rabbitmq.env
     profiles:
-      - coredns
+      - dnstap-collector
 
   dnstap-integrator:
     image: gbenson/hive-dnstap-integrator
@@ -37,7 +37,7 @@ services:
       - rabbitmq.env
       - dnstap.yml
     profiles:
-      - rabbitmq
+      - dnstap-integrator
 
 networks:
   coredns:

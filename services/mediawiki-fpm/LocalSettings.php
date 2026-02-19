@@ -137,6 +137,7 @@ $wgFileExtensions[] = 'zip';
 $wgFileExtensions[] = 'txt';
 $wgFileExtensions[] = 'csv';
 $wgFileExtensions[] = 'uf2';
+$wgFileExtensions[] = 'sid';
 
 ## https://www.mediawiki.org/wiki/Extension:Renameuser
 #wfLoadExtension( 'Renameuser' );

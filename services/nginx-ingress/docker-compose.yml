@@ -6,7 +6,6 @@ services:
       - nginx-ingress
       - mediawiki-fpm
       - ollama-connector
-      - container-registry
     ports:
       - 443:443/tcp
     volumes:
@@ -19,7 +18,6 @@ services:
       - ./container-setup.sh:/docker-entrypoint.d/00-hive-container-setup.envsh:ro
       - ./api-gateway-setup.sh:/docker-entrypoint.d/90-hive-api-gateway-setup.sh:ro
     secrets:
-      - container-registry.htpasswd
       - hostnames.env
       - mediawiki.htpasswd
       - mediawiki-paths.env

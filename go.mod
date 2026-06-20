@@ -16,7 +16,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.21.0
-	go.mongodb.org/mongo-driver/v2 v2.2.2
+	go.mongodb.org/mongo-driver/v2 v2.4.2
 	golang.org/x/crypto v0.45.0
 	golang.org/x/term v0.37.0
 	google.golang.org/protobuf v1.36.5

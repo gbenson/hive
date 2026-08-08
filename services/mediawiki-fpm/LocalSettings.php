@@ -70,6 +70,7 @@ $wgMemCachedServers = [];
 $wgEnableUploads = true;
 $wgUseImageMagick = true;
 $wgImageMagickConvertCommand = '/usr/bin/convert';
+$wgMaxImageArea = 20000000;
 
 # InstantCommons allows wiki to use images from https://commons.wikimedia.org
 $wgUseInstantCommons = false;
@@ -137,6 +138,7 @@ $wgFileExtensions[] = 'zip';
 $wgFileExtensions[] = 'txt';
 $wgFileExtensions[] = 'csv';
 $wgFileExtensions[] = 'uf2';
+$wgFileExtensions[] = 'mpy';
 $wgFileExtensions[] = 'sid';
 
 ## https://www.mediawiki.org/wiki/Extension:Renameuser

@@ -18,6 +18,7 @@ include:
       - $HOME/.config/hive/rabbitmq.env
 
   - path: services/reading-list-updater/docker-compose.yml
+  - path: services/watchtower/docker-compose.yml
 
 secrets:
   backup-server.env:

@@ -1,0 +1,11 @@
+services:
+  watchtower:
+    image: nickfedor/watchtower
+    restart: unless-stopped
+    networks:
+      - watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  watchtower:

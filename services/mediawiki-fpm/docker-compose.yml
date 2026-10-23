@@ -22,7 +22,7 @@ services:
       - mediawiki
 
   mediawiki-mariadb:
-    image: mariadb
+    image: mariadb:11
     restart: unless-stopped
     networks:
       - mediawiki-mariadb
@@ -32,7 +32,7 @@ services:
       - mediawiki
 
   mediawiki-mariadb-snapshotter:
-    image: mariadb
+    image: mariadb:11
     init: true
     restart: unless-stopped
     networks:

@@ -1,6 +1,6 @@
 services:
   nginx-ingress:
-    image: nginx
+    image: nginx:1
     restart: unless-stopped
     networks:
       - nginx-ingress

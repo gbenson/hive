@@ -38,7 +38,7 @@ services:
       - ingress
 
   nginx-http:
-    image: nginx
+    image: nginx:1
     restart: unless-stopped
     networks:
       - nginx-http

@@ -10,10 +10,9 @@ jobs:
 
     steps:
       - name: Install dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1
+        uses: tecolicom/actions-use-apt-tools@v1
         with:
-          packages: libolm-dev libsystemd-dev
-          version: 1.0
+          tools: libolm-dev libsystemd-dev
 
       - name: Checkout repository
         uses: actions/checkout@v4

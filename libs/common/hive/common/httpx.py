@@ -1,10 +1,12 @@
 from collections.abc import Iterator
 from contextlib import suppress
+from errno import EACCES
 from pathlib import Path
 from tempfile import TemporaryFile
-from typing import Any, Optional
+from typing import Any
 
-from hishel import CacheClient, FileStorage
+from hishel import SyncSqliteStorage
+from hishel.httpx import SyncCacheClient
 from httpx import Client, Request, Response, URL  # noqa: F401
 
 from .config import read as read_config
@@ -30,11 +32,13 @@ def _special_mkdir(path: Path, mode: int = 0o700) -> Path:
     return path
 
 
-def _default_cache_path() -> Optional[Path]:
+def _default_cache_path() -> Path:
+    failures = []
     for basedir in _default_cache_path_options():
         with suppress(PermissionError):
             return _special_mkdir(basedir / "hive" / "hishel")
-    return None
+        failures.append(basedir)
+    raise PermissionError(EACCES, f"Permission denied: {failures}")
 
 
 DEFAULT_CACHE_PATH = _default_cache_path()
@@ -54,9 +58,9 @@ def _default_user_agent(name: str = "HiveBot") -> str:
 DEFAULT_USER_AGENT = _default_user_agent()
 
 
-DEFAULT_CLIENT: Client = CacheClient(
+DEFAULT_CLIENT: Client = SyncCacheClient(
     http2=True,
-    storage=FileStorage(base_path=DEFAULT_CACHE_PATH),
+    storage=SyncSqliteStorage(database_path=DEFAULT_CACHE_PATH / "cache.db"),
 )
 DEFAULT_CLIENT.headers["User-Agent"] = DEFAULT_USER_AGENT
 

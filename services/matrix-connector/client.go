@@ -95,8 +95,10 @@ func (conn *Client) init(ctx context.Context, o *Options) error {
 	log.Msg("Authenticated")
 
 	conn.mach = helper.Machine()
-	pubkeys := conn.mach.GetOwnCrossSigningPublicKeys(ctx)
-	if pubkeys == nil {
+	pubkeys, err := conn.mach.GetOwnCrossSigningPublicKeys(ctx)
+	if err != nil {
+		return err
+	} else if pubkeys == nil {
 		return ErrNoCrossSigningKeys
 	}
 

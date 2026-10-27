@@ -16,13 +16,13 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
-type Client struct {
-	mautrix.Client
-	mach *crypto.OlmMachine
+type Conn struct {
+	client *mautrix.Client
+	mach   *crypto.OlmMachine
 }
 
 // Dial returns a new connection to the Matrix.
-func Dial(ctx context.Context, o *Options) (*Client, error) {
+func Dial(ctx context.Context, o *Options) (*Conn, error) {
 	if ctx == nil {
 		panic("nil context")
 	}
@@ -40,7 +40,7 @@ func Dial(ctx context.Context, o *Options) (*Client, error) {
 	}
 	mc.Log = *o.Log
 
-	conn := &Client{Client: *mc}
+	conn := &Conn{client: mc}
 	if err := conn.init(ctx, o); err != nil {
 		defer conn.Close()
 		return nil, err
@@ -49,8 +49,8 @@ func Dial(ctx context.Context, o *Options) (*Client, error) {
 	return conn, nil
 }
 
-func (conn *Client) init(ctx context.Context, o *Options) error {
-	conn.DeviceID = id.DeviceID(o.DeviceID)
+func (c *Conn) init(ctx context.Context, o *Options) error {
+	c.client.DeviceID = id.DeviceID(o.DeviceID)
 
 	store := o.DatabasePath
 	if err := os.MkdirAll(filepath.Dir(store), 0700); err != nil {
@@ -58,24 +58,24 @@ func (conn *Client) init(ctx context.Context, o *Options) error {
 	}
 
 	helper, err := cryptohelper.NewCryptoHelper(
-		&conn.Client,
+		c.client,
 		[]byte("meow"),
 		store,
 	)
 	if err != nil {
 		return err
 	}
-	conn.Crypto = helper
+	c.client.Crypto = helper
 
 	// Want o.Password and o.RecoveryKey for the initial login,
 	// o.DeviceID and o.AccessToken for subsequent connections.
-	isLoginFlow := conn.AccessToken == ""
+	isLoginFlow := c.client.AccessToken == ""
 	if isLoginFlow {
 		helper.LoginAs = &mautrix.ReqLogin{
 			Type: mautrix.AuthTypePassword,
 			Identifier: mautrix.UserIdentifier{
 				Type: mautrix.IdentifierTypeUser,
-				User: conn.UserID.Localpart(),
+				User: c.client.UserID.Localpart(),
 			},
 			Password: o.Password,
 		}
@@ -85,68 +85,68 @@ func (conn *Client) init(ctx context.Context, o *Options) error {
 		return err
 	}
 
-	log := conn.Log.Info().
-		Str("user_id", conn.UserID.String()).
-		Str("device_id", conn.DeviceID.String())
+	log := c.client.Log.Info().
+		Str("user_id", c.client.UserID.String()).
+		Str("device_id", c.client.DeviceID.String())
 	if isLoginFlow {
 		// Log unredacted access token for copying into config.
-		log = log.Str("access_token", conn.AccessToken)
+		log = log.Str("access_token", c.client.AccessToken)
 	}
 	log.Msg("Authenticated")
 
-	conn.mach = helper.Machine()
-	pubkeys, err := conn.mach.GetOwnCrossSigningPublicKeys(ctx)
+	c.mach = helper.Machine()
+	pubkeys, err := c.mach.GetOwnCrossSigningPublicKeys(ctx)
 	if err != nil {
 		return err
 	} else if pubkeys == nil {
 		return ErrNoCrossSigningKeys
 	}
 
-	isVerified, err := conn.mach.CryptoStore.IsKeySignedBy(
+	isVerified, err := c.mach.CryptoStore.IsKeySignedBy(
 		ctx,
-		conn.UserID,
-		conn.mach.GetAccount().SigningKey(),
-		conn.UserID,
+		c.client.UserID,
+		c.mach.GetAccount().SigningKey(),
+		c.client.UserID,
 		pubkeys.SelfSigningKey,
 	)
 	if err != nil {
 		return err
 	}
 	if isVerified {
-		conn.Log.Info().Msg("Device is verified")
+		c.client.Log.Info().Msg("Device is verified")
 		if o.RecoveryKey != "" {
-			conn.Log.Warn().
+			c.client.Log.Warn().
 				Msg("Consider removing your recovery key from the config")
 		}
 		return nil
 	} else {
-		conn.Log.Warn().Msg("Device is not verified")
+		c.client.Log.Warn().Msg("Device is not verified")
 	}
 
 	if o.RecoveryKey == "" {
 		return ErrNoRecoveryKey
 	}
 
-	// conn.Sync needs to upload keys for verify to work, so we run
+	// c.Sync needs to upload keys for verify to work, so we run
 	// the verifier in its own goroutine so this function can return
 	// and let our caller get on with calling Sync.
 	go func() {
-		conn.verify(ctx, o.RecoveryKey)
+		c.verify(ctx, o.RecoveryKey)
 	}()
 
 	return nil
 }
 
-func (c *Client) verify(ctx context.Context, recoveryKey string) {
+func (c *Conn) verify(ctx context.Context, recoveryKey string) {
 	for {
 		if err := c.Verify(ctx, recoveryKey); err != nil {
-			c.Log.Err(err).Msg("Verify failed")
+			c.client.Log.Err(err).Msg("Verify failed")
 			time.Sleep(1 * time.Second)
 			continue
 		}
 
-		c.Log.Info().Msg("Device is verified")
-		c.Log.Warn().
+		c.client.Log.Info().Msg("Device is verified")
+		c.client.Log.Warn().
 			Msg("Consider removing your recovery key from the config")
 
 		return
@@ -154,7 +154,7 @@ func (c *Client) verify(ctx context.Context, recoveryKey string) {
 }
 
 // Verify verifies the device using a recovery key.
-func (c *Client) Verify(ctx context.Context, recoveryKey string) error {
+func (c *Conn) Verify(ctx context.Context, recoveryKey string) error {
 	keyID, keyData, err := c.mach.SSSS.GetDefaultKeyData(ctx)
 	if err != nil {
 		return err
@@ -177,22 +177,22 @@ func (c *Client) Verify(ctx context.Context, recoveryKey string) error {
 }
 
 // Close closes the connection.
-func (c *Client) Close() error {
-	helper, _ := c.Crypto.(io.Closer)
+func (c *Conn) Close() error {
+	helper, _ := c.client.Crypto.(io.Closer)
 	if helper == nil {
 		return nil
 	}
-	logger.LoggedClose(&c.Log, helper, "database")
+	logger.LoggedClose(&c.client.Log, helper, "database")
 	return nil
 }
 
 // OnEventType allows callers to be notified when there are new events
 // for the given event type. There are no duplicate checks.
-func (c *Client) OnEventType(
+func (c *Conn) OnEventType(
 	eventType event.Type,
 	callback mautrix.EventHandler,
 ) error {
-	syncer, ok := c.Syncer.(*mautrix.DefaultSyncer)
+	syncer, ok := c.client.Syncer.(*mautrix.DefaultSyncer)
 	if !ok {
 		return ErrNoSyncer
 	}

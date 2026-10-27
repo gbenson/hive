@@ -14,13 +14,15 @@ import (
 
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 
+	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 )
 
 type Service struct {
 	Options      Options
-	Client       *Client
+	Conn         *Conn
+	Client       *mautrix.Client
 	RoomID       id.RoomID
 	cancelSync   context.CancelFunc
 	syncStopWait sync.WaitGroup
@@ -41,15 +43,16 @@ func (s *Service) Start(
 	}
 	s.RoomID = id.RoomID(s.Options.RoomID)
 
-	if s.Client, err = Dial(ctx, &s.Options); err != nil {
+	if s.Conn, err = Dial(ctx, &s.Options); err != nil {
 		return nil, err
 	}
+	s.Client = s.Conn.client
 
 	for _, eventType := range []event.Type{
 		event.EventMessage,
 		event.EventReaction,
 	} {
-		if err = s.Client.OnEventType(
+		if err = s.Conn.OnEventType(
 			eventType,
 			func(ctx context.Context, e *event.Event) {
 				ctx = log.WithContext(ctx) // Remove go-mautrix additions
@@ -75,18 +78,19 @@ func (s *Service) Start(
 }
 
 func (s *Service) Close() error {
-	conn := s.Client
+	conn := s.Conn
 	if conn == nil {
 		return nil
 	}
-	defer logger.LoggedClose(&conn.Log, conn, "Matrix client")
+	log := &s.Client.Log
+	defer logger.LoggedClose(log, conn, "Matrix client")
 
 	if s.cancelSync != nil {
-		conn.Log.Debug().Msg("Stopping syncer")
+		log.Debug().Msg("Stopping syncer")
 		s.cancelSync()
-		conn.Log.Debug().Msg("Waiting for syncer to stop")
+		log.Debug().Msg("Waiting for syncer to stop")
 		s.syncStopWait.Wait()
-		conn.Log.Debug().Msg("Syncer stopped")
+		log.Debug().Msg("Syncer stopped")
 	}
 
 	return nil

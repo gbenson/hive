@@ -85,12 +85,34 @@ func (s *Service) Close() error {
 	log := &s.Client.Log
 	defer logger.LoggedClose(log, conn, "Matrix client")
 
-	if s.cancelSync != nil {
-		log.Debug().Msg("Stopping syncer")
-		s.cancelSync()
-		log.Debug().Msg("Waiting for syncer to stop")
+	if s.cancelSync == nil {
+		return nil
+	}
+
+	log.Debug().Msg("Stopping syncer")
+	s.cancelSync()
+	log.Debug().Msg("Waiting for syncer to stop")
+
+	// syncStopWait.Wait() can hang forever waiting for
+	// s.Client.SyncWithContext() to return, which among
+	// other things means we never restart and reconnect
+	// if Rabbit restarts.  I *should* fix this properly,
+	// figure out what's not checking its context, but
+	// the timeout is easier.
+	done := make(chan struct{})
+	go func() {
 		s.syncStopWait.Wait()
+		close(done)
+	}()
+
+	const timeout = 5 * time.Second
+	select {
+	case <-done:
 		log.Debug().Msg("Syncer stopped")
+	case <-time.After(timeout):
+		log.Warn().
+			Dur("after", timeout).
+			Msg("Gave up waiting for syncer to stop")
 	}
 
 	return nil

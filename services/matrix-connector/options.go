@@ -98,7 +98,7 @@ func (o *Options) ensureConfigKey() error {
 		o.logUpdate("ConfigKey", o.ConfigKey)
 		return nil
 	}
-	username, homeserver, err := id.UserID(o.UserID).ParseAndValidate()
+	username, homeserver, err := id.UserID(o.UserID).ParseAndValidateStrict()
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (o *Options) ensureHomeserver(c *config.Config, ck *configKeys) error {
 		c.SetDefault(ck.Homeserver, DefaultHomeserver)
 		o.Homeserver = c.GetString(ck.Homeserver)
 	} else {
-		_, homeserver, err := id.UserID(o.UserID).ParseAndValidate()
+		_, homeserver, err := id.UserID(o.UserID).ParseAndValidateStrict()
 		if err != nil {
 			return err
 		}
@@ -179,7 +179,7 @@ func (o *Options) ensureUserID(c *config.Config, ck *configKeys) error {
 
 	c.SetDefault(ck.UserID, id.NewUserID(o.ConfigKey, o.Homeserver).String())
 	userID := id.UserID(c.GetString(ck.UserID))
-	if _, _, err := userID.ParseAndValidate(); err != nil {
+	if _, _, err := userID.ParseAndValidateStrict(); err != nil {
 		return err
 	}
 
@@ -254,7 +254,7 @@ func (o *Options) ensureDatabasePath(c *config.Config, ck *configKeys) error {
 	}
 
 	// Construct a fallback path to use if we don't have a DeviceID.
-	localpart, homeserver, err := id.UserID(o.UserID).ParseAndValidate()
+	localpart, homeserver, err := id.UserID(o.UserID).ParseAndValidateStrict()
 	if err != nil {
 		return err
 	}

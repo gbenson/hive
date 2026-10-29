@@ -13,6 +13,8 @@ jobs:
   build:
     name: Build and test hive-service
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     defaults:
       run:

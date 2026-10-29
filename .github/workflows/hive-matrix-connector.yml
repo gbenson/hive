@@ -9,6 +9,8 @@ jobs:
   build:
     name: Build and push hive-matrix-connector
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     steps:
       - name: Set up QEMU

@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+      id-token: write
+      attestations: write
 
     defaults:
       run:
@@ -50,3 +52,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Generate attestation
+        uses: actions/attest@v4
+        with:
+          subject-name: index.docker.io/gbenson/hive-mediawiki
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true

@@ -2,7 +2,9 @@ name: make-check-go
 
 on:
   push:
-  pull_request:
+    branches:
+      - main
+      - candidate
 
 jobs:
   test:

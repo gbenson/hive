@@ -49,7 +49,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            GITHUB_SERVER_URL=${{ github.server_url }}
-            GITHUB_REPOSITORY=${{ github.repository }}
-            GITHUB_SHA=${{ github.sha }}

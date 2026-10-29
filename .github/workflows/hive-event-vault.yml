@@ -52,7 +52,3 @@ jobs:
           push: ${{ startsWith(github.ref, 'refs/tags/hive-event-vault-') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            GITHUB_SERVER_URL=${{ github.server_url }}
-            GITHUB_REPOSITORY=${{ github.repository }}
-            GITHUB_SHA=${{ github.sha }}

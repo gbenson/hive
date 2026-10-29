@@ -1,4 +1,4 @@
-FROM mediawiki:1.43.5-fpm
+FROM mediawiki:1.43.11-fpm
 
 # https://www.mediawiki.org/wiki/Special:ExtensionDistributor?extdistname=Scribunto&extdistversion=REL1_43
 ARG MOBILE_FRONTEND=extensions/MobileFrontend-REL1_43-148ff5d.tar.gz

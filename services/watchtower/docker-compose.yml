@@ -6,6 +6,9 @@ services:
       - watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_SCHEDULE="${WATCHTOWER_SCHEDULE:-0 0 4 * * *}"
+      - TZ=${WATCHTOWER_TZ:-UTC}
 
 networks:
   watchtower:
